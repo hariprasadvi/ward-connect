@@ -1,0 +1,23 @@
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>{{ 'CHATBOT_TITLE' | translate }}</h2>
+    </div>
+
+    <div class="messages-list">
+        <div *ngFor="let msg of messages" [ngClass]="{'msg-user': msg.role === 'user', 'msg-bot': msg.role === 'model'}"
+            class="message">
+            <div class="msg-bubble">
+                {{ msg.text }}
+            </div>
+        </div>
+        <div *ngIf="isLoading" class="message msg-bot">
+            <div class="msg-bubble loading">Thinking...</div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input [(ngModel)]="userInput" (keyup.enter)="sendMessage()" placeholder="{{ 'CHAT_PLACEHOLDER' | translate }}"
+            type="text">
+        <button (click)="sendMessage()">Send</button>
+    </div>
+</div>

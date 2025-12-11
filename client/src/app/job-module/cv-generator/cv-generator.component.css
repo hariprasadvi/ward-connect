@@ -1,0 +1,85 @@
+.cv-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--primary);
+}
+
+.form-section,
+.result-section {
+    padding: 2rem;
+    border-radius: 16px;
+    background: var(--bg-card);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    box-sizing: border-box;
+    /* Fix padding issue */
+}
+
+input:focus,
+textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.btn-generate,
+.btn-download,
+.btn-reset {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.btn-generate:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.cv-preview {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-reset {
+    background: transparent;
+    border: 1px solid var(--primary);
+}

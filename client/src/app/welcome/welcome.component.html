@@ -1,0 +1,13 @@
+<div class="welcome-container">
+    <div class="hero-section">
+        <h1 class="main-title">{{ 'WELCOME_TITLE' | translate }}</h1>
+        <p class="subtitle">{{ 'SUBTITLE' | translate }}</p>
+    </div>
+
+    <div class="modules-grid">
+        <div class="module-card glass-effect" *ngFor="let mod of modules" (click)="navigate(mod.id)">
+            <div class="module-icon">{{ mod.icon }}</div>
+            <h3 class="module-title">{{ mod.title | translate }}</h3>
+        </div>
+    </div>
+</div>

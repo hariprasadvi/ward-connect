@@ -1,0 +1,13 @@
+<nav class="navbar glass-effect">
+  <div class="logo-container" routerLink="/">
+    <span class="logo-text">{{ 'WELCOME_TITLE' | translate }}</span>
+  </div>
+  
+  <div class="nav-controls">
+    <div class="lang-switch">
+      <button class="btn-lang" (click)="switchLang('en')">ENG</button>
+      <button class="btn-lang" (click)="switchLang('ml')">MAL</button>
+    </div>
+    <button class="btn-logout" (click)="logout()">{{ 'NAV_LOGOUT' | translate }}</button>
+  </div>
+</nav>

@@ -1,0 +1,20 @@
+<div class="dashboard-container">
+    <h2 class="dashboard-title">{{ 'JOB_DASHBOARD' | translate }}</h2>
+
+    <div class="features-grid">
+        <div class="feature-card glass-effect" *ngFor="let feat of features" (click)="navigate(feat.link)">
+            <div class="icon">{{ feat.icon }}</div>
+            <h3>{{ feat.title | translate }}</h3>
+        </div>
+    </div>
+
+    <!-- Subscription Section -->
+    <div class="subscription-section glass-effect">
+        <h3>{{ 'SUBSCRIBE_TITLE' | translate }}</h3>
+        <p>{{ 'SUBSCRIBE_DESC' | translate }}</p>
+        <div class="sub-form">
+            <input [(ngModel)]="email" placeholder="Enter your email" type="email">
+            <button (click)="subscribe()">{{ 'SUBSCRIBE_BTN' | translate }}</button>
+        </div>
+    </div>
+</div>

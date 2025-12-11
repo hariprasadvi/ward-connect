@@ -1,0 +1,20 @@
+{
+    "WELCOME_TITLE": "WardConnect",
+    "SUBTITLE": "A Smart Digital Portal for Panchayat Wards",
+    "NAV_HOME": "Home",
+    "NAV_LOGOUT": "Logout",
+    "MOD_KUDUMBASHREE": "Kudumbashree",
+    "MOD_VEHICLE": "Vehicle Services",
+    "MOD_HEALTH": "Health & Wellness",
+    "MOD_SHOP": "Shop Service",
+    "MOD_UTILITY": "Utility & Bill Services",
+    "MOD_JOB": "Job/Education",
+    "MOD_ENV": "Environment",
+    "MOD_CIVIC": "Civic Request",
+    "JOB_DASHBOARD": "Job Dashboard",
+    "CHATBOT_TITLE": "E-Learning Chatbot",
+    "CV_TITLE": "CV Generator",
+    "APPLY_TITLE": "Job Alerts & Apply",
+    "CHAT_PLACEHOLDER": "Ask about courses...",
+    "GENERATE_CV_BTN": "Generate CV"
+}

@@ -1,0 +1,45 @@
+<div class="cv-container">
+    <h2>{{ 'CV_TITLE' | translate }}</h2>
+
+    <!-- Form Step -->
+    <div *ngIf="step === 1" class="form-section glass-effect">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input [(ngModel)]="formData.personalInfo.name" placeholder="John Doe">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input [(ngModel)]="formData.personalInfo.email" placeholder="john@example.com">
+        </div>
+        <div class="form-group">
+            <label>Phone</label>
+            <input [(ngModel)]="formData.personalInfo.phone" placeholder="+91 9876543210">
+        </div>
+        <div class="form-group">
+            <label>Education (University, Degree, Year)</label>
+            <textarea [(ngModel)]="formData.education" rows="3" placeholder="B.Tech CS, KTU, 2024"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Experience (Role, Company, Year)</label>
+            <textarea [(ngModel)]="formData.experience" rows="3" placeholder="Intern, Google, 2023"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Skills (Comma separated)</label>
+            <input [(ngModel)]="formData.skills" placeholder="Angular, Node.js, Python">
+        </div>
+
+        <button class="btn-generate" (click)="generate()" [disabled]="isGenerating">
+            {{ isGenerating ? 'Generating...' : ('GENERATE_CV_BTN' | translate) }}
+        </button>
+    </div>
+
+    <!-- Result Step -->
+    <div *ngIf="step === 2" class="result-section glass-effect">
+        <h3>Your Professional CV</h3>
+        <pre class="cv-preview">{{ generatedCV }}</pre>
+        <div class="actions">
+            <button class="btn-download" (click)="download()">Download PDF</button>
+            <button class="btn-reset" (click)="reset()">Create Another</button>
+        </div>
+    </div>
+</div>
