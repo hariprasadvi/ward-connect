@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { sequelize } = require('./src/config/database');
 const authRoutes = require('./src/routes/authRoutes');
+const jobRoutes = require('./src/routes/jobRoutes');
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/api/job', jobRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
@@ -27,10 +29,10 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log('Database connected successfully.');
-    
+
     // Sync models (Force: false -> creates tables if not exist)
     await sequelize.sync({ alter: true });
-    
+
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });

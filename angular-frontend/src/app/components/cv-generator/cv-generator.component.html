@@ -1,0 +1,37 @@
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Form -->
+    <div class="glass-card p-6">
+        <h2 class="text-xl font-bold mb-6 text-gray-800">Your Details</h2>
+        <div class="space-y-4">
+            <input [(ngModel)]="userData.name" placeholder="Full Name" class="input-field">
+            <div class="grid grid-cols-2 gap-4">
+                <input [(ngModel)]="userData.email" placeholder="Email" class="input-field">
+                <input [(ngModel)]="userData.phone" placeholder="Phone" class="input-field">
+            </div>
+            <textarea [(ngModel)]="userData.education" placeholder="Education" rows="3" class="input-field"></textarea>
+            <textarea [(ngModel)]="userData.experience" placeholder="Work Experience" rows="3"
+                class="input-field"></textarea>
+            <textarea [(ngModel)]="userData.skills" placeholder="Skills (comma separated)" rows="2"
+                class="input-field"></textarea>
+
+            <button (click)="generateCV()" [disabled]="loading" class="btn-primary mt-4">
+                {{ loading ? 'Generating AI CV...' : 'Generate Professional CV' }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="glass-card p-6 min-h-[500px] flex flex-col">
+        <h2 class="text-xl font-bold mb-6 text-gray-800">Preview</h2>
+        <div *ngIf="generatedCV; else placeholder"
+            class="flex-1 overflow-y-auto bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <pre class="whitespace-pre-wrap font-sans text-sm">{{ generatedCV }}</pre>
+        </div>
+        <ng-template #placeholder>
+            <div
+                class="flex-1 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
+                Fill details to generate CV
+            </div>
+        </ng-template>
+    </div>
+</div>

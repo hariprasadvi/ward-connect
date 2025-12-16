@@ -1,0 +1,31 @@
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold text-gray-800">Latest Opportunities</h2>
+        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">
+            {{ jobs.length }} Active Jobs
+        </span>
+    </div>
+
+    <div *ngIf="loading" class="space-y-4">
+        <div *ngFor="let i of [1,2,3]" class="h-32 bg-gray-100 rounded-2xl animate-pulse"></div>
+    </div>
+
+    <div *ngIf="!loading && jobs.length === 0" class="text-center py-12 text-gray-500">
+        No job alerts available at the moment.
+    </div>
+
+    <div class="grid gap-4">
+        <div *ngFor="let job of jobs"
+            class="glass-card p-6 flex justify-between items-center group hover:border-indigo-200 transition-all">
+            <div>
+                <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{{ job.title
+                    }}</h3>
+                <p class="text-gray-500">{{ job.company }} • {{ job.location }}</p>
+                <div class="mt-2 flex gap-2">
+                    <span class="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">{{ job.type }}</span>
+                </div>
+            </div>
+            <button class="btn-primary !w-auto !py-2 !px-4 text-xs">Apply Now</button>
+        </div>
+    </div>
+</div>
