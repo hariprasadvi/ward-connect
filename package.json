@@ -1,0 +1,13 @@
+{
+    "name": "ward-connect-root",
+    "version": "1.0.0",
+    "description": "Root project for WardConnect",
+    "scripts": {
+        "install-all": "cd backend && npm install && cd angular-frontend && npm install",
+        "start": "concurrently \"cd backend && npm start\" \"cd angular-frontend && npm start\"",
+        "dev": "concurrently \"cd backend && npm run dev\" \"cd angular-frontend && npm start\""
+    },
+    "dependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

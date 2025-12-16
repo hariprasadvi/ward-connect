@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', sans-serif;
+    --font-heading: 'Outfit', sans-serif;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+}
+
+/* Selection Color */
+::selection {
+  @apply bg-indigo-500/30 text-indigo-900;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  }
+
+  .input-field {
+    @apply w-full px-5 py-3.5 rounded-xl border border-gray-200 bg-white/70 
+    focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 
+    outline-none transition-all duration-200 ease-out text-gray-700 placeholder-gray-400 
+    hover:border-gray-300 font-medium;
+  }
+
+  .btn-primary {
+    @apply w-full flex justify-center py-3.5 px-6 border border-transparent rounded-xl 
+    shadow-lg shadow-indigo-500/20 text-sm font-bold text-white tracking-wide
+    bg-gradient-to-r from-indigo-600 to-violet-600 
+    hover:from-indigo-500 hover:to-violet-500 hover:shadow-indigo-500/40 hover:-translate-y-0.5
+    active:scale-[0.98] active:shadow-none
+    focus:outline-none focus:ring-4 focus:ring-indigo-500/20 
+    transition-all duration-200;
+  }
+
+  .animated-bg {
+    background: linear-gradient(-45deg, #FF3CAC, #784BA0, #2B86C5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

@@ -1,0 +1,108 @@
+<div class="min-h-screen flex bg-gray-50 font-sans">
+    <!-- Left Side - Visual (Simpler, more elegant) -->
+    <div
+        class="hidden lg:flex w-5/12 bg-white relative overflow-hidden items-center justify-center border-r border-gray-100">
+        <div class="absolute inset-0 bg-indigo-50/50"></div>
+        <!-- Decorative subtle pattern -->
+        <div class="absolute top-0 left-0 w-full h-full opacity-30"
+            style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+        <div class="relative z-10 p-12 max-w-lg text-center">
+            <div class="mb-8 inline-block p-4 rounded-3xl bg-white shadow-xl shadow-indigo-100">
+                <span class="text-4xl">🏙️</span>
+            </div>
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">WardConnect</h1>
+            <p class="text-lg text-gray-500 leading-relaxed">
+                Your direct link to community services. <br> Efficient, transparent, and built for you.
+            </p>
+        </div>
+    </div>
+
+    <!-- Right Side - Form (Minimalist) -->
+    <div class="w-full lg:w-7/12 flex items-center justify-center p-8 bg-white">
+        <div class="max-w-md w-full">
+            <div class="text-center lg:text-left mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
+                <p class="mt-2 text-gray-500">Please enter your details to sign in.</p>
+            </div>
+
+            <div *ngIf="errorMessage"
+                class="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center">
+                <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                {{ errorMessage }}
+            </div>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+                <!-- Role Selector -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">I am a</label>
+                    <div class="relative">
+                        <select formControlName="role"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 appearance-none cursor-pointer font-medium text-gray-700">
+                            <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                            <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                                <path
+                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Input -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Mobile Number</label>
+                    <input formControlName="mobile_number" type="text"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
+                        placeholder="e.g. 9876543210">
+                </div>
+
+                <!-- Password Input -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-semibold text-gray-700">Password</label>
+                        <a href="#"
+                            class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Forgot
+                            password?</a>
+                    </div>
+                    <input formControlName="password" type="password"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
+                        placeholder="••••••••">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" [disabled]="loading || loginForm.invalid"
+                    class="w-full flex justify-center py-3.5 px-6 border border-transparent rounded-xl shadow-lg shadow-indigo-500/30 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span *ngIf="loading" class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        Signing in...
+                    </span>
+                    <span *ngIf="!loading">Sign in</span>
+                </button>
+
+                <!-- Signup Link -->
+                <div class="text-center mt-6">
+                    <p class="text-gray-500 text-sm">
+                        Don't have an account?
+                        <a routerLink="/signup"
+                            class="font-bold text-indigo-600 hover:text-indigo-500 hover:underline transition-all">
+                            Create free account
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
