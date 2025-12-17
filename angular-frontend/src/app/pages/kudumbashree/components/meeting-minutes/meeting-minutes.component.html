@@ -1,0 +1,117 @@
+<div class="meeting-minutes-container">
+  <h2>{{ translations().MEETING_MINUTES_GENERATOR }}</h2>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ translations().RECORD_MEETING }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ translations().SELECT_MEETING }}</mat-label>
+        <mat-select [(value)]="selectedMeeting" (selectionChange)="onMeetingSelect()">
+          <mat-option value="">-- {{ translations().SELECT_MEETING }} --</mat-option>
+          @for (meeting of meetings; track meeting.id) {
+          <mat-option [value]="meeting.id">
+            {{ meeting.title }} - {{ meeting.date | date:'mediumDate' }}
+          </mat-option>
+          }
+        </mat-select>
+        @if (!selectedMeeting) {
+        <mat-hint>{{ translations().SELECT_MEETING_HINT }}</mat-hint>
+        }
+      </mat-form-field>
+
+      @if (selectedMeeting && selectedMeetingDetails) {
+      <div class="meeting-details">
+        <h3>{{ translations().MEETING_DETAILS }}</h3>
+        <div class="details-grid">
+          <div class="detail-item">
+            <strong>{{ translations().TITLE }}:</strong> {{ selectedMeetingDetails.title }}
+          </div>
+          <div class="detail-item">
+            <strong>{{ translations().DATE }}:</strong> {{ selectedMeetingDetails.date | date:'fullDate' }}
+          </div>
+          <div class="detail-item">
+            <strong>{{ translations().LOCATION }}:</strong> {{ selectedMeetingDetails.location }}
+          </div>
+          @if (selectedMeetingDetails.description) {
+          <div class="detail-item full-width">
+            <strong>{{ translations().DESCRIPTION }}:</strong> {{ selectedMeetingDetails.description }}
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <div class="recording-controls">
+        <button mat-raised-button color="warn" (click)="isRecording ? stopRecording() : startRecording()"
+          [disabled]="!selectedMeeting" [class.recording]="isRecording" class="record-btn">
+          <mat-icon>{{ isRecording ? 'stop' : 'fiber_manual_record' }}</mat-icon>
+          {{ isRecording ? translations().STOP_RECORDING : translations().START_RECORDING }}
+        </button>
+
+        <button mat-raised-button color="primary" (click)="generateSummary()" [disabled]="!selectedMeeting"
+          class="generate-btn">
+          <mat-icon>summarize</mat-icon>
+          {{ translations().GENERATE_MINUTES }}
+        </button>
+
+        <button mat-stroked-button color="basic" (click)="clearSelection()" class="clear-btn">
+          <mat-icon>clear</mat-icon>
+          {{ translations().CLEAR }}
+        </button>
+      </div>
+
+      @if (isRecording) {
+      <div class="recording-status">
+        <mat-progress-spinner diameter="30" mode="indeterminate"></mat-progress-spinner>
+        <span>{{ translations().RECORDING_IN_PROGRESS }} {{ recordingTime }}s</span>
+      </div>
+      }
+
+      @if (transcript) {
+      <div class="results-section">
+        <div class="section-header">
+          <h3>{{ translations().MEETING_TRANSCRIPT }}</h3>
+          <button mat-icon-button (click)="copyToClipboard(transcript)" [matTooltip]="translations().COPY_TRANSCRIPT">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+        <div class="transcript-box">{{ transcript }}</div>
+
+        <div class="section-header">
+          <h3>{{ translations().MEETING_SUMMARY }}</h3>
+          <button mat-icon-button (click)="copyToClipboard(summary)" [matTooltip]="translations().COPY_SUMMARY">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+        <div class="summary-box">{{ summary }}</div>
+
+        <div class="action-buttons">
+          <button mat-stroked-button color="primary" (click)="downloadTranscript()">
+            <mat-icon>download</mat-icon>
+            {{ translations().DOWNLOAD_TRANSCRIPT }}
+          </button>
+          <button mat-stroked-button color="primary" (click)="downloadSummary()">
+            <mat-icon>download</mat-icon>
+            {{ translations().DOWNLOAD_SUMMARY }}
+          </button>
+        </div>
+      </div>
+      }
+
+      @if (meetings.length === 0) {
+      <div class="no-meetings">
+        <mat-icon>event_busy</mat-icon>
+        <h3>{{ translations().NO_MEETINGS_AVAILABLE }}</h3>
+        <p>{{ translations().SCHEDULE_MEETING_FIRST }}</p>
+        <button mat-raised-button color="primary" routerLink="/kudumbashree/meetings">
+          <mat-icon>add</mat-icon>
+          {{ translations().SCHEDULE_MEETING }}
+        </button>
+      </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

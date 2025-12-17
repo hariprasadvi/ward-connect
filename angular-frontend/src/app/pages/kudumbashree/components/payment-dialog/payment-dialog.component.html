@@ -1,0 +1,71 @@
+<div class="payment-dialog">
+  <h2 mat-dialog-title>Complete Attendance Payment</h2>
+  
+  <mat-dialog-content>
+    <div class="payment-info">
+      <div class="amount-section">
+        <h3>Amount: ₹{{ data.amount }}</h3>
+        <p>{{ data.description }}</p>
+      </div>
+
+      <div class="qr-code-section">
+        <h4>Scan QR Code to Pay</h4>
+        <div class="qr-code-container">
+          <img [src]="data.qrCode" alt="Payment QR Code" class="qr-code">
+          <div class="upi-info">
+            <p><strong>UPI ID:</strong> kudumbashree</p>
+            <p><strong>Transaction ID:</strong> {{ data.transactionId }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <h4>Payment Instructions:</h4>
+        <ol>
+          <li>Open your UPI payment app (Google Pay, PhonePe, Paytm, etc.)</li>
+          <li>Tap on "Scan QR Code"</li>
+          <li>Scan the QR code above</li>
+          <li>Confirm payment of ₹{{ data.amount }}</li>
+          <li>Click "Verify Payment" below after completing payment</li>
+        </ol>
+      </div>
+
+      <!-- Payment Status -->
+      <div class="payment-status">
+        @if (isVerifying) {
+          <div class="verifying">
+            <mat-progress-spinner diameter="30"></mat-progress-spinner>
+            <span>Verifying payment...</span>
+          </div>
+        }
+        
+        @if (paymentVerified) {
+          <div class="success">
+            <mat-icon>check_circle</mat-icon>
+            <span>Payment verified successfully!</span>
+          </div>
+        }
+        
+        @if (paymentFailed) {
+          <div class="error">
+            <mat-icon>error</mat-icon>
+            <span>Payment verification failed. Please try again.</span>
+          </div>
+        }
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="cancelPayment()" [disabled]="isVerifying">
+      Cancel
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="verifyPayment()"
+      [disabled]="isVerifying || paymentVerified">
+      {{ isVerifying ? 'Verifying...' : 'Verify Payment' }}
+    </button>
+  </mat-dialog-actions>
+</div>

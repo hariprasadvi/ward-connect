@@ -1,0 +1,130 @@
+<!-- member-dashboard.component.html -->
+<div class="member-dashboard">
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <div class="welcome-content">
+      <h1>
+        {{ translations().SUCCESS }} {{ user()?.name }}! 👋
+      </h1>
+      <p>{{ translations().DASHBOARD }}</p>
+    </div>
+    <div class="user-info">
+      <mat-icon>account_circle</mat-icon>
+      <span>{{ user()?.communityUnit }}</span>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <mat-card *ngFor="let stat of stats" class="stat-card" [style.border-left-color]="stat.color"
+      [routerLink]="stat.route" style="cursor: pointer;">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon" [style.background]="stat.color + '20'">
+            <mat-icon [style.color]="stat.color">{{ stat.icon }}</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3>{{ stat.value }}</h3>
+            <p>{{ stat.title }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Quick Actions -->
+  <mat-card class="actions-section">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>flash_on</mat-icon>
+        {{ translations().ACTIONS }}
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="actions-grid">
+        <button *ngFor="let action of getQuickActions()" mat-raised-button class="action-button"
+          [routerLink]="action.route" [style.background]="action.color">
+          <mat-icon>{{ action.icon }}</mat-icon>
+          <div class="action-text">
+            <strong>{{ action.title }}</strong>
+            <span>{{ action.description }}</span>
+          </div>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Recent Activity -->
+  <div class="activity-section">
+    <mat-card class="activity-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>history</mat-icon>
+          {{ translations().ATTENDANCE_REPORTS }}
+        </mat-card-title>
+        <button mat-button color="primary" routerLink="/kudumbashree/payments">
+          {{ translations().VIEW_ALL }}
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item *ngFor="let activity of recentActivities" class="activity-item">
+            <mat-icon matListItemIcon [color]="getActivityColor(activity.type)">
+              {{ getActivityIcon(activity.type) }}
+            </mat-icon>
+            <div matListItemTitle>{{ activity.description }}</div>
+            <div matListItemLine class="activity-meta">
+              <span>{{ activity.date | date:'mediumDate' }}</span>
+              <span class="amount" *ngIf="activity.amount">
+                ₹{{ activity.amount }}
+              </span>
+              <span class="status" *ngIf="activity.status" [style.color]="getStatusColor(activity.status)">
+                • {{ getStatusTranslation(activity.status) }}
+              </span>
+            </div>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Upcoming Meetings -->
+    <mat-card class="meetings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>event_upcoming</mat-icon>
+          {{ translations().MEETING_REPORTS }}
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="upcoming-meeting">
+          <div class="meeting-info">
+            <h4>
+              {{ getMeetingTitle(currentLanguage === 'ml') }}
+            </h4>
+            <p>
+              {{ getMeetingLocation(currentLanguage === 'ml') }}
+            </p>
+            <span class="meeting-date">Jan 25, 2024 • 10:00 AM</span>
+          </div>
+          <button mat-raised-button color="primary" routerLink="/kudumbashree/attendance">
+            {{ translations().MARK_ATTENDANCE }}
+          </button>
+        </div>
+        <div class="upcoming-meeting">
+          <div class="meeting-info">
+            <h4>
+              {{ getLoanTitle(currentLanguage === 'ml') }}
+            </h4>
+            <p>
+              {{ getLoanLocation(currentLanguage === 'ml') }}
+            </p>
+            <span class="meeting-date">Jan 28, 2024 • 2:00 PM</span>
+          </div>
+          <button mat-stroked-button color="primary" routerLink="/kudumbashree/loans">
+            {{ translations().APPLY_FOR_LOAN }}
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

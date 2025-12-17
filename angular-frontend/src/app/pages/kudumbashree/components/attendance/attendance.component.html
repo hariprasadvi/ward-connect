@@ -1,0 +1,67 @@
+<div class="attendance-container">
+  <h2>{{ translations().ATTENDANCE_SYSTEM }}</h2>
+  
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ translations().MARK_YOUR_ATTENDANCE }}</mat-card-title>
+      <mat-card-subtitle>Attendance Fee: ₹{{ attendanceFee }}</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      @if (isScanning) {
+        <div class="scanning-area">
+          <div class="face-scanner">
+            <div class="scanner-animation"></div>
+            <p>{{ translations().SCANNING_FACE }}</p>
+            <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+          </div>
+          <div class="location-info">
+            <p>{{ translations().GETTING_LOCATION }}</p>
+          </div>
+        </div>
+      }
+
+      @if (isProcessingPayment) {
+        <div class="payment-processing">
+          <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+          <p>Processing payment...</p>
+        </div>
+      }
+
+      @if (!isScanning && !isProcessingPayment) {
+        <div class="attendance-controls">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="markAttendance()"
+            class="mark-attendance-btn">
+            <mat-icon>fingerprint</mat-icon>
+            {{ translations().MARK_ATTENDANCE }} (₹{{ attendanceFee }})
+          </button>
+          
+          <div class="fee-info">
+            <p><strong>Attendance Fee:</strong> ₹{{ attendanceFee }} per meeting</p>
+            <p><small>Fee contributes to community development funds</small></p>
+          </div>
+        </div>
+      }
+
+      @if (attendanceStatus) {
+        <div 
+          class="status-message"
+          [class.success]="attendanceStatus.includes(translations().SUCCESS)"
+          [class.error]="attendanceStatus.includes(translations().ERROR)">
+          {{ attendanceStatus }}
+        </div>
+      }
+
+      @if (currentLocation) {
+        <div class="location-display">
+          <h4>{{ translations().LOCATION_DETAILS }}:</h4>
+          <p>{{ translations().LATITUDE }}: {{ currentLocation.latitude }}</p>
+          <p>{{ translations().LONGITUDE }}: {{ currentLocation.longitude }}</p>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

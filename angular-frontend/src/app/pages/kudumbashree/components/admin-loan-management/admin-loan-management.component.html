@@ -1,0 +1,208 @@
+<div class="loan-management-container">
+  <div class="header-section">
+    <h1>Loan Management</h1>
+    <p>Approve, reject, and manage community loan applications</p>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">request_quote</mat-icon>
+          <div class="stat-details">
+            <h3>{{ loans.length }}</h3>
+            <p>Total Loans</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">pending_actions</mat-icon>
+          <div class="stat-details">
+            <h3>{{ getPendingLoansCount() }}</h3>
+            <p>Pending Approval</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">account_balance</mat-icon>
+          <div class="stat-details">
+            <h3>{{ getActiveLoansCount() }}</h3>
+            <p>Active Loans</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">payments</mat-icon>
+          <div class="stat-details">
+            <h3>{{ getFormattedAmount(getTotalLoanAmount()) }}</h3>
+            <p>Total Amount</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filters Section -->
+  <mat-card class="filters-section">
+    <mat-card-content>
+      <div class="filter-controls">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Loans</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search by name, loan number, or purpose">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Status</mat-label>
+          <mat-select [(value)]="statusFilter" (selectionChange)="applyFilters()">
+            <mat-option value="all">All Status</mat-option>
+            <mat-option value="pending">Pending</mat-option>
+            <mat-option value="approved">Approved</mat-option>
+            <mat-option value="rejected">Rejected</mat-option>
+            <mat-option value="disbursed">Disbursed</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Community Unit</mat-label>
+          <mat-select [(value)]="unitFilter" (selectionChange)="applyFilters()">
+            <mat-option value="all">All Units</mat-option>
+            <mat-option *ngFor="let unit of getUniqueUnits()" [value]="unit">{{ unit }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loans Table -->
+  <mat-card class="loans-table-section">
+    <mat-card-header>
+      <mat-card-title>Loan Applications</mat-card-title>
+      <span class="results-count">{{ filteredLoans.length }} loans found</span>
+    </mat-card-header>
+
+    <mat-card-content>
+      <table mat-table [dataSource]="filteredLoans" class="full-width">
+        <!-- Loan Number Column -->
+        <ng-container matColumnDef="loanNumber">
+          <th mat-header-cell *matHeaderCellDef>Loan ID</th>
+          <td mat-cell *matCellDef="let loan">
+            <div class="loan-number">
+              <strong>{{ loan.loanNumber }}</strong>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- User Column -->
+        <ng-container matColumnDef="user">
+          <th mat-header-cell *matHeaderCellDef>Applicant</th>
+          <td mat-cell *matCellDef="let loan">
+            <div class="user-info">
+              <div class="user-name">{{ loan.userName }}</div>
+              <div class="user-details">
+                <span class="unit">{{ loan.communityUnit }}</span>
+                <span class="email">{{ loan.userEmail }}</span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Amount Column -->
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef>Amount</th>
+          <td mat-cell *matCellDef="let loan">
+            <div class="loan-amount">
+              <strong>{{ getFormattedAmount(loan.amount) }}</strong>
+              <div class="loan-details">
+                <span>{{ loan.tenureMonths }} months</span>
+                <span>{{ loan.interestRate }}% interest</span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Purpose Column -->
+        <ng-container matColumnDef="purpose">
+          <th mat-header-cell *matHeaderCellDef>Purpose</th>
+          <td mat-cell *matCellDef="let loan">
+            <div class="purpose-info">
+              <strong>{{ loan.purpose }}</strong>
+              <p class="description">{{ loan.description }}</p>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Applied Date Column -->
+        <ng-container matColumnDef="appliedDate">
+          <th mat-header-cell *matHeaderCellDef>Applied Date</th>
+          <td mat-cell *matCellDef="let loan">
+            {{ loan.appliedDate | date:'mediumDate' }}
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let loan">
+            <span [class]="getStatusClass(loan.status)">
+              {{ getStatusTranslation(loan.status) }}
+            </span>
+            <div *ngIf="loan.approvedDate" class="approval-info">
+              <small>By {{ loan.approvedBy }} on {{ loan.approvedDate | date:'shortDate' }}</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let loan">
+            <div class="action-buttons">
+              <button mat-icon-button color="primary" [matTooltip]="'View ' + loan.loanNumber" (click)="viewLoanDetails(loan)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              
+              <ng-container *ngIf="loan.status === 'pending'">
+                <button mat-icon-button color="primary" [matTooltip]="'Approve ' + loan.loanNumber" (click)="approveLoan(loan)">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" [matTooltip]="'Reject ' + loan.loanNumber" (click)="rejectLoan(loan)">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </ng-container>
+
+              <ng-container *ngIf="loan.status === 'approved'">
+                <button mat-icon-button color="accent" [matTooltip]="'Disburse ' + loan.loanNumber" (click)="disburseLoan(loan)">
+                  <mat-icon>send_money</mat-icon>
+                </button>
+              </ng-container>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredLoans.length === 0" class="empty-state">
+        <mat-icon>request_quote</mat-icon>
+        <h3>No loans found</h3>
+        <p>Try adjusting your search criteria</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

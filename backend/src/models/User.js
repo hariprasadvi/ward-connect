@@ -30,6 +30,7 @@ const User = sequelize.define('User', {
             'Ward Member',
             'Panchayat Admin',
             'Kudumbashree Member',
+            'Kudumbashree Admin',
             'Health Worker',
             'Vehicle Owner', // Combined Vehicle Owner / Driver
             'Shopkeeper',

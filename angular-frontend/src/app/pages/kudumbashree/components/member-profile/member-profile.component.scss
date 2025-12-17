@@ -1,0 +1,256 @@
+.member-profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  animation: fadeIn 0.6s ease-in;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  h1 {
+    color: #1976d2;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+
+  @media (max-width: 968px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-card,
+.stats-card,
+.financial-card,
+.actions-card {
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.profile-card {
+  mat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 1.5rem 0;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #1976d2;
+      font-size: 1.3rem;
+    }
+
+    .edit-btn, .save-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-radius: 25px;
+      padding: 8px 20px;
+    }
+  }
+}
+
+.profile-form {
+  padding: 1rem 0;
+
+  .form-row {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-radius: 25px;
+      padding: 8px 20px;
+    }
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+// Statistics Cards
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+    color: #1976d2;
+  }
+
+  .stat-details {
+    h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1976d2;
+    }
+
+    p {
+      margin: 0.25rem 0 0 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Financial Card
+.financial-stats {
+  .financial-item {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .financial-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .financial-icon {
+        font-size: 2rem;
+        width: 2rem;
+        height: 2rem;
+        color: #1976d2;
+      }
+
+      h4 {
+        margin: 0 0 0.25rem 0;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .amount {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #388e3c;
+
+        &.pending {
+          color: #f57c00;
+        }
+      }
+
+      .loans-count {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1976d2;
+      }
+    }
+  }
+}
+
+// Quick Actions
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: #1976d2;
+    background: #e3f2fd;
+    transform: translateX(5px);
+  }
+
+  mat-icon {
+    color: #1976d2;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .member-profile-container {
+    padding: 1rem;
+  }
+
+  .header-section {
+    h1 {
+      font-size: 2rem;
+    }
+  }
+
+  .profile-card {
+    mat-card-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .financial-stats .financial-item {
+    padding: 0.75rem;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// Snackbar styles
+::ng-deep .success-snackbar {
+  background: #388e3c;
+  color: white;
+}

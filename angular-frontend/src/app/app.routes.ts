@@ -10,5 +10,9 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'signup', component: SignupComponent },
     { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+    { 
+        path: 'kudumbashree', 
+        loadChildren: () => import('./pages/kudumbashree/kudumbashree.routes').then(m => m.routes) 
+    },
     { path: '**', redirectTo: '' }
 ];

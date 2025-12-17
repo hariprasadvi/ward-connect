@@ -1,0 +1,51 @@
+<div class="meeting-organizer-container">
+  <h2>{{ translations().ORGANIZE_MEETINGS }}</h2>
+  
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ translations().SCHEDULE_MEETING }}</mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="meetingForm" (ngSubmit)="scheduleMeeting()" class="meeting-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ translations().TITLE }}</mat-label>
+          <input matInput formControlName="title" placeholder="{{ translations().TITLE }}">
+          @if (meetingForm.get('title')?.hasError('required')) {
+            <mat-error>{{ translations().REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ translations().DATE }}</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="date">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          @if (meetingForm.get('date')?.hasError('required')) {
+            <mat-error>{{ translations().REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ translations().LOCATION }}</mat-label>
+          <input matInput formControlName="location" placeholder="{{ translations().LOCATION }}">
+          @if (meetingForm.get('location')?.hasError('required')) {
+            <mat-error>{{ translations().REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ translations().DESCRIPTION }} ({{ translations().OPTIONAL }})</mat-label>
+          <textarea matInput formControlName="description" rows="3" placeholder="{{ translations().DESCRIPTION }}"></textarea>
+        </mat-form-field>
+
+        <button mat-raised-button 
+                color="primary" 
+                type="submit"
+                [disabled]="!meetingForm.valid">
+          {{ translations().SCHEDULE_MEETING }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

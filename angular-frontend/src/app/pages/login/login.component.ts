@@ -15,7 +15,7 @@ export class LoginComponent {
     loginForm: FormGroup;
     loading = false;
     errorMessage = '';
-    roles = ['Citizen', 'Ward Member', 'Panchayat Admin', 'Kudumbashree Member', 'Health Worker', 'Vehicle Owner', 'Shopkeeper', 'Waste Management Staff'];
+    roles = ['Citizen', 'Ward Member', 'Panchayat Admin', 'Kudumbashree Member', 'Kudumbashree Admin', 'Health Worker', 'Vehicle Owner', 'Shopkeeper', 'Waste Management Staff'];
 
     constructor(
         private fb: FormBuilder,
