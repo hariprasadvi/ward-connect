@@ -1,0 +1,79 @@
+<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <a routerLink="/"
+                    class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 cursor-pointer">
+                    WardConnect
+                </a>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-6">
+                <!-- Links (Conditional based on auth) -->
+                <ng-container *ngIf="(user$ | async) as user; else guestLinks">
+                    <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+                        Dashboard
+                    </a>
+
+                    <!-- User Profile Dropdown / Area -->
+                    <div class="flex items-center space-x-3 ml-4">
+                        <div
+                            class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                            {{ user.full_name?.charAt(0) || 'U' }}
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">{{ user.full_name }}</span>
+
+                        <button (click)="logout()"
+                            class="text-sm text-red-500 hover:text-red-700 font-medium ml-2 transition-colors">
+                            Logout
+                        </button>
+                    </div>
+                </ng-container>
+
+                <ng-template #guestLinks>
+                    <a routerLink="/login" class="nav-link">Login</a>
+                    <a routerLink="/signup"
+                        class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all">
+                        Sign Up
+                    </a>
+                </ng-template>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="flex items-center md:hidden">
+                <button (click)="toggleMenu()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path *ngIf="!isMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                        <path *ngIf="isMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div *ngIf="isMenuOpen" class="md:hidden bg-white border-b border-gray-100">
+        <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <ng-container *ngIf="(user$ | async) as user; else mobileGuestLinks">
+                <a routerLink="/dashboard" (click)="isMenuOpen = false"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Dashboard</a>
+                <div class="px-3 py-2 text-sm text-gray-500">Signed in as {{ user.full_name }}</div>
+                <button (click)="logout(); isMenuOpen = false"
+                    class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50">
+                    Logout
+                </button>
+            </ng-container>
+            <ng-template #mobileGuestLinks>
+                <a routerLink="/login" (click)="isMenuOpen = false"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50">Login</a>
+                <a routerLink="/signup" (click)="isMenuOpen = false"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100">Sign
+                    Up</a>
+            </ng-template>
+        </div>
+    </div>
+</nav>

@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JobService } from '../../services/job.service';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
 
 @Component({
     selector: 'app-chatbot',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, MarkdownPipe],
     templateUrl: './chatbot.component.html'
 })
 export class ChatbotComponent {
@@ -27,10 +28,14 @@ export class ChatbotComponent {
         this.loading = true;
 
         // Convert chat history for Gemini (excluding the new user message which is passed separately)
-        const history = this.messages.slice(0, -1).map(m => ({
-            role: m.role === 'model' ? 'model' : 'user',
-            parts: [{ text: m.text }]
-        }));
+        // Convert chat history for Gemini (excluding the new user message which is passed separately)
+        // AND ensuring we don't send the initial 'model' greeting as the first history item
+        const history = this.messages.slice(0, -1)
+            .filter(m => m.role !== 'model' || this.messages.indexOf(m) !== 0) // Skip first message if it's model
+            .map(m => ({
+                role: m.role === 'model' ? 'model' : 'user',
+                parts: [{ text: m.text }]
+            }));
 
         this.jobService.sendChatMessage(history, userMsg).subscribe({
             next: (res) => {
@@ -39,7 +44,8 @@ export class ChatbotComponent {
             },
             error: (err) => {
                 console.error(err);
-                this.messages.push({ role: 'model', text: 'Sorry, I encountered an error. Please check your API Key.' });
+                const errorMsg = err.error?.error || err.message || 'Unknown error';
+                this.messages.push({ role: 'model', text: `Error: ${errorMsg}. (Status: ${err.status})` });
                 this.loading = false;
             }
         });

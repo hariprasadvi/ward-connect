@@ -1,37 +1,203 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Form -->
-    <div class="glass-card p-6">
+    <div class="glass-card p-6 h-[80vh] overflow-y-auto">
         <h2 class="text-xl font-bold mb-6 text-gray-800">Your Details</h2>
         <div class="space-y-4">
             <input [(ngModel)]="userData.name" placeholder="Full Name" class="input-field">
+            <input [(ngModel)]="userData.jobTitle" placeholder="Target Job Title" class="input-field">
+
             <div class="grid grid-cols-2 gap-4">
                 <input [(ngModel)]="userData.email" placeholder="Email" class="input-field">
                 <input [(ngModel)]="userData.phone" placeholder="Phone" class="input-field">
             </div>
-            <textarea [(ngModel)]="userData.education" placeholder="Education" rows="3" class="input-field"></textarea>
-            <textarea [(ngModel)]="userData.experience" placeholder="Work Experience" rows="3"
-                class="input-field"></textarea>
-            <textarea [(ngModel)]="userData.skills" placeholder="Skills (comma separated)" rows="2"
-                class="input-field"></textarea>
 
-            <button (click)="generateCV()" [disabled]="loading" class="btn-primary mt-4">
+            <div class="grid grid-cols-2 gap-4">
+                <input [(ngModel)]="userData.location" placeholder="Location (City, Country)" class="input-field">
+                <input [(ngModel)]="userData.linkedin" placeholder="LinkedIn URL" class="input-field">
+            </div>
+            <input [(ngModel)]="userData.github" placeholder="GitHub URL" class="input-field">
+
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-600">Education Details</label>
+                <textarea [(ngModel)]="userData.education"
+                    placeholder="E.g., B.Tech in CSE, GEC Wayanad, 2022-2026, CGPA 7.43" rows="3"
+                    class="input-field"></textarea>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-600">Experience / Internships</label>
+                <textarea [(ngModel)]="userData.experience" placeholder="Company, Role, Duration, Key achievements..."
+                    rows="4" class="input-field"></textarea>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-600">Projects</label>
+                <textarea [(ngModel)]="userData.experience"
+                    placeholder="Project Name: Tech Stack used. Description. Link." rows="4"
+                    class="input-field"></textarea>
+                <p class="text-xs text-gray-400">*Gemini will parse your projects from here. Be descriptive.</p>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-600">Skills</label>
+                <textarea [(ngModel)]="userData.skills" placeholder="List all languages, frameworks, tools..." rows="3"
+                    class="input-field"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <input [(ngModel)]="userData.certifications" placeholder="Certifications (comma separated)"
+                    class="input-field">
+                <input [(ngModel)]="userData.languages" placeholder="Languages (e.g. English, Malayalam)"
+                    class="input-field">
+            </div>
+
+            <button (click)="generateCV()" [disabled]="loading" class="btn-primary mt-4 w-full">
                 {{ loading ? 'Generating AI CV...' : 'Generate Professional CV' }}
             </button>
         </div>
     </div>
 
-    <!-- Preview -->
-    <div class="glass-card p-6 min-h-[500px] flex flex-col">
-        <h2 class="text-xl font-bold mb-6 text-gray-800">Preview</h2>
-        <div *ngIf="generatedCV; else placeholder"
-            class="flex-1 overflow-y-auto bg-gray-50 rounded-xl p-6 border border-gray-200">
-            <pre class="whitespace-pre-wrap font-sans text-sm">{{ generatedCV }}</pre>
+    <!-- Preview (Paper Style) -->
+    <div class="flex flex-col h-[80vh]">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Live Preview</h2>
+            <button *ngIf="generatedCV" (click)="downloadPDF()"
+                class="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Download PDF
+            </button>
         </div>
-        <ng-template #placeholder>
-            <div
-                class="flex-1 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-                Fill details to generate CV
+
+        <!-- The Paper -->
+        <div class="flex-1 bg-gray-200 overflow-y-auto rounded-xl p-4 border border-gray-300 shadow-inner">
+            <div id="cv-preview" *ngIf="generatedCV"
+                class="bg-white text-black font-serif p-[10mm] shadow-xl mx-auto max-w-[210mm] min-h-[297mm]">
+
+                <!-- 1. Header -->
+                <div class="text-center mb-6">
+                    <h1 class="text-3xl font-bold uppercase tracking-wide mb-2">{{ generatedCV.header.name }}</h1>
+
+                    <!-- Contact Info: Only show if at least one item exists -->
+                    <div class="text-sm flex justify-center flex-wrap gap-3 text-gray-800 contact-info"
+                        *ngIf="generatedCV.header.contact.phone || generatedCV.header.contact.email || generatedCV.header.contact.location">
+                        <span *ngIf="generatedCV.header.contact.phone">📞 {{ generatedCV.header.contact.phone }}</span>
+                        <span *ngIf="generatedCV.header.contact.email">✉️ {{ generatedCV.header.contact.email }}</span>
+                        <span *ngIf="generatedCV.header.contact.location">📍 {{ generatedCV.header.contact.location
+                            }}</span>
+                    </div>
+
+                    <!-- Links: Only show if at least one link exists -->
+                    <div class="text-sm flex justify-center gap-4 mt-1 font-medium text-blue-900 links"
+                        *ngIf="generatedCV.header.contact.linkedin || generatedCV.header.contact.github">
+                        <a *ngIf="generatedCV.header.contact.linkedin" [href]="generatedCV.header.contact.linkedin"
+                            target="_blank" class="hover:underline">LinkedIn</a>
+                        <a *ngIf="generatedCV.header.contact.github" [href]="generatedCV.header.contact.github"
+                            target="_blank" class="hover:underline">GitHub</a>
+                    </div>
+                </div>
+
+                <hr class="border-black mb-4">
+
+                <!-- 2. Professional Summary -->
+                <div class="mb-6" *ngIf="generatedCV.summary">
+                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">
+                        Professional Summary</h2>
+                    <p class="text-sm leading-relaxed text-justify">{{ generatedCV.summary }}</p>
+                </div>
+
+                <!-- 3. Technical Skills -->
+                <div class="mb-6"
+                    *ngIf="generatedCV.skills.languages || generatedCV.skills.backend || generatedCV.skills.frontend || generatedCV.skills.tools">
+                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">Technical
+                        Skills</h2>
+                    <div class="text-sm space-y-1">
+                        <p *ngIf="generatedCV.skills.languages"><span class="font-bold">Languages:</span> {{
+                            generatedCV.skills.languages }}</p>
+                        <p *ngIf="generatedCV.skills.backend"><span class="font-bold">Backend:</span> {{
+                            generatedCV.skills.backend }}</p>
+                        <p *ngIf="generatedCV.skills.frontend"><span class="font-bold">Frontend:</span> {{
+                            generatedCV.skills.frontend }}</p>
+                        <p *ngIf="generatedCV.skills.tools"><span class="font-bold">Tools:</span> {{
+                            generatedCV.skills.tools }}</p>
+                    </div>
+                </div>
+
+                <!-- 4. Projects -->
+                <div class="mb-6" *ngIf="generatedCV.projects && generatedCV.projects.length > 0">
+                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">Projects
+                    </h2>
+                    <div *ngFor="let proj of generatedCV.projects" class="section-item mb-3">
+                        <div class="flex justify-between items-baseline flex-between">
+                            <h3 class="font-bold text-sm">{{ proj.name }} <span *ngIf="proj.technologies"
+                                    class="font-normal italic">({{ proj.technologies }})</span></h3>
+                        </div>
+                        <p class="text-sm leading-relaxed" *ngIf="proj.description">{{ proj.description }}</p>
+                        <a *ngIf="proj.link" [href]="proj.link" class="text-xs text-blue-800 hover:underline">Live App:
+                            {{ proj.link }}</a>
+                    </div>
+                </div>
+
+                <!-- 5. Experience / Internship -->
+                <div class="mb-6" *ngIf="generatedCV.experience && generatedCV.experience.length > 0">
+                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">Internship
+                        & Experience</h2>
+                    <div *ngFor="let exp of generatedCV.experience" class="section-item mb-3">
+                        <div class="flex justify-between font-bold text-sm flex-between">
+                            <span>{{ exp.company }}</span>
+                            <span>{{ exp.duration }}</span>
+                        </div>
+                        <div class="italic text-sm mb-1" *ngIf="exp.role">{{ exp.role }}</div>
+                        <ul class="list-disc list-outside ml-4 text-sm space-y-1"
+                            *ngIf="exp.details && exp.details.length > 0">
+                            <li *ngFor="let point of exp.details">{{ point }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 6. Education -->
+                <div class="mb-6" *ngIf="generatedCV.education && generatedCV.education.length > 0">
+                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">Education
+                    </h2>
+                    <div *ngFor="let edu of generatedCV.education" class="section-item mb-2">
+                        <div class="flex justify-between font-bold text-sm flex-between">
+                            <span>{{ edu.institution }}</span>
+                            <span>{{ edu.year }}</span>
+                        </div>
+                        <div class="text-sm" *ngIf="edu.degree">{{ edu.degree }}</div>
+                        <div class="text-sm italic" *ngIf="edu.details">{{ edu.details }}</div>
+                    </div>
+                </div>
+
+                <!-- 7. Certifications & Languages -->
+                <div class="grid grid-cols-1 gap-4">
+                    <div *ngIf="generatedCV.certifications && generatedCV.certifications.length > 0">
+                        <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">
+                            Certifications</h2>
+                        <ul class="list-none text-sm space-y-1">
+                            <li *ngFor="let cert of generatedCV.certifications">{{ cert }}</li>
+                        </ul>
+                    </div>
+
+                    <div *ngIf="generatedCV.languages_interest && generatedCV.languages_interest.length > 0">
+                        <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">
+                            Languages & Interests</h2>
+                        <p class="text-sm">{{ generatedCV.languages_interest.join(', ') }}</p>
+                    </div>
+                </div>
+
             </div>
-        </ng-template>
+
+            <!-- Placeholder -->
+            <div *ngIf="!generatedCV" class="h-full flex flex-col items-center justify-center text-gray-400">
+                <svg class="w-16 h-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p>Fill form to generate your ATS-Friendly CV</p>
+            </div>
+        </div>
     </div>
 </div>
