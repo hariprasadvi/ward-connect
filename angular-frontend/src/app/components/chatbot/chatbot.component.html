@@ -1,0 +1,37 @@
+<div class="space-y-6">
+    <div class="glass-card p-6 h-[80vh] md:h-[600px] flex flex-col shadow-2xl border-white/50 relative overflow-hidden">
+        <!-- Background decoration -->
+        <div
+            class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+        <div
+            class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-gradient-to-tr from-blue-500/10 to-teal-500/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+        <div class="flex-1 overflow-y-auto space-y-4 pr-2 mb-4">
+            <div *ngFor="let msg of messages"
+                [ngClass]="{'items-end': msg.role === 'user', 'items-start': msg.role === 'model'}"
+                class="flex flex-col">
+                <div [ngClass]="{'bg-indigo-600 text-white': msg.role === 'user', 'bg-gray-100 text-gray-800': msg.role === 'model'}"
+                    class="max-w-[80%] rounded-2xl px-4 py-3 shadow-sm whitespace-pre-wrap"
+                    [innerHTML]="msg.text | markdown">
+                </div>
+                <span class="text-xs text-gray-400 mt-1 mx-1">{{ msg.role === 'user' ? 'You' : 'WardConnect AI' }}</span>
+            </div>
+
+            <div *ngIf="loading" class="flex items-start">
+                <div class="bg-gray-100 rounded-2xl px-4 py-3 text-gray-500 animate-pulse">
+                    Thinking...
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="flex gap-2">
+            <input [(ngModel)]="userInput" (keyup.enter)="sendMessage()" type="text"
+                placeholder="Ask for a learning roadmap..." class="input-field shadow-sm">
+            <button (click)="sendMessage()" [disabled]="loading" class="btn-primary !w-auto">
+                Send
+            </button>
+        </div>
+    </div>
+</div>

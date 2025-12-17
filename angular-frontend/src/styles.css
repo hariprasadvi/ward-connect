@@ -57,10 +57,24 @@
     transition-all duration-200;
   }
 
+  .nav-link {
+    @apply text-base font-medium text-gray-500 hover:text-indigo-600 transition-colors duration-200 relative;
+  }
+  .nav-link.active {
+    @apply text-indigo-600;
+  }
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 transform scale-x-0 transition-transform duration-200 origin-right;
+  }
+  .nav-link:hover::after, .nav-link.active::after {
+    @apply transform scale-x-100 origin-left;
+  }
+
   .animated-bg {
-    background: linear-gradient(-45deg, #FF3CAC, #784BA0, #2B86C5, #23d5ab);
+    background: linear-gradient(-45deg, #eef2ff, #fae8ff, #e0e7ff, #f3e8ff);
     background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
+    animation: gradient 20s ease infinite;
   }
 }
 

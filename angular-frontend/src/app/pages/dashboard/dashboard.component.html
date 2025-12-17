@@ -1,38 +1,6 @@
 <div class="min-h-screen bg-gray-50/50">
     <!-- Navbar -->
-    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20">
-                <div class="flex items-center">
-                    <span
-                        class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">WardConnect</span>
-                </div>
-
-                <div class="flex items-center space-x-6">
-                    <div class="relative group">
-                        <div class="flex items-center space-x-3 cursor-pointer">
-                            <div
-                                class="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                {{ user?.full_name?.charAt(0) || 'U' }}
-                            </div>
-                            <div class="hidden md:block">
-                                <p class="text-sm font-semibold text-gray-700">{{ user?.full_name }}</p>
-                                <p class="text-xs text-indigo-500 font-medium">{{ user?.role }}</p>
-                            </div>
-                        </div>
-
-                        <div
-                            class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-1 border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right">
-                            <button (click)="logout()"
-                                class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 w-full text-left">
-                                Sign out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <!-- Navbar Removed (Global Navbar used) -->
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
@@ -132,7 +100,7 @@
             </div>
 
             <!-- Job/Education -->
-            <div
+            <div routerLink="/jobs"
                 class="group bg-white rounded-2xl p-6 border border-purple-100 shadow-sm hover:shadow-xl hover:shadow-purple-100 transition-all duration-300 cursor-pointer relative overflow-hidden">
                 <div class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center mb-6 text-purple-600">
                     <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
