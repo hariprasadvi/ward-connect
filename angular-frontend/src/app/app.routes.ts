@@ -16,10 +16,20 @@ export const routes: Routes = [
     { path: 'signup', component: SignupComponent },
     { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
     { 
+        path: 'profile', 
+        loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent),
+        canActivate: [authGuard] 
+    },
+    { 
         path: 'kudumbashree', 
         loadChildren: () => import('./pages/kudumbashree/kudumbashree.routes').then(m => m.routes)
        
-     },{ path: 'jobs',
+     },
+      { 
+        path: 'waste', 
+        loadChildren: () => import('./pages/waste/waste.routes').then(m => m.WASTE_ROUTES)
+      },
+     { path: 'jobs',
         component: JobDashboardComponent,
         children: [
             { path: '', redirectTo: 'alerts', pathMatch: 'full' },

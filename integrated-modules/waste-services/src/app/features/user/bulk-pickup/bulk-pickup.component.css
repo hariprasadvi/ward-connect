@@ -1,0 +1,42 @@
+.pickup-container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+mat-card-header {
+    margin-bottom: 2rem;
+}
+
+mat-card-avatar {
+    height: 40px;
+    width: 40px;
+    font-size: 40px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .pickup-container {
+        padding: 1rem;
+    }
+}

@@ -1,0 +1,77 @@
+<div class="schedule-container">
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>Schedule Pickup (Admin)</mat-card-title>
+            <mat-card-subtitle>Assign pickups for multiple houses</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <form [formGroup]="scheduleForm" (ngSubmit)="onSubmit()">
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Select House Numbers</mat-label>
+                    <mat-select formControlName="houseNumbers" multiple>
+                        <mat-select-trigger>
+                            <mat-chip-listbox>
+                                <mat-chip
+                                    *ngFor="let house of (scheduleForm.get('houseNumbers')?.value || []).slice(0, 3)">
+                                    {{house}}
+                                </mat-chip>
+                                <span *ngIf="(scheduleForm.get('houseNumbers')?.value?.length || 0) > 3"
+                                    class="additional-selection"
+                                    style="font-size: 12px; color: gray; margin-left: 8px;">
+                                    (+{{(scheduleForm.get('houseNumbers')?.value?.length || 0) - 3}} others)
+                                </span>
+                            </mat-chip-listbox>
+                        </mat-select-trigger>
+                        <mat-option *ngFor="let house of houseNumbers$ | async" [value]="house">
+                            House {{house}}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="scheduleForm.get('houseNumbers')?.hasError('required')">
+                        At least one house number is required
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="row">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Date</mat-label>
+                        <input matInput [matDatepicker]="picker" formControlName="scheduledDate" [min]="today">
+                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker></mat-datepicker>
+                        <mat-error *ngIf="scheduleForm.get('scheduledDate')?.hasError('required')">
+                            Date is required
+                        </mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Time</mat-label>
+                        <mat-select formControlName="scheduledTime">
+                            <mat-option *ngFor="let time of availableTimes" [value]="time">
+                                {{time}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="scheduleForm.get('scheduledTime')?.hasError('required')">
+                            Time is required
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Assign Vehicle</mat-label>
+                    <input matInput formControlName="vehicleNumber" placeholder="e.g. WC-101">
+                    <mat-icon matSuffix>local_shipping</mat-icon>
+                    <mat-error *ngIf="scheduleForm.get('vehicleNumber')?.hasError('required')">
+                        Vehicle number is required
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="actions">
+                    <button mat-button type="button" routerLink="/admin/dashboard">Cancel</button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="scheduleForm.invalid">
+                        Schedule Pickups
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</div>

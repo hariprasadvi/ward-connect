@@ -88,8 +88,8 @@ export class PaymentHistoryComponent implements OnInit {
           method: 'upi',
           status: 'completed',
           date: new Date('2024-01-15'),
-          description: 'Monthly Community Meeting',
-          meetingTitle: 'Monthly Community Meeting'
+          description: 'Monthly Community KudumbashreeMeeting',
+          meetingTitle: 'Monthly Community KudumbashreeMeeting'
         },
         {
           id: '2',
@@ -110,8 +110,8 @@ export class PaymentHistoryComponent implements OnInit {
           method: 'cash',
           status: 'pending',
           date: new Date('2024-01-18'),
-          description: 'Special General Meeting',
-          meetingTitle: 'Special General Meeting'
+          description: 'Special General KudumbashreeMeeting',
+          meetingTitle: 'Special General KudumbashreeMeeting'
         },
         {
           id: '4',

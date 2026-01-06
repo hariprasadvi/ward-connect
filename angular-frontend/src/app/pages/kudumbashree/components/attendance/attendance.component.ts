@@ -68,7 +68,7 @@ export class AttendanceComponent {
       location: this.currentLocation,
       timestamp: new Date(),
       faceVerified: true,
-      meetingTitle: 'Monthly Community Meeting', // This would come from selected meeting
+      meetingTitle: 'Monthly Community KudumbashreeMeeting', // This would come from selected KudumbashreeMeeting
       meetingId: 'meeting_001',
       userId: 'user_001',
       userName: 'Community Member'

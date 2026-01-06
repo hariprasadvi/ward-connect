@@ -1,0 +1,66 @@
+.page-container {
+    padding: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+    min-height: calc(100vh - 64px);
+}
+
+.content-card {
+    padding: 32px;
+    border-radius: 12px;
+}
+
+.content-card h1 {
+    font-size: 28px;
+    color: #333;
+    margin: 0 0 8px 0;
+    font-weight: 700;
+}
+
+.description {
+    color: #666;
+    margin: 0 0 24px 0;
+    font-size: 14px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state p {
+    color: #999;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.complaints-table {
+    width: 100%;
+    margin-top: 16px;
+}
+
+.complaint-title strong {
+    display: block;
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.complaint-desc {
+    color: #666;
+    font-size: 12px;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+}
+
+th.mat-header-cell {
+    font-weight: 600;
+    color: #333;
+}
+
+td.mat-cell {
+    padding: 16px 12px;
+}

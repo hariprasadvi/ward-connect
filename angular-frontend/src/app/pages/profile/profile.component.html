@@ -1,0 +1,89 @@
+<div class="profile-container">
+    <div class="completion-section mb-6">
+        <div class="flex justify-between items-center mb-2">
+            <h2 class="text-xl font-bold text-gray-800">Profile Completion</h2>
+            <span class="text-lg font-bold text-indigo-600">{{ completionPercentage }}%</span>
+        </div>
+        <mat-progress-bar mode="determinate" [value]="completionPercentage" class="h-3 rounded-full"></mat-progress-bar>
+        <p class="mt-2 text-sm text-gray-500" *ngIf="completionPercentage < 100">
+            Complete your profile to get more personalized services and updates.
+        </p>
+        <p class="mt-2 text-sm text-green-600 font-medium" *ngIf="completionPercentage === 100">
+            ✓ Your profile is fully complete!
+        </p>
+    </div>
+
+    <mat-card class="form-card">
+        <mat-card-header>
+            <mat-icon mat-card-avatar class="text-indigo-600">account_circle</mat-icon>
+            <mat-card-title>Personal Details</mat-card-title>
+            <mat-card-subtitle>Update your information to stay connected</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="mt-4">
+            <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+                <div class="grid-container">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Full Name</mat-label>
+                        <input matInput formControlName="full_name" placeholder="Full Name">
+                        <mat-icon matPrefix>person</mat-icon>
+                        <mat-error *ngIf="profileForm.get('full_name')?.hasError('required')">Name is
+                            required</mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Mobile Number</mat-label>
+                        <input matInput formControlName="mobile_number">
+                        <mat-icon matPrefix>phone</mat-icon>
+                        <mat-hint>Cannot change registered mobile number</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Email Address</mat-label>
+                        <input matInput formControlName="email" type="email" placeholder="Email Address">
+                        <mat-icon matPrefix>email</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>House Number</mat-label>
+                        <input matInput formControlName="house_number" placeholder="Enter House Number">
+                        <mat-icon matPrefix>home</mat-icon>
+                        <mat-error *ngIf="profileForm.get('house_number')?.hasError('required')">House Number is
+                            required</mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Ward Number</mat-label>
+                        <input matInput formControlName="ward_number" placeholder="Ward Number">
+                        <mat-icon matPrefix>domain</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Panchayat Name</mat-label>
+                        <input matInput formControlName="panchayat_name" placeholder="Panchayat Name">
+                        <mat-icon matPrefix>location_city</mat-icon>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Aadhaar Number</mat-label>
+                    <input matInput formControlName="aadhaar_number" placeholder="12-digit Aadhaar number">
+                    <mat-icon matPrefix>badge</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Full Address</mat-label>
+                    <textarea matInput formControlName="address" placeholder="Address" rows="3"></textarea>
+                    <mat-icon matPrefix>place</mat-icon>
+                </mat-form-field>
+
+                <div class="flex justify-end mt-4">
+                    <button mat-raised-button color="primary" type="submit" [disabled]="loading || profileForm.invalid">
+                        <mat-icon *ngIf="!loading">save</mat-icon>
+                        <mat-spinner diameter="20" *ngIf="loading" class="mr-2"></mat-spinner>
+                        Update Profile
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</div>

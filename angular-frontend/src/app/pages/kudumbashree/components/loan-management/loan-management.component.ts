@@ -48,7 +48,7 @@ export class LoanManagementComponent implements OnInit {
       userName: 'Rani S',
       amount: 25000,
       purpose: 'Small Business',
-      status: LoanStatus.APPROVED,
+      status: 'approved' as any,
       appliedDate: new Date('2024-01-15'),
       interestRate: 8.5,
       tenureMonths: 24,
@@ -62,7 +62,7 @@ export class LoanManagementComponent implements OnInit {
       userName: 'Lakshmi M',
       amount: 15000,
       purpose: 'Education',
-      status: LoanStatus.PENDING,
+      status: 'pending' as any,
       appliedDate: new Date('2024-01-20'),
       interestRate: 7.5,
       tenureMonths: 18,
@@ -76,7 +76,7 @@ export class LoanManagementComponent implements OnInit {
       userName: 'Geetha P',
       amount: 50000,
       purpose: 'Housing Repair',
-      status: LoanStatus.REJECTED,
+      status: 'rejected' as any,
       appliedDate: new Date('2024-01-10'),
       interestRate: 9.0,
       tenureMonths: 36,
@@ -100,38 +100,32 @@ export class LoanManagementComponent implements OnInit {
 
   applyForLoan() {
     if (this.loanForm.valid) {
-      const loanData = {
-        ...this.loanForm.value,
-        appliedDate: new Date(),
-        status: LoanStatus.PENDING
-      };
-      
-      // For demo purposes, add to local array
-      const newLoan: Loan = {
-        id: Date.now().toString(),
-        loanNumber: 'LN' + (this.loans.length + 1).toString().padStart(3, '0'),
-        userId: 'currentUser',
-        userName: 'Current User',
-        amount: this.loanForm.value.amount,
-        purpose: this.loanForm.value.purpose,
-        description: this.loanForm.value.description,
-        status: LoanStatus.PENDING,
-        appliedDate: new Date(),
-        interestRate: 8.5,
-        tenureMonths: this.loanForm.value.tenure,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      this.loans.unshift(newLoan);
-      this.loanForm.reset({ tenure: 12 });
-      alert('Loan application submitted successfully!');
+        const loanData = {
+            ...this.loanForm.value,
+            // Backend should handle basic status/date logic if not provided
+            // typically we just send amount, purpose, tenure, description
+        };
+
+        this.apiService.applyLoan(loanData).subscribe({
+            next: (res) => {
+                alert('Loan application submitted successfully!');
+                this.loanForm.reset({ tenure: 12 });
+                this.loadLoans(); // Reload list
+            },
+            error: (err) => {
+                alert('Failed to apply loan: ' + (err.error?.message || err.message));
+            }
+        });
     }
   }
 
   loadLoans() {
-    // For demo, use sample data
-    this.loans = this.sampleLoans;
+    this.apiService.getLoans().subscribe({
+        next: (loans) => {
+            this.loans = loans;
+        },
+        error: (err) => console.error('Error loading loans:', err)
+    });
   }
 
   getStatusClass(status: LoanStatus): string {
@@ -139,12 +133,12 @@ export class LoanManagementComponent implements OnInit {
   }
 
   getStatusTranslation(status: LoanStatus): string {
-    const statusTranslations: { [key in LoanStatus]?: string } = {
-      [LoanStatus.PENDING]: 'PENDING',
-      [LoanStatus.APPROVED]: 'APPROVED',
-      [LoanStatus.REJECTED]: 'REJECTED'
+    const statusTranslations: { [key: string]: string } = {
+      'pending': 'PENDING',
+      'approved': 'APPROVED',
+      'rejected': 'REJECTED'
     };
-    return statusTranslations[status] || status;
+    return statusTranslations[status as any] || status;
   }
 
   // Fixed: Add missing methods
@@ -167,11 +161,11 @@ export class LoanManagementComponent implements OnInit {
   }
 
   getApprovedCount(): number {
-    return this.loans.filter(loan => loan.status === LoanStatus.APPROVED).length;
+    return this.loans.filter(loan => (loan.status as any) === 'approved').length;
   }
 
   getPendingCount(): number {
-    return this.loans.filter(loan => loan.status === LoanStatus.PENDING).length;
+    return this.loans.filter(loan => (loan.status as any) === 'pending').length;
   }
 
   getTotalLoanAmount(): number {

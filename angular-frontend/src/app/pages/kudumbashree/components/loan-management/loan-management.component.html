@@ -1,6 +1,6 @@
 <div class="loan-management-container">
   <h2>{{ translations().LOAN_MANAGEMENT }}</h2>
-  
+
   <!-- Statistics Cards -->
   <div class="stats-grid">
     <div class="stat-card">
@@ -26,86 +26,68 @@
       <mat-card-header>
         <mat-card-title>{{ translations().APPLY_FOR_LOAN }}</mat-card-title>
       </mat-card-header>
-      
+
       <mat-card-content>
         <form [formGroup]="loanForm" (ngSubmit)="applyForLoan()" class="loan-form">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ translations().LOAN_AMOUNT }} (₹)</mat-label>
-            <input 
-              matInput 
-              type="number" 
-              formControlName="amount" 
-              placeholder="Enter loan amount">
+            <mat-icon matPrefix>payments</mat-icon>
+            <input matInput type="number" formControlName="amount" placeholder="Enter loan amount">
             @if (loanForm.get('amount')?.hasError('required')) {
-              <mat-error>{{ translations().REQUIRED }}</mat-error>
+            <mat-error>{{ translations().REQUIRED }}</mat-error>
             }
             @if (loanForm.get('amount')?.hasError('min')) {
-              <mat-error>{{ translations().MIN_AMOUNT }}</mat-error>
+            <mat-error>{{ translations().MIN_AMOUNT }}</mat-error>
             }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ translations().LOAN_PURPOSE }}</mat-label>
-            <input 
-              matInput 
-              formControlName="purpose" 
-              placeholder="Purpose of loan">
+            <mat-icon matPrefix>help_outline</mat-icon>
+            <input matInput formControlName="purpose" placeholder="Purpose of loan">
             @if (loanForm.get('purpose')?.hasError('required')) {
-              <mat-error>{{ translations().REQUIRED }}</mat-error>
+            <mat-error>{{ translations().REQUIRED }}</mat-error>
             }
           </mat-form-field>
 
           <div class="form-row">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Tenure (Months)</mat-label>
-              <input 
-                matInput 
-                type="number" 
-                formControlName="tenure" 
-                min="6" 
-                max="60">
+              <mat-icon matPrefix>event_repeat</mat-icon>
+              <input matInput type="number" formControlName="tenure" min="6" max="60">
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Interest Rate</mat-label>
+              <mat-icon matPrefix>percent</mat-icon>
               <input matInput value="8.5%" disabled>
             </mat-form-field>
           </div>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ translations().DESCRIPTION }} ({{ translations().OPTIONAL }})</mat-label>
-            <textarea 
-              matInput 
-              formControlName="description" 
-              rows="3"
+            <mat-icon matPrefix>info</mat-icon>
+            <textarea matInput formControlName="description" rows="3"
               placeholder="Additional details about the loan requirement">
             </textarea>
           </mat-form-field>
 
           <!-- EMI Calculator -->
           @if (loanForm.get('amount')?.value >= 1000) {
-            <div class="emi-calculator">
-              <h4>Estimated Monthly EMI</h4>
-              <div class="emi-amount">{{ getFormattedAmount(calculateEMI()) }}</div>
-              <small>For {{ loanForm.get('tenure')?.value }} months at 8.5% interest</small>
-            </div>
+          <div class="emi-calculator">
+            <h4>Estimated Monthly EMI</h4>
+            <div class="emi-amount">{{ getFormattedAmount(calculateEMI()) }}</div>
+            <small>For {{ loanForm.get('tenure')?.value }} months at 8.5% interest</small>
+          </div>
           }
 
           <div class="form-actions">
-            <button 
-              mat-stroked-button 
-              type="button"
-              (click)="clearForm()"
-              class="clear-btn">
+            <button mat-stroked-button type="button" (click)="clearForm()" class="clear-btn">
               <mat-icon>clear</mat-icon>
               {{ translations().CLEAR }}
             </button>
-            
-            <button 
-              mat-raised-button 
-              color="primary" 
-              type="submit"
-              [disabled]="!loanForm.valid">
+
+            <button mat-raised-button color="primary" type="submit" [disabled]="!loanForm.valid">
               <mat-icon>send</mat-icon>
               {{ translations().APPLY_LOAN }}
             </button>
@@ -119,46 +101,46 @@
       <mat-card-header>
         <mat-card-title>{{ translations().LOAN_APPLICATIONS }}</mat-card-title>
       </mat-card-header>
-      
+
       <mat-card-content>
         @if (loans.length > 0) {
-          <table mat-table [dataSource]="loans" class="full-width">
-            <ng-container matColumnDef="loanNumber">
-              <th mat-header-cell *matHeaderCellDef>{{ translations().LOAN_ID }}</th>
-              <td mat-cell *matCellDef="let loan">{{ loan.loanNumber }}</td>
-            </ng-container>
+        <table mat-table [dataSource]="loans" class="full-width">
+          <ng-container matColumnDef="loanNumber">
+            <th mat-header-cell *matHeaderCellDef>{{ translations().LOAN_ID }}</th>
+            <td mat-cell *matCellDef="let loan">{{ loan.loanNumber }}</td>
+          </ng-container>
 
-            <ng-container matColumnDef="amount">
-              <th mat-header-cell *matHeaderCellDef>{{ translations().LOAN_AMOUNT }}</th>
-              <td mat-cell *matCellDef="let loan">{{ getFormattedAmount(loan.amount) }}</td>
-            </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef>{{ translations().LOAN_AMOUNT }}</th>
+            <td mat-cell *matCellDef="let loan">{{ getFormattedAmount(loan.amount) }}</td>
+          </ng-container>
 
-            <ng-container matColumnDef="purpose">
-              <th mat-header-cell *matHeaderCellDef>{{ translations().LOAN_PURPOSE }}</th>
-              <td mat-cell *matCellDef="let loan">{{ loan.purpose }}</td>
-            </ng-container>
+          <ng-container matColumnDef="purpose">
+            <th mat-header-cell *matHeaderCellDef>{{ translations().LOAN_PURPOSE }}</th>
+            <td mat-cell *matCellDef="let loan">{{ loan.purpose }}</td>
+          </ng-container>
 
-            <ng-container matColumnDef="appliedDate">
-              <th mat-header-cell *matHeaderCellDef>{{ translations().APPLIED_DATE }}</th>
-              <td mat-cell *matCellDef="let loan">{{ loan.appliedDate | date:'mediumDate' }}</td>
-            </ng-container>
+          <ng-container matColumnDef="appliedDate">
+            <th mat-header-cell *matHeaderCellDef>{{ translations().APPLIED_DATE }}</th>
+            <td mat-cell *matCellDef="let loan">{{ loan.appliedDate | date:'mediumDate' }}</td>
+          </ng-container>
 
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>{{ translations().STATUS }}</th>
-              <td mat-cell *matCellDef="let loan">
-                <span [class]="getStatusClass(loan.status)">
-                  {{ getStatusTranslation(loan.status) }}
-                </span>
-              </td>
-            </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>{{ translations().STATUS }}</th>
+            <td mat-cell *matCellDef="let loan">
+              <span [class]="getStatusClass(loan.status)">
+                {{ getStatusTranslation(loan.status) }}
+              </span>
+            </td>
+          </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
         } @else {
-          <div class="no-data">
-            <p>{{ translations().NO_LOAN_APPLICATIONS }}</p>
-          </div>
+        <div class="no-data">
+          <p>{{ translations().NO_LOAN_APPLICATIONS }}</p>
+        </div>
         }
       </mat-card-content>
     </mat-card>

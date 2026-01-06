@@ -35,7 +35,7 @@ export interface TranslationKeys {
   LATITUDE: string;
   LONGITUDE: string;
   
-  // Meeting Minutes
+  // KudumbashreeMeeting Minutes
   MEETING_MINUTES_GENERATOR: string;
   RECORD_MEETING: string;
   SELECT_MEETING: string;
@@ -162,7 +162,7 @@ const ENGLISH_TRANSLATIONS: TranslationKeys = {
 
   // Navigation
   ATTENDANCE: 'Attendance',
-  MEETING_MINUTES: 'Meeting Minutes',
+  MEETING_MINUTES: 'KudumbashreeMeeting Minutes',
   LOAN_MANAGEMENT: 'Loan Management',
   ORGANIZE_MEETINGS: 'Organize Meetings',
   REPORTS_ANALYTICS: 'Reports & Analytics',
@@ -191,12 +191,12 @@ const ENGLISH_TRANSLATIONS: TranslationKeys = {
   LATITUDE: 'Latitude',
   LONGITUDE: 'Longitude',
 
-  // Meeting Minutes
-  MEETING_MINUTES_GENERATOR: 'Meeting Minutes Generator',
-  RECORD_MEETING: 'Record Meeting',
-  SELECT_MEETING: 'Select Meeting',
-  SELECT_MEETING_HINT: 'Choose a meeting to record or generate minutes',
-  MEETING_DETAILS: 'Meeting Details',
+  // KudumbashreeMeeting Minutes
+  MEETING_MINUTES_GENERATOR: 'KudumbashreeMeeting Minutes Generator',
+  RECORD_MEETING: 'Record KudumbashreeMeeting',
+  SELECT_MEETING: 'Select KudumbashreeMeeting',
+  SELECT_MEETING_HINT: 'Choose a KudumbashreeMeeting to record or generate minutes',
+  MEETING_DETAILS: 'KudumbashreeMeeting Details',
   TITLE: 'Title',
   DATE: 'Date',
   LOCATION: 'Location',
@@ -206,15 +206,15 @@ const ENGLISH_TRANSLATIONS: TranslationKeys = {
   GENERATE_MINUTES: 'Generate Minutes',
   CLEAR: 'Clear',
   RECORDING_IN_PROGRESS: 'Recording in progress...',
-  MEETING_TRANSCRIPT: 'Meeting Transcript',
-  MEETING_SUMMARY: 'Meeting Summary',
+  MEETING_TRANSCRIPT: 'KudumbashreeMeeting Transcript',
+  MEETING_SUMMARY: 'KudumbashreeMeeting Summary',
   COPY_TRANSCRIPT: 'Copy transcript',
   COPY_SUMMARY: 'Copy summary',
   DOWNLOAD_TRANSCRIPT: 'Download Transcript',
   DOWNLOAD_SUMMARY: 'Download Summary',
   NO_MEETINGS_AVAILABLE: 'No Meetings Available',
   SCHEDULE_MEETING_FIRST: 'Schedule meetings first to use the minutes generator',
-  SCHEDULE_MEETING: 'Schedule a Meeting',
+  SCHEDULE_MEETING: 'Schedule a KudumbashreeMeeting',
 
   // Loan Management
   LOAN_MANAGEMENTs: 'Loan Management',
@@ -276,8 +276,8 @@ const ENGLISH_TRANSLATIONS: TranslationKeys = {
   ACTIVE_LOANS_COUNT: 'Active Loans',
 
   // Reports & Analytics
-  MEETING_REPORTS: 'Meeting Reports',
-  MEETING_REPORTS_DESC: 'Generate meeting attendance and minutes reports',
+  MEETING_REPORTS: 'KudumbashreeMeeting Reports',
+  MEETING_REPORTS_DESC: 'Generate KudumbashreeMeeting attendance and minutes reports',
   LOAN_REPORTS: 'Loan Reports', 
   LOAN_REPORTS_DESC: 'View loan applications and status reports',
   ATTENDANCE_REPORTS: 'Attendance Reports',
@@ -344,7 +344,7 @@ const MALAYALAM_TRANSLATIONS: TranslationKeys = {
   LATITUDE: 'അക്ഷാംശം',
   LONGITUDE: 'രേഖാംശം',
   
-  // Meeting Minutes
+  // KudumbashreeMeeting Minutes
   MEETING_MINUTES_GENERATOR: 'മീറ്റിംഗ് മിനിറ്റുകൾ ജനറേറ്റർ',
   RECORD_MEETING: 'മീറ്റിംഗ് റെക്കോർഡ് ചെയ്യുക',
   SELECT_MEETING: 'മീറ്റിംഗ് തിരഞ്ഞെടുക്കുക',
@@ -469,46 +469,23 @@ export class TranslationService {
   private currentLanguage = signal<'en' | 'ml'>('en');
   private translations = {
     en: ENGLISH_TRANSLATIONS,
-    ml: MALAYALAM_TRANSLATIONS
+    ml: ENGLISH_TRANSLATIONS // Use English even for ML key to ensure English everywhere
   };
 
   currentLanguage$ = this.currentLanguage.asReadonly();
   currentTranslations = signal<TranslationKeys>(this.translations['en']);
 
   constructor() {
-    // Safe localStorage access with try-catch
-    try {
-      // Check if we're in a browser environment
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const savedLang = localStorage.getItem('preferredLanguage') as 'en' | 'ml';
-        if (savedLang) {
-          this.setLanguage(savedLang);
-        }
-      }
-    } catch (error) {
-      console.warn('localStorage not available, using default language');
-      // Use default language if localStorage is not available
-      this.setLanguage('en');
-    }
+    this.setLanguage('en');
   }
 
   setLanguage(lang: 'en' | 'ml') {
-    this.currentLanguage.set(lang);
-    this.currentTranslations.set(this.translations[lang]);
-    
-    // Safe localStorage access
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem('preferredLanguage', lang);
-      }
-    } catch (error) {
-      console.warn('Could not save language preference to localStorage');
-    }
+    this.currentLanguage.set('en');
+    this.currentTranslations.set(this.translations['en']);
   }
 
   toggleLanguage() {
-    const newLang = this.currentLanguage() === 'en' ? 'ml' : 'en';
-    this.setLanguage(newLang);
+    this.setLanguage('en');
   }
 
   getCurrentLanguage(): 'en' | 'ml' {

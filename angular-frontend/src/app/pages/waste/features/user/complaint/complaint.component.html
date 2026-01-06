@@ -1,0 +1,80 @@
+<div class="complaint-container">
+    <mat-card class="complaint-card fade-in">
+        <div class="card-header-custom">
+            <mat-icon>report_problem</mat-icon>
+            <div class="header-text">
+                <h1>Report a Concern</h1>
+                <p>Help us improve by reporting any waste-related issues in your area.</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form [formGroup]="complaintForm" (ngSubmit)="onSubmit()">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Subject / Short Title</mat-label>
+                    <input matInput formControlName="title" placeholder="e.g., Missed collection on Ward 4">
+                    <mat-icon matPrefix>title</mat-icon>
+                    <mat-error *ngIf="complaintForm.get('title')?.hasError('required')">
+                        Title is required
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="form-row">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Issue Category</mat-label>
+                        <mat-select formControlName="category">
+                            <mat-option *ngFor="let cat of categories" [value]="cat.value">
+                                {{cat.label}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix>category</mat-icon>
+                        <mat-error *ngIf="complaintForm.get('category')?.hasError('required')">
+                            Category is required
+                        </mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Location / Ward</mat-label>
+                        <input matInput formControlName="location" placeholder="e.g., Near Main Gate">
+                        <mat-icon matPrefix>place</mat-icon>
+                        <mat-error *ngIf="complaintForm.get('location')?.hasError('required')">
+                            Location is required
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Detailed Description</mat-label>
+                    <textarea matInput formControlName="description" rows="4"
+                        placeholder="Provide as much detail as possible..."></textarea>
+                    <mat-error *ngIf="complaintForm.get('description')?.hasError('required')">
+                        Description is required
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="photo-upload-section">
+                    <label class="ai-hint">High-quality photos help us resolve issues faster</label>
+                    <div class="upload-box" (click)="fileInput.click()" *ngIf="!previewUrl">
+                        <mat-icon>add_a_photo</mat-icon>
+                        <p>Click to upload a photo of the issue</p>
+                        <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" hidden>
+                    </div>
+
+                    <div class="preview-container" *ngIf="previewUrl">
+                        <img [src]="previewUrl" alt="Complaint photo preview" class="preview-image">
+                        <button mat-mini-fab color="warn" class="remove-btn" (click)="removeFile()">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button mat-button type="button" routerLink="/waste/user/dashboard">Cancel</button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="complaintForm.invalid || loading">
+                        {{ loading ? 'Submitting...' : 'Submit Report' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </mat-card>
+</div>

@@ -1,0 +1,46 @@
+.page-container {
+    padding: 24px;
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: calc(100vh - 64px);
+}
+
+.form-card {
+    padding: 32px;
+    border-radius: 12px;
+}
+
+.form-card h1 {
+    font-size: 28px;
+    color: #333;
+    margin: 0 0 8px 0;
+    font-weight: 700;
+}
+
+.description {
+    color: #666;
+    margin: 0 0 24px 0;
+    font-size: 14px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+mat-form-field {
+    width: 100%;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.button-group button {
+    flex: 1;
+    height: 44px;
+    font-weight: 600;
+}

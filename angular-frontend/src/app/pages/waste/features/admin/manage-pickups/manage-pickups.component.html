@@ -1,0 +1,96 @@
+<div class="page-container">
+    <mat-card class="content-card fade-in">
+        <h1>Manage Pickups</h1>
+        <p class="description">View and manage all pickup requests</p>
+
+        <div *ngIf="loading" class="loading">
+            <p>Loading pickups...</p>
+        </div>
+
+        <table mat-table [dataSource]="pickups" *ngIf="!loading" class="pickups-table">
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let pickup">{{ pickup.id }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="userName">
+                <th mat-header-cell *matHeaderCellDef>User</th>
+                <td mat-cell *matCellDef="let pickup">{{ pickup.userName }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let pickup">
+                    <div class="pickup-info">
+                        <strong>{{ pickup.type === 'regular' ? 'Regular' : 'Bulk' }}</strong>
+                        <p *ngIf="pickup.wasteType">{{ pickup.wasteType }} - {{ pickup.quantity }}</p>
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="scheduledDate">
+                <th mat-header-cell *matHeaderCellDef>Scheduled</th>
+                <td mat-cell *matCellDef="let pickup">
+                    {{ pickup.scheduledDate | date:'mediumDate' }}<br>
+                    <small>{{ pickup.scheduledTime }}</small>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let pickup">
+                    <span class="status-badge" [ngClass]="getStatusClass(pickup.status)">
+                        {{ pickup.status }}
+                    </span>
+                    <p *ngIf="pickup.assignedVehicle" class="vehicle-info">Vehicle: {{ pickup.assignedVehicle }}</p>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let pickup">
+                    <button mat-raised-button color="primary" (click)="selectPickup(pickup)"
+                        [disabled]="pickup.status === 'completed'" class="mr-2">
+                        Manage
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deletePickup(pickup.id)" matTooltip="Delete Request">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </mat-card>
+
+    <!-- Action Panel -->
+    <mat-card class="action-panel" *ngIf="selectedPickup">
+        <h2>Manage Pickup #{{ selectedPickup.id }}</h2>
+        <div class="pickup-details">
+            <p><strong>User:</strong> {{ selectedPickup.userName }}</p>
+            <p><strong>Type:</strong> {{ selectedPickup.type === 'regular' ? 'Regular' : 'Bulk' }}</p>
+            <p><strong>Date:</strong> {{ selectedPickup.scheduledDate | date:'mediumDate' }} at {{
+                selectedPickup.scheduledTime }}</p>
+            <p><strong>Address:</strong> {{ selectedPickup.address }}</p>
+            <div *ngIf="selectedPickup.type === 'bulk'">
+                <p><strong>Waste Type:</strong> {{ selectedPickup.wasteType }}</p>
+                <p><strong>Quantity:</strong> {{ selectedPickup.quantity }}</p>
+                <p><strong>Description:</strong> {{ selectedPickup.description }}</p>
+            </div>
+        </div>
+
+        <div class="action-section">
+            <h3>Assign Vehicle</h3>
+            <mat-form-field appearance="outline">
+                <mat-label>Vehicle Number</mat-label>
+                <input matInput [(ngModel)]="vehicleNumber" placeholder="e.g., ABC-1234">
+            </mat-form-field>
+            <button mat-raised-button color="primary" (click)="assignVehicle()" [disabled]="!vehicleNumber.trim()">
+                Assign Vehicle
+            </button>
+        </div>
+
+        <button mat-button (click)="selectedPickup = null">Close</button>
+    </mat-card>
+</div>

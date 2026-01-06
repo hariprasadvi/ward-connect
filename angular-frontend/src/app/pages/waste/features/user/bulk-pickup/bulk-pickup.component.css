@@ -1,0 +1,101 @@
+.pickup-container {
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pickup-card {
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+    width: 100%;
+}
+
+.card-header-custom {
+    background: #10b981;
+    color: white;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.card-header-custom mat-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+}
+
+.header-text h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.header-text p {
+    margin: 0.25rem 0 0 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.form-container {
+    padding: 2.5rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-row>* {
+    flex: 1;
+}
+
+.full-width {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.ai-hint {
+    font-size: 0.8rem;
+    color: #059669;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    display: block;
+    font-style: italic;
+}
+
+.actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.actions button {
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .pickup-container {
+        padding: 1rem;
+    }
+
+    .form-container {
+        padding: 1.5rem;
+    }
+}

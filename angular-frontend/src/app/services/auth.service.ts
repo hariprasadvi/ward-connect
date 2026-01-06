@@ -43,4 +43,28 @@ export class AuthService {
     getCurrentUser(): any {
         return this.userSubject.value;
     }
+
+    get currentUserValue(): any {
+        return this.userSubject.value;
+    }
+
+    isLoggedIn(): boolean {
+        return !!this.userSubject.value;
+    }
+
+    hasRole(role: string): boolean {
+        const user = this.getCurrentUser();
+        // Map waste roles to Ward Connect roles if needed
+        if (role === 'admin') return user?.role === 'Waste Management Staff';
+        if (role === 'user') return user?.role === 'Citizen';
+        return user?.role === role;
+    }
+
+    isAdmin(): boolean {
+        return this.hasRole('Waste Management Staff') || this.hasRole('admin');
+    }
+
+    isUser(): boolean {
+        return this.hasRole('Citizen') || this.hasRole('user');
+    }
 }

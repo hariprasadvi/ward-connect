@@ -38,6 +38,10 @@ const User = sequelize.define('User', {
         ),
         allowNull: false,
     },
+    house_number: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
     ward_number: {
         type: DataTypes.STRING,
         allowNull: true,

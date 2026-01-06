@@ -13,20 +13,33 @@
             <div class="hidden md:flex items-center space-x-6">
                 <!-- Links (Conditional based on auth) -->
                 <ng-container *ngIf="(user$ | async) as user; else guestLinks">
-                    <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+                    <a routerLink="/dashboard" routerLinkActive="active" class="nav-link flex items-center gap-2">
+                        <mat-icon class="text-lg">dashboard</mat-icon>
                         Dashboard
                     </a>
 
                     <!-- User Profile Dropdown / Area -->
                     <div class="flex items-center space-x-3 ml-4">
-                        <div
-                            class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
-                            {{ user.full_name?.charAt(0) || 'U' }}
-                        </div>
-                        <span class="text-sm font-medium text-gray-700">{{ user.full_name }}</span>
+                        <a routerLink="/profile" class="flex items-center space-x-2 group">
+                            <div
+                                class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:ring-2 ring-indigo-300 transition-all">
+                                {{ user.full_name?.charAt(0) || 'U' }}
+                            </div>
+                            <div class="flex flex-col">
+                                <span
+                                    class="text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
+                                    {{ user.full_name }}
+                                </span>
+                                <span *ngIf="user.completion < 100"
+                                    class="text-[10px] font-bold text-orange-500 animate-pulse">
+                                    Profile {{ user.completion }}% complete
+                                </span>
+                            </div>
+                        </a>
 
                         <button (click)="logout()"
-                            class="text-sm text-red-500 hover:text-red-700 font-medium ml-2 transition-colors">
+                            class="text-sm text-red-500 hover:text-red-700 font-medium ml-4 transition-colors flex items-center gap-1">
+                            <mat-icon class="text-sm scale-75">logout</mat-icon>
                             Logout
                         </button>
                     </div>

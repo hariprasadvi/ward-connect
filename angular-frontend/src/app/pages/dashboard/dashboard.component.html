@@ -119,8 +119,8 @@
                     Launch Module →</div>
             </div>
 
-            <!-- Environment -->
-            <div
+            <!-- Environment / Waste Management -->
+            <div *ngIf="hasWasteAccess()" routerLink="/waste"
                 class="group bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-xl hover:shadow-emerald-100 transition-all duration-300 cursor-pointer relative overflow-hidden">
                 <div class="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 text-emerald-600">
                     <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,9 +128,15 @@
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">Environment
+                <h3
+                    class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors flex items-center justify-between">
+                    Waste Management
+                    <span *ngIf="wasteNotificationCount > 0"
+                        class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                        {{ wasteNotificationCount }}
+                    </span>
                 </h3>
-                <p class="mt-2 text-sm text-gray-500">Waste management.</p>
+                <p class="mt-2 text-sm text-gray-500">Manage waste pickups and complaints.</p>
                 <div
                     class="mt-6 flex items-center text-sm font-medium text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
                     Launch Module →</div>

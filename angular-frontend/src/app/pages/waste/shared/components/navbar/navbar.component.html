@@ -1,0 +1,67 @@
+<mat-toolbar class="navbar">
+    <div class="navbar-content">
+        <div class="brand" [routerLink]="isAdmin ? '/waste/admin/dashboard' : '/waste/user/dashboard'">
+            <mat-icon>delete</mat-icon>
+            <span>WasteCheck</span>
+        </div>
+
+        <div class="nav-links" *ngIf="authService.isLoggedIn()">
+            <!-- User Menu -->
+            <ng-container *ngIf="!isAdmin">
+                <button mat-button routerLink="/waste/user/dashboard" routerLinkActive="active">
+                    <mat-icon>dashboard</mat-icon>
+                    Dashboard
+                </button>
+                <button mat-button routerLink="/waste/user/bulk-pickup" routerLinkActive="active">
+                    <mat-icon>local_shipping</mat-icon>
+                    Bulk Pickup
+                </button>
+                <button mat-button routerLink="/waste/user/complaint" routerLinkActive="active">
+                    <mat-icon>report_problem</mat-icon>
+                    Complaint
+                </button>
+                <button mat-button routerLink="/waste/user/my-complaints" routerLinkActive="active">
+                    <mat-icon>list</mat-icon>
+                    My Complaints
+                </button>
+            </ng-container>
+
+            <!-- Admin Menu -->
+            <ng-container *ngIf="isAdmin">
+                <button mat-button routerLink="/waste/admin/dashboard" routerLinkActive="active">
+                    <mat-icon>dashboard</mat-icon>
+                    Dashboard
+                </button>
+                <button mat-button routerLink="/waste/admin/schedule-pickup" routerLinkActive="active">
+                    <mat-icon>add_task</mat-icon>
+                    Schedule Pickup
+                </button>
+                <button mat-button routerLink="/waste/admin/manage-pickups" routerLinkActive="active">
+                    <mat-icon>event_note</mat-icon>
+                    Manage Pickups
+                </button>
+                <button mat-button routerLink="/waste/admin/manage-complaints" routerLinkActive="active">
+                    <mat-icon>assignment</mat-icon>
+                    Manage Complaints
+                </button>
+                <button mat-button routerLink="/waste/admin/reports" routerLinkActive="active">
+                    <mat-icon>bar_chart</mat-icon>
+                    Reports
+                </button>
+            </ng-container>
+
+            <!-- User Menu -->
+            <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
+                <mat-icon>account_circle</mat-icon>
+                {{ userName }}
+                <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+            <mat-menu #userMenu="matMenu">
+                <button mat-menu-item (click)="logout()">
+                    <mat-icon>logout</mat-icon>
+                    Logout
+                </button>
+            </mat-menu>
+        </div>
+    </div>
+</mat-toolbar>

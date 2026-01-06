@@ -1,0 +1,97 @@
+<div class="pickup-container">
+    <mat-card class="pickup-card fade-in">
+        <div class="card-header-custom">
+            <mat-icon>local_shipping</mat-icon>
+            <div class="header-text">
+                <h1>Bulk Waste Disposal</h1>
+                <p>Schedule a special collection for large or excessive items.</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form [formGroup]="pickupForm" (ngSubmit)="onSubmit()">
+                <div class="form-row">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Waste Category</mat-label>
+                        <mat-select formControlName="wasteType">
+                            <mat-option *ngFor="let type of wasteTypes" [value]="type">
+                                {{type}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix>category</mat-icon>
+                        <mat-error *ngIf="pickupForm.get('wasteType')?.hasError('required')">
+                            Category is required
+                        </mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Estimated Quantity</mat-label>
+                        <input matInput formControlName="quantity" placeholder="e.g., 3 large bags">
+                        <mat-icon matPrefix>inventory_2</mat-icon>
+                        <mat-error *ngIf="pickupForm.get('quantity')?.hasError('required')">
+                            Quantity is required
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>What are we picking up?</mat-label>
+                    <textarea matInput formControlName="description" rows="3"
+                        placeholder="Detailed description helps our AI classify waste..."></textarea>
+                    <button mat-icon-button matSuffix (click)="autoClassify()"
+                        [disabled]="!pickupForm.get('description')?.value || isAnalyzing"
+                        matTooltip="AI Smart Classify">
+                        <mat-icon [class.rotating]="isAnalyzing">auto_awesome</mat-icon>
+                    </button>
+                    <mat-hint>Use the magic wand for AI suggestions!</mat-hint>
+                    <mat-error *ngIf="pickupForm.get('description')?.hasError('required')">
+                        Description is required
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="form-row">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Operation Date</mat-label>
+                        <input matInput [matDatepicker]="picker" formControlName="scheduledDate" [min]="minDate">
+                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker></mat-datepicker>
+                        <mat-icon matPrefix>calendar_today</mat-icon>
+                        <mat-error *ngIf="pickupForm.get('scheduledDate')?.hasError('required')">
+                            Date is required
+                        </mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Preferred Slot</mat-label>
+                        <mat-select formControlName="scheduledTime">
+                            <mat-option *ngFor="let time of availableTimes" [value]="time">
+                                {{time}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix>schedule</mat-icon>
+                        <mat-error *ngIf="pickupForm.get('scheduledTime')?.hasError('required')">
+                            Time Slot is required
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Collection Point Address</mat-label>
+                    <textarea matInput formControlName="address" rows="2"></textarea>
+                    <mat-icon matPrefix>location_on</mat-icon>
+                    <mat-error *ngIf="pickupForm.get('address')?.hasError('required')">
+                        Address is required
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="actions">
+                    <button mat-button type="button" routerLink="/waste/user/dashboard">Cancel</button>
+                    <button mat-flat-button color="primary" type="submit"
+                        [disabled]="pickupForm.invalid || isAnalyzing">
+                        {{ isAnalyzing ? 'Analyzing...' : 'Schedule Pickup' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </mat-card>
+</div>

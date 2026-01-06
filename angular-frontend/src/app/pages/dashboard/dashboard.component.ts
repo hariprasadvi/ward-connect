@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router, RouterModule, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { PickupService } from '../waste/core/services/pickup.service';
 
 @Component({
     selector: 'app-dashboard',
@@ -12,9 +13,28 @@ import { AuthService } from '../../services/auth.service';
 })
 export class DashboardComponent {
     user: any;
+    wasteNotificationCount = 0;
 
-    constructor(private authService: AuthService) {
+    constructor(
+        private authService: AuthService,
+        private pickupService: PickupService
+    ) {
         this.user = this.authService.getCurrentUser();
+        this.loadNotifications();
+    }
+
+    loadNotifications() {
+        if (this.hasWasteAccess()) {
+            this.pickupService.getNotificationCount().subscribe({
+                next: (res) => this.wasteNotificationCount = res.count,
+                error: (err) => console.error('Failed to load notifications', err)
+            });
+        }
+    }
+
+    hasWasteAccess(): boolean {
+        // Module is now visible to all registered users
+        return !!this.user;
     }
 
     logout() {

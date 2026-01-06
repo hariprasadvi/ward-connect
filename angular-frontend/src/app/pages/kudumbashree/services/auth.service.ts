@@ -6,6 +6,7 @@ export interface User {
   name: string;
   email: string;
   role: 'member' | 'admin';
+  is_approved: boolean;
   phone?: string;
   communityUnit?: string;
   joinDate?: Date;
@@ -59,6 +60,7 @@ export class AuthService {
         name: mainUser.full_name || mainUser.name || 'User',
         email: mainUser.email || '',
         role: kudumbashreeRole,
+        is_approved: mainUser.is_approved !== undefined ? mainUser.is_approved : true, // Default to true if missing for backward compatibility
         phone: mainUser.mobile_number || mainUser.phone,
         communityUnit: mainUser.ward_number || 'Default Unit'
       };

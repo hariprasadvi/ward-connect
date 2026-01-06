@@ -12,6 +12,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 
 import { TranslationService } from '../../services/translation.service';
+import { DashboardService } from '../../services/dashboard.service';
 
 interface Member {
   id: string;
@@ -21,6 +22,7 @@ interface Member {
   communityUnit: string;
   joinDate: Date;
   status: 'active' | 'inactive' | 'pending';
+  is_approved: boolean; // Added to fix build error
   totalLoans: number;
   activeLoans: number;
   attendanceRate: number;
@@ -66,78 +68,34 @@ export class MemberManagementComponent implements OnInit {
   statusFilter: string = 'all';
   unitFilter: string = 'all';
 
+  private dashboardService = inject(DashboardService);
+  // translations/dialog already injected
+
   ngOnInit() {
     this.loadMembers();
   }
 
   loadMembers() {
-    // Simulate API call
-    setTimeout(() => {
-      this.members = [
-        {
-          id: '1',
-          name: 'Rani S',
-          email: 'rani@community.com',
-          phone: '9876543210',
-          communityUnit: 'Unit 5A',
-          joinDate: new Date('2024-01-15'),
-          status: 'active',
-          totalLoans: 2,
-          activeLoans: 1,
-          attendanceRate: 95
-        },
-        {
-          id: '2',
-          name: 'Lakshmi M',
-          email: 'lakshmi@community.com',
-          phone: '9876543211',
-          communityUnit: 'Unit 3B',
-          joinDate: new Date('2024-01-10'),
-          status: 'active',
-          totalLoans: 1,
-          activeLoans: 0,
-          attendanceRate: 88
-        },
-        {
-          id: '3',
-          name: 'Geetha P',
-          email: 'geetha@community.com',
-          phone: '9876543212',
-          communityUnit: 'Unit 7C',
-          joinDate: new Date('2024-01-08'),
-          status: 'pending',
+    this.dashboardService.getAllMembers().subscribe({
+      next: (members) => {
+        this.members = members.map((m: any) => ({
+          id: m.id?.toString() || '',
+          name: m.full_name || m.name,
+          email: m.email,
+          phone: m.mobile_number || m.phone || '',
+          communityUnit: m.ward_number || m.communityUnit,
+          joinDate: new Date(),
+          is_approved: m.is_approved, // Map from backend
+          status: m.is_approved ? 'active' : 'pending', // Derive status
           totalLoans: 0,
           activeLoans: 0,
           attendanceRate: 0
-        },
-        {
-          id: '4',
-          name: 'Sunitha R',
-          email: 'sunitha@community.com',
-          phone: '9876543213',
-          communityUnit: 'Unit 2D',
-          joinDate: new Date('2024-01-05'),
-          status: 'active',
-          totalLoans: 3,
-          activeLoans: 2,
-          attendanceRate: 92
-        },
-        {
-          id: '5',
-          name: 'Meena K',
-          email: 'meena@community.com',
-          phone: '9876543214',
-          communityUnit: 'Unit 8E',
-          joinDate: new Date('2024-01-03'),
-          status: 'inactive',
-          totalLoans: 1,
-          activeLoans: 0,
-          attendanceRate: 45
-        }
-      ];
-      this.filteredMembers = [...this.members];
-      this.calculateStatistics();
-    }, 1000);
+        }));
+        this.filteredMembers = [...this.members];
+        this.calculateStatistics();
+      },
+      error: (err) => console.error('Error loading members:', err)
+    });
   }
 
   calculateStatistics() {
@@ -174,9 +132,16 @@ export class MemberManagementComponent implements OnInit {
   }
 
   approveMember(member: Member) {
-    member.status = 'active';
-    this.calculateStatistics();
-    // In real app, call API to update member status
+    if (confirm(`Are you sure you want to approve ${member.name}?`)) {
+        this.dashboardService.approveMember(member.id).subscribe({
+            next: () => {
+                member.status = 'active';
+                member.is_approved = true;
+                this.calculateStatistics();
+            },
+            error: (err) => alert('Failed to approve member: ' + (err.error?.message || err.message))
+        });
+    }
   }
 
   viewMemberDetails(member: Member) {

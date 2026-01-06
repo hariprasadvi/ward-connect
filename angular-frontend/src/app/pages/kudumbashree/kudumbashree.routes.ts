@@ -11,6 +11,11 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent)
   },
+  {
+      path: 'pending-approval',
+      loadComponent: () => import('./components/pending-approval/pending-approval.component').then(m => m.PendingApprovalComponent),
+      canActivate: [AuthGuard] // Only AuthGuard needed, RoleLogic handled in guard or flow
+  },
   // Member routes
   {
     path: 'member/dashboard',

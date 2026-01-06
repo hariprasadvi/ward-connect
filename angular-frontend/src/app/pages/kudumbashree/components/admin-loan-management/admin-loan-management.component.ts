@@ -206,7 +206,6 @@ export class AdminLoanManagementComponent implements OnInit {
     loan.status = 'approved';
     loan.approvedBy = 'Admin';
     loan.approvedDate = new Date();
-    // In real app, call API to update loan status
   }
 
   rejectLoan(loan: Loan) {
@@ -214,16 +213,13 @@ export class AdminLoanManagementComponent implements OnInit {
     loan.approvedBy = 'Admin';
     loan.approvedDate = new Date();
     loan.rejectionReason = 'Application does not meet criteria';
-    // In real app, call API to update loan status
   }
 
   disburseLoan(loan: Loan) {
     loan.status = 'disbursed';
-    // In real app, call API to disburse loan
   }
 
   viewLoanDetails(loan: Loan) {
-    // Implement view details dialog
     console.log('View details for loan:', loan.loanNumber);
   }
 

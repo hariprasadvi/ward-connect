@@ -1,0 +1,37 @@
+<div class="page-container">
+    <mat-card class="form-card fade-in">
+        <h1>Schedule Waste Pickup</h1>
+        <p class="description">Request regular waste collection service</p>
+
+        <form [formGroup]="pickupForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline">
+                <mat-label>Pickup Date</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="scheduledDate" [min]="minDate"
+                    placeholder="Choose a date">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+                <mat-error *ngIf="pickupForm.get('scheduledDate')?.hasError('required')">Date is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Preferred Time</mat-label>
+                <input matInput type="time" formControlName="scheduledTime" placeholder="Select time">
+                <mat-error *ngIf="pickupForm.get('scheduledTime')?.hasError('required')">Time is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Pickup Address</mat-label>
+                <textarea matInput formControlName="address" placeholder="Enter your address" rows="3"></textarea>
+                <mat-error *ngIf="pickupForm.get('address')?.hasError('required')">Address is required</mat-error>
+            </mat-form-field>
+
+            <div class="button-group">
+                <button mat-raised-button type="button" routerLink="/waste/user/dashboard">Cancel</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="pickupForm.invalid || loading">
+                    <span *ngIf="!loading">Schedule Pickup</span>
+                    <span *ngIf="loading">Scheduling...</span>
+                </button>
+            </div>
+        </form>
+    </mat-card>
+</div>

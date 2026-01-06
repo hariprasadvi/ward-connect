@@ -1,0 +1,49 @@
+<div class="page-container">
+    <mat-card class="content-card fade-in">
+        <h1>My Complaints</h1>
+        <p class="description">Track your submitted complaints and their status</p>
+
+        <div *ngIf="loading" class="loading">
+            <p>Loading complaints...</p>
+        </div>
+
+        <div *ngIf="!loading && complaints.length === 0" class="empty-state">
+            <p>No complaints registered yet</p>
+            <button mat-raised-button color="primary" routerLink="/user/complaint">Register Complaint</button>
+        </div>
+
+        <table mat-table [dataSource]="complaints" *ngIf="!loading && complaints.length > 0" class="complaints-table">
+            <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef>Title</th>
+                <td mat-cell *matCellDef="let complaint">
+                    <div class="complaint-title">
+                        <strong>{{ complaint.title }}</strong>
+                        <p class="complaint-desc">{{ complaint.description }}</p>
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="category">
+                <th mat-header-cell *matHeaderCellDef>Category</th>
+                <td mat-cell *matCellDef="let complaint">{{ complaint.category }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let complaint">{{ complaint.createdAt | date:'mediumDate' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let complaint">
+                    <span class="status-badge" [ngClass]="getStatusClass(complaint.status)">
+                        {{ complaint.status }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </mat-card>
+</div>

@@ -13,7 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiService } from '../../services/api.service';
 import { TranslationService } from '../../services/translation.service';
-import { Meeting } from '../../models';
+import { KudumbashreeMeeting } from '../../models/meeting';
 
 @Component({
   selector: 'app-meeting-minutes',
@@ -42,19 +42,19 @@ export class MeetingMinutesComponent implements OnInit {
 
   isRecording = false;
   selectedMeeting: string = '';
-  selectedMeetingDetails: Meeting | null = null;
-  meetings: Meeting[] = [];
+  selectedMeetingDetails: KudumbashreeMeeting | null = null;
+  meetings: KudumbashreeMeeting[] = [];
   transcript = '';
   summary = '';
   recordingTime = 0;
   private recordingInterval: any;
 
   // Sample meetings for demo
-  private sampleMeetings: Meeting[] = [
+  private sampleMeetings: KudumbashreeMeeting[] = [
     {
       id: '1',
-      title: 'Monthly Community Meeting',
-      description: 'Regular monthly meeting to discuss community issues and updates',
+      title: 'Monthly Community KudumbashreeMeeting',
+      description: 'Regular monthly KudumbashreeMeeting to discuss community issues and updates',
       date: new Date('2024-01-15'),
       startTime: '10:00',
       endTime: '12:00',
@@ -132,15 +132,15 @@ export class MeetingMinutesComponent implements OnInit {
 
   private simulateProcessing() {
     setTimeout(() => {
-      const meetingTitle = this.selectedMeetingDetails?.title || 'Meeting';
+      const meetingTitle = this.selectedMeetingDetails?.title || 'KudumbashreeMeeting';
       const meetingDate = this.selectedMeetingDetails?.date ? 
         new Date(this.selectedMeetingDetails.date).toLocaleDateString('en-US', { 
           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
         }) : 'Unknown Date';
       const meetingLocation = this.selectedMeetingDetails?.location || 'Unknown Location';
 
-      this.transcript = `Meeting Transcript for: ${meetingTitle}\n\nDate: ${meetingDate}\nLocation: ${meetingLocation}\n\nSample transcript content...`;
-      this.summary = `MEETING SUMMARY: ${meetingTitle}\n\nSample summary content...`;
+      this.transcript = `KudumbashreeMeeting Transcript for: ${meetingTitle}\n\nDate: ${meetingDate}\nLocation: ${meetingLocation}\n\nSample transcript content...`;
+      this.summary = `KudumbashreeMeeting SUMMARY: ${meetingTitle}\n\nSample summary content...`;
     }, 2000);
   }
 
@@ -182,7 +182,7 @@ export class MeetingMinutesComponent implements OnInit {
   }
 
   downloadSummary() {
-    this.downloadFile(this.summary, 'meeting-summary.txt', 'text/plain');
+    this.downloadFile(this.summary, 'KudumbashreeMeeting-summary.txt', 'text/plain');
   }
 
   private downloadFile(content: string, filename: string, contentType: string) {

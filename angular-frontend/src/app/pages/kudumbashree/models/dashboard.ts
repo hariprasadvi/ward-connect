@@ -1,5 +1,5 @@
 import { BaseModel } from './base';
-import { Meeting } from './meeting';
+import { KudumbashreeMeeting } from './meeting';
 import { User } from './user';
 
 export interface DashboardStats {
@@ -26,7 +26,7 @@ export interface MemberDashboard {
     totalLoanAmount: number;
     repaidAmount: number;
     pendingAmount: number;
-    nextMeeting?: Meeting;
+    nextMeeting?: KudumbashreeMeeting;
     recentActivities: Activity[];
   };
 }

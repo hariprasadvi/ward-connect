@@ -9,6 +9,7 @@
     <mat-card-content>
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ translations().SELECT_MEETING }}</mat-label>
+        <mat-icon matPrefix>meeting_room</mat-icon>
         <mat-select [(value)]="selectedMeeting" (selectionChange)="onMeetingSelect()">
           <mat-option value="">-- {{ translations().SELECT_MEETING }} --</mat-option>
           @for (meeting of meetings; track meeting.id) {
@@ -24,19 +25,23 @@
 
       @if (selectedMeeting && selectedMeetingDetails) {
       <div class="meeting-details">
-        <h3>{{ translations().MEETING_DETAILS }}</h3>
+        <h3><mat-icon>info</mat-icon> {{ translations().MEETING_DETAILS }}</h3>
         <div class="details-grid">
           <div class="detail-item">
+            <mat-icon>title</mat-icon>
             <strong>{{ translations().TITLE }}:</strong> {{ selectedMeetingDetails.title }}
           </div>
           <div class="detail-item">
+            <mat-icon>event</mat-icon>
             <strong>{{ translations().DATE }}:</strong> {{ selectedMeetingDetails.date | date:'fullDate' }}
           </div>
           <div class="detail-item">
+            <mat-icon>place</mat-icon>
             <strong>{{ translations().LOCATION }}:</strong> {{ selectedMeetingDetails.location }}
           </div>
           @if (selectedMeetingDetails.description) {
           <div class="detail-item full-width">
+            <mat-icon>description</mat-icon>
             <strong>{{ translations().DESCRIPTION }}:</strong> {{ selectedMeetingDetails.description }}
           </div>
           }

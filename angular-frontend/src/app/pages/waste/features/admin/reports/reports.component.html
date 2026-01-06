@@ -1,0 +1,111 @@
+<div class="page-container">
+    <mat-card class="content-card fade-in">
+        <div class="header-section">
+            <div>
+                <h1>Reports & Analytics</h1>
+                <p class="description">Comprehensive waste management statistics</p>
+            </div>
+            <div class="export-buttons">
+                <button mat-raised-button (click)="exportReport('pdf')">
+                    <mat-icon>picture_as_pdf</mat-icon>
+                    Export PDF
+                </button>
+                <button mat-raised-button (click)="exportReport('excel')">
+                    <mat-icon>description</mat-icon>
+                    Export Excel
+                </button>
+            </div>
+        </div>
+
+        <div *ngIf="loading" class="loading">
+            <p>Generating report...</p>
+        </div>
+
+        <div *ngIf="!loading && reportData" class="report-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid grid grid-2">
+                <mat-card class="stat-card">
+                    <h3>Pickup Statistics</h3>
+                    <div class="stat-row">
+                        <span>Total Pickups:</span>
+                        <strong>{{ reportData.pickupStats.total }}</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Regular Pickups:</span>
+                        <strong>{{ reportData.pickupStats.regular }}</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Bulk Pickups:</span>
+                        <strong>{{ reportData.pickupStats.bulk }}</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Completed:</span>
+                        <strong class="success-color">{{ reportData.pickupStats.completed }}</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Pending:</span>
+                        <strong class="warning-color">{{ reportData.pickupStats.pending }}</strong>
+                    </div>
+                </mat-card>
+
+                <mat-card class="stat-card">
+                    <h3>Complaint Statistics</h3>
+                    <div class="stat-row">
+                        <span>Total Complaints:</span>
+                        <strong>{{ reportData.complaintStats.total }}</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Pending:</span>
+                        <strong class="warning-color">{{ reportData.complaintStats.pending }}</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>In Progress:</span>
+                        <strong class="info-color">{{ reportData.complaintStats.inProgress }}</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Resolved:</span>
+                        <strong class="success-color">{{ reportData.complaintStats.resolved }}</strong>
+                    </div>
+                </mat-card>
+            </div>
+
+            <!-- Monthly Data -->
+            <mat-card class="data-card">
+                <h3>Monthly Trends</h3>
+                <div class="chart-placeholder">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Pickups</th>
+                                <th>Complaints</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let month of reportData.monthlyData">
+                                <td>{{ month.month }}</td>
+                                <td>{{ month.pickups }}</td>
+                                <td>{{ month.complaints }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </mat-card>
+
+            <!-- Category Breakdown -->
+            <mat-card class="data-card">
+                <h3>Complaint Categories</h3>
+                <div class="category-list">
+                    <div class="category-item" *ngFor="let category of reportData.categoryData">
+                        <span class="category-name">{{ category.category }}</span>
+                        <div class="category-bar">
+                            <div class="bar-fill"
+                                [style.width.%]="(category.count / reportData.complaintStats.total) * 100"></div>
+                        </div>
+                        <span class="category-count">{{ category.count }}</span>
+                    </div>
+                </div>
+            </mat-card>
+        </div>
+    </mat-card>
+</div>

@@ -1,6 +1,6 @@
 import { BaseModel } from './base';
 
-export interface Meeting extends BaseModel {
+export interface KudumbashreeMeeting extends BaseModel {
   title: string;
   description: string;
   date: Date;

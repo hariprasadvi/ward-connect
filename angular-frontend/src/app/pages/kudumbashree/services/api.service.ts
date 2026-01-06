@@ -1,14 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Meeting, Loan, Attendance} from '../models';
-import { FinancialTransaction, FinancialReport} from '../models/financial'
+import { KudumbashreeMeeting } from '../models/meeting';
+import { Loan } from '../models/loan';
+import { Attendance } from '../models/attendance';
+import { FinancialTransaction, FinancialReport } from '../models/financial';
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:3000/api';
+  private baseUrl = 'http://localhost:5000/api';
 
   // Meeting minutes endpoints
   recordMeetingAudio(meetingId: string, audioBlob: Blob): Observable<any> {
@@ -41,8 +43,8 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/meetings/schedule`, meetingData);
   }
 
-  getMeetings(): Observable<Meeting[]> {
-    return this.http.get<Meeting[]>(`${this.baseUrl}/meetings`);
+  getMeetings(): Observable<KudumbashreeMeeting[]> {
+    return this.http.get<KudumbashreeMeeting[]>(`${this.baseUrl}/meetings`);
   }
 
 

@@ -1,0 +1,64 @@
+<div class="page-container">
+    <mat-card class="form-card fade-in">
+        <h1>Register Complaint</h1>
+        <p class="description">Report issues with waste collection services</p>
+
+        <form [formGroup]="complaintForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline">
+                <mat-label>Complaint Title</mat-label>
+                <input matInput formControlName="title" placeholder="Brief summary of the issue">
+                <mat-error *ngIf="complaintForm.get('title')?.hasError('required')">Title is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Category</mat-label>
+                <mat-select formControlName="category" placeholder="Select category">
+                    <mat-option *ngFor="let cat of categories" [value]="cat.value">{{ cat.label }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="complaintForm.get('category')?.hasError('required')">Category is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" placeholder="Detailed description of the issue"
+                    rows="4"></textarea>
+                <mat-error *ngIf="complaintForm.get('description')?.hasError('required')">Description is
+                    required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Location</mat-label>
+                <input matInput formControlName="location" placeholder="Enter location of the issue">
+                <mat-icon matPrefix>location_on</mat-icon>
+                <mat-error *ngIf="complaintForm.get('location')?.hasError('required')">Location is required</mat-error>
+            </mat-form-field>
+
+            <div class="photo-upload-section">
+                <label class="upload-label">
+                    <mat-icon>camera_alt</mat-icon>
+                    <span>Upload Photo (Optional)</span>
+                </label>
+                <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput hidden>
+                <button mat-stroked-button type="button" (click)="fileInput.click()">
+                    <mat-icon>add_photo_alternate</mat-icon>
+                    Choose Photo
+                </button>
+
+                <div class="preview-container" *ngIf="previewUrl">
+                    <img [src]="previewUrl" alt="Preview">
+                    <button mat-icon-button type="button" (click)="removeFile()" class="remove-btn">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button mat-raised-button type="button" routerLink="/user/dashboard">Cancel</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="complaintForm.invalid || loading">
+                    <span *ngIf="!loading">Submit Complaint</span>
+                    <span *ngIf="loading">Submitting...</span>
+                </button>
+            </div>
+        </form>
+    </mat-card>
+</div>

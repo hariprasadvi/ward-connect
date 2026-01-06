@@ -1,0 +1,87 @@
+<div class="schedule-container">
+    <mat-card class="schedule-card fade-in">
+        <div class="card-header-custom">
+            <mat-icon>add_task</mat-icon>
+            <div class="header-text">
+                <h1>Operation Scheduler</h1>
+                <p>Assign collection tasks for multiple residential units.</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form [formGroup]="scheduleForm" (ngSubmit)="onSubmit()">
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Residential Unit Selection</mat-label>
+                    <mat-select formControlName="houseNumbers" multiple>
+                        <mat-select-trigger>
+                            <mat-chip-listbox>
+                                <mat-chip
+                                    *ngFor="let house of (scheduleForm.get('houseNumbers')?.value || []).slice(0, 3)">
+                                    House {{house}}
+                                </mat-chip>
+                                <span *ngIf="(scheduleForm.get('houseNumbers')?.value?.length || 0) > 3"
+                                    class="additional-selection">
+                                    (+{{(scheduleForm.get('houseNumbers')?.value?.length || 0) - 3}} units)
+                                </span>
+                            </mat-chip-listbox>
+                        </mat-select-trigger>
+                        <mat-option *ngFor="let house of houseNumbers$ | async" [value]="house">
+                            Unit - House #{{house}}
+                        </mat-option>
+                    </mat-select>
+                    <mat-icon matPrefix>apartment</mat-icon>
+                    <mat-error *ngIf="scheduleForm.get('houseNumbers')?.hasError('required')">
+                        At least one unit selection is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="row">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Deployment Date</mat-label>
+                        <input matInput [matDatepicker]="picker" formControlName="scheduledDate" [min]="today">
+                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker></mat-datepicker>
+                        <mat-icon matPrefix>event_available</mat-icon>
+                        <mat-error *ngIf="scheduleForm.get('scheduledDate')?.hasError('required')">
+                            Selection date is mandatory.
+                        </mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Assignment Window</mat-label>
+                        <mat-select formControlName="scheduledTime">
+                            <mat-option *ngFor="let time of availableTimes" [value]="time">
+                                {{time}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-icon matPrefix>history_toggle_off</mat-icon>
+                        <mat-error *ngIf="scheduleForm.get('scheduledTime')?.hasError('required')">
+                            Time window is required.
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Waste Type Collection</mat-label>
+                    <mat-select formControlName="wasteType">
+                        <mat-option *ngFor="let type of wasteTypes" [value]="type">
+                            {{type}}
+                        </mat-option>
+                    </mat-select>
+                    <mat-icon matPrefix>category</mat-icon>
+                    <mat-error *ngIf="scheduleForm.get('wasteType')?.hasError('required')">
+                        Waste type is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="actions">
+                    <button mat-button type="button" routerLink="/waste/admin/dashboard">Cancel</button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="scheduleForm.invalid">
+                        Confirm Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </mat-card>
+</div>

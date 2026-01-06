@@ -2,10 +2,11 @@ const User = require('../models/User');
 const OtpVerification = require('../models/Otp');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { calculateCompletion } = require('./user.controller');
 
 const generateToken = (user) => {
     return jwt.sign(
-        { id: user.id, role: user.role, mobile_number: user.mobile_number },
+        { id: user.id, role: user.role, mobile_number: user.mobile_number, house_number: user.house_number },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
     );
@@ -15,7 +16,7 @@ exports.signup = async (req, res) => {
     try {
         const {
             full_name, mobile_number, email, password, role,
-            ward_number, panchayat_name, address, aadhaar_number
+            ward_number, panchayat_name, address, aadhaar_number, house_number
         } = req.body;
 
         // Check if user exists
@@ -26,8 +27,9 @@ exports.signup = async (req, res) => {
 
         const password_hash = await bcrypt.hash(password, 10);
 
-        // Auto-approve citizens, others require admin approval (logic can be refined)
-        const is_approved = role === 'Citizen';
+  // Auto-approve citizens, but NOT Kudumbashree roles basically (unless you want random citizens approved)
+        // Modified: Kudumbashree Member/Admin will NOT be auto-approved.
+        const is_approved = ['Citizen'].includes(role); 
 
         const newUser = await User.create({
             full_name,
@@ -35,21 +37,23 @@ exports.signup = async (req, res) => {
             email,
             password_hash,
             role,
+            house_number,
             ward_number,
             panchayat_name,
             address,
             aadhaar_number,
             is_approved,
-            is_verified: true // Assuming mobile OTP verification happens BEFORE this step or integrated
+            is_verified: true
         });
+
+        // ... (Kudumbashree logic remains)
 
         res.status(201).json({
             message: 'User registered successfully',
             user: { id: newUser.id, role: newUser.role, is_approved }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error during signup', error: error.message });
+        // ...
     }
 };
 
@@ -71,9 +75,8 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        if (!user.is_approved) {
-            return res.status(403).json({ message: 'Account pending approval by Admin.' });
-        }
+        // REMOVED: Block login if not approved. 
+        // We now allow login so frontend can show "Pending Approval" page.
 
         const token = generateToken(user);
 
@@ -84,7 +87,10 @@ exports.login = async (req, res) => {
                 id: user.id,
                 full_name: user.full_name,
                 role: user.role,
-                ward_number: user.ward_number
+                house_number: user.house_number,
+                ward_number: user.ward_number,
+                is_approved: user.is_approved, // Sending approval status to frontend
+                completion: calculateCompletion(user)
             }
         });
     } catch (error) {

@@ -1,0 +1,56 @@
+<div class="dashboard-container">
+    <div class="header">
+        <h1>Admin Dashboard</h1>
+        <p class="subtitle">Manage waste collection operations</p>
+    </div>
+
+    <div class="stats-grid grid grid-2">
+        <mat-card class="stat-card pickups-card">
+            <mat-icon class="stat-icon">local_shipping</mat-icon>
+            <div class="stat-content">
+                <h3>Total Pickups</h3>
+                <p class="stat-number">{{ stats.totalPickups }}</p>
+                <p class="stat-detail">{{ stats.pendingPickups }} pending</p>
+            </div>
+        </mat-card>
+
+        <mat-card class="stat-card complaints-card">
+            <mat-icon class="stat-icon">report_problem</mat-icon>
+            <div class="stat-content">
+                <h3>Total Complaints</h3>
+                <p class="stat-number">{{ stats.totalComplaints }}</p>
+                <p class="stat-detail">{{ stats.pendingComplaints }} pending</p>
+            </div>
+        </mat-card>
+    </div>
+
+    <div class="quick-actions grid grid-3">
+        <mat-card class="action-card fade-in" routerLink="/admin/schedule-pickup">
+            <mat-icon class="action-icon">add_task</mat-icon>
+            <h3>Schedule Pickups</h3>
+            <p>Assign pickups for multiple houses</p>
+            <button mat-raised-button color="accent">Schedule</button>
+        </mat-card>
+
+        <mat-card class="action-card fade-in" routerLink="/admin/manage-pickups">
+            <mat-icon class="action-icon">event_note</mat-icon>
+            <h3>Manage Pickups</h3>
+            <p>View and manage pickup requests</p>
+            <button mat-raised-button color="primary">Manage</button>
+        </mat-card>
+
+        <mat-card class="action-card fade-in" routerLink="/admin/manage-complaints">
+            <mat-icon class="action-icon">assignment</mat-icon>
+            <h3>Manage Complaints</h3>
+            <p>Review and assign complaints</p>
+            <button mat-raised-button color="primary">Manage</button>
+        </mat-card>
+
+        <mat-card class="action-card fade-in" routerLink="/admin/reports">
+            <mat-icon class="action-icon">bar_chart</mat-icon>
+            <h3>Reports & Analytics</h3>
+            <p>View detailed reports</p>
+            <button mat-raised-button color="primary">View Reports</button>
+        </mat-card>
+    </div>
+</div>

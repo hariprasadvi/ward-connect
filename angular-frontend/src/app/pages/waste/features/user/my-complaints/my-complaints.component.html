@@ -1,0 +1,61 @@
+<div class="page-container">
+    <div class="content-card fade-in">
+        <h1>My Waste Requests</h1>
+        <p class="description">Track and manage your reports and special collection requests.</p>
+
+        <div *ngIf="loading" class="empty-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Gathering your records...</p>
+        </div>
+
+        <div *ngIf="!loading && complaints.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <p>You haven't submitted any reports yet.</p>
+            <button mat-flat-button color="primary" routerLink="/waste/user/complaint">Report an Issue</button>
+        </div>
+
+        <table mat-table [dataSource]="complaints" *ngIf="!loading && complaints.length > 0" class="complaints-table">
+            <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef>Details</th>
+                <td mat-cell *matCellDef="let complaint">
+                    <div class="complaint-title">
+                        <strong>{{ complaint.title }}</strong>
+                        <p class="complaint-desc">{{ complaint.description }}</p>
+                    </div>
+                    <div *ngIf="complaint.adminResponse"
+                        class="admin-feedback mt-2 p-2 bg-indigo-50 rounded-lg border border-indigo-100">
+                        <p class="text-xs font-bold text-indigo-600 flex items-center gap-1">
+                            <mat-icon class="text-xs scale-75">reply</mat-icon>
+                            Admin Response:
+                        </p>
+                        <p class="text-sm text-indigo-900 italic">"{{ complaint.adminResponse }}"</p>
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="category">
+                <th mat-header-cell *matHeaderCellDef>Category</th>
+                <td mat-cell *matCellDef="let complaint">
+                    <span class="text-sm font-medium text-emerald-600">{{ complaint.category }}</span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef>Date Reported</th>
+                <td mat-cell *matCellDef="let complaint">{{ complaint.createdAt | date:'mediumDate' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Shipment Status</th>
+                <td mat-cell *matCellDef="let complaint">
+                    <span class="status-badge status-{{complaint.status?.toLowerCase().replace(' ', '_')}}">
+                        {{ complaint.status }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </div>
+</div>

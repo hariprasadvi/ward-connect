@@ -1,0 +1,56 @@
+<div class="dashboard-container">
+    <div class="header fade-in">
+        <h1>Waste Operations Center</h1>
+        <p class="subtitle">Command center for ward-wide waste collection and management.</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card pickups-card">
+            <mat-icon class="stat-icon">local_shipping</mat-icon>
+            <div class="stat-content">
+                <h3>Total Shipments</h3>
+                <p class="stat-number">{{ stats.totalPickups }}</p>
+                <p class="stat-detail">{{ stats.pendingPickups }} Pending Dispatch</p>
+            </div>
+        </div>
+
+        <div class="stat-card complaints-card">
+            <mat-icon class="stat-icon">report_problem</mat-icon>
+            <div class="stat-content">
+                <h3>Active Reports</h3>
+                <p class="stat-number">{{ stats.totalComplaints }}</p>
+                <p class="stat-detail">{{ stats.pendingComplaints }} Awaiting Action</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <div class="action-card fade-in" routerLink="/waste/admin/schedule-pickup">
+            <mat-icon class="action-icon">add_task</mat-icon>
+            <h3>Smart Scheduler</h3>
+            <p>Optimize collection routes and assign pickups for multiple residential blocks.</p>
+            <button mat-flat-button color="accent" routerLink="/waste/admin/schedule-pickup">Open Scheduler</button>
+        </div>
+
+        <div class="action-card fade-in" routerLink="/waste/admin/manage-pickups">
+            <mat-icon class="action-icon">event_note</mat-icon>
+            <h3>Pickup Console</h3>
+            <p>Monitor real-time pickup requests and track fleet fulfillment status.</p>
+            <button mat-flat-button color="primary" routerLink="/waste/admin/manage-pickups">Manage Fleet</button>
+        </div>
+
+        <div class="action-card fade-in" routerLink="/waste/admin/manage-complaints">
+            <mat-icon class="action-icon">assignment</mat-icon>
+            <h3>Resolution Hub</h3>
+            <p>Direct response center for citizen complaints and service disruptions.</p>
+            <button mat-flat-button color="primary" routerLink="/waste/admin/manage-complaints">Manage Reports</button>
+        </div>
+
+        <div class="action-card fade-in" routerLink="/waste/admin/reports">
+            <mat-icon class="action-icon">bar_chart</mat-icon>
+            <h3>Insights & Analytics</h3>
+            <p>Generate performance reports and visualize environmental impact data.</p>
+            <button mat-flat-button color="primary" routerLink="/waste/admin/reports">View Analytics</button>
+        </div>
+    </div>
+</div>

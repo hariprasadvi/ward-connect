@@ -1,0 +1,65 @@
+.page-container {
+    padding: 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-card {
+    padding: 2.5rem;
+    border-radius: 24px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    background: white;
+}
+
+h1 {
+    font-size: 2rem;
+    color: #064e3b;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.description {
+    color: #059669;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+mat-form-field {
+    width: 100%;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.button-group button {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .page-container {
+        padding: 1rem;
+    }
+
+    .form-card {
+        padding: 1.5rem;
+    }
+}

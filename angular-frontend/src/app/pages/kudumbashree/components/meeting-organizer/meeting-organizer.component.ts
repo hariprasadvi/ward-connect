@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
 
 import { ApiService } from '../../services/api.service';
 import { TranslationService } from '../../services/translation.service';
@@ -22,7 +23,8 @@ import { TranslationService } from '../../services/translation.service';
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatIconModule
   ],
   templateUrl: './meeting-organizer.component.html',
   styleUrl: './meeting-organizer.component.scss'

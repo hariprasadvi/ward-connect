@@ -37,7 +37,7 @@ export class ReportsAnalyticsComponent {
       title: 'MEETING_REPORTS',
       description: 'MEETING_REPORTS_DESC',
       icon: 'event',
-      type: 'meeting'
+      type: 'KudumbashreeMeeting'
     },
     {
       title: 'LOAN_REPORTS',
