@@ -20,6 +20,8 @@ const generateCV = async (req, res) => {
     }
 };
 
+const Application = require('../models/Application');
+
 const getJobAlerts = (req, res) => {
     // Mock Data for now - in real app, fetch from DB
     const jobs = [
@@ -31,8 +33,32 @@ const getJobAlerts = (req, res) => {
     res.json(jobs);
 };
 
+const applyForJob = async (req, res) => {
+    try {
+        const { jobId, jobTitle, company, applicantName, applicantEmail } = req.body;
+
+        if (!applicantName || !applicantEmail) {
+            return res.status(400).json({ error: "Name and Email are required." });
+        }
+
+        const newApplication = await Application.create({
+            jobId,
+            jobTitle,
+            company,
+            applicantName,
+            applicantEmail
+        });
+
+        res.status(201).json({ message: "Application Submitted Successfully", application: newApplication });
+    } catch (error) {
+        console.error("Application Error:", error);
+        res.status(500).json({ error: "Failed to submit application." });
+    }
+};
+
 module.exports = {
     chat,
     generateCV,
     getJobAlerts,
+    applyForJob
 };

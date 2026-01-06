@@ -21,4 +21,8 @@ export class JobService {
     getJobAlerts(): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/alerts`);
     }
+
+    applyJob(applicationData: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/apply`, applicationData);
+    }
 }

@@ -1,0 +1,89 @@
+<div class="container mx-auto p-6">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">Vehicle Owner Dashboard</h2>
+
+    <!-- Add Vehicle Form -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+        <h3 class="text-xl font-semibold mb-4 text-indigo-600">Add New Vehicle</h3>
+        <form (ngSubmit)="addVehicle()" #vehicleForm="ngForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Registration Number</label>
+                <input type="text" [(ngModel)]="newVehicle.registrationNumber" name="regNum" required
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Vehicle Type</label>
+                <select [(ngModel)]="newVehicle.type" name="type" required
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="Auto">Auto</option>
+                    <option value="Taxi">Taxi</option>
+                    <option value="Ambulance">Ambulance</option>
+                    <option value="Jeep">Jeep</option>
+                    <option value="Bus">Bus</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Driver Name</label>
+                <input type="text" [(ngModel)]="newVehicle.driverName" name="driverName" required
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Contact Number</label>
+                <input type="text" [(ngModel)]="newVehicle.contactNumber" name="contact" required
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <!-- Location Simulation -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Latitude (Demo)</label>
+                <input type="number" step="0.0001" [(ngModel)]="newVehicle.latitude" name="lat" required
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Longitude (Demo)</label>
+                <input type="number" step="0.0001" [(ngModel)]="newVehicle.longitude" name="lng" required
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div class="md:col-span-2">
+                <button type="submit" [disabled]="!vehicleForm.form.valid"
+                    class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition disabled:bg-gray-400">
+                    Register Vehicle
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- My Vehicles List -->
+    <h3 class="text-xl font-semibold mb-4 text-gray-800">My Fleet</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let vehicle of myVehicles" class="bg-white rounded-xl shadow p-5 border border-gray-100">
+            <div class="flex justify-between items-start mb-2">
+                <h4 class="text-lg font-bold text-gray-900">{{ vehicle.type }}</h4>
+                <span [class.bg-green-100]="vehicle.isAvailable" [class.text-green-800]="vehicle.isAvailable"
+                    [class.bg-red-100]="!vehicle.isAvailable" [class.text-red-800]="!vehicle.isAvailable"
+                    class="px-2 py-1 rounded text-xs font-semibold cursor-pointer select-none"
+                    (click)="toggleAvailability(vehicle)" title="Click to Toggle Status">
+                    {{ vehicle.isAvailable ? 'Available' : 'Busy' }}
+                </span>
+            </div>
+            <p class="text-gray-600 text-sm mb-1">Reg: <span class="font-mono text-gray-800">{{
+                    vehicle.registrationNumber }}</span></p>
+            <p class="text-gray-600 text-sm mb-1">Driver: {{ vehicle.driverName }}</p>
+            <p class="text-gray-600 text-sm mb-3">Contact: {{ vehicle.contactNumber }}</p>
+
+            <!-- Update Location (Available only for Owner) -->
+            <div class="border-t pt-3 mt-3">
+                <p class="text-xs font-semibold text-gray-500 mb-2">Update Location</p>
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <input type="number" step="0.0001" placeholder="Lat" [(ngModel)]="vehicle.latitude"
+                        class="text-xs px-2 py-1 border rounded w-full">
+                    <input type="number" step="0.0001" placeholder="Lng" [(ngModel)]="vehicle.longitude"
+                        class="text-xs px-2 py-1 border rounded w-full">
+                </div>
+                <button (click)="updateLocation(vehicle)"
+                    class="w-full bg-blue-50 text-blue-600 text-xs py-1 rounded hover:bg-blue-100 transition">
+                    Save Location
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

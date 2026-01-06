@@ -23,106 +23,81 @@ export class CvGeneratorComponent {
         jobTitle: '',
         education: '',
         experience: '',
+        projects: '',
         skills: '',
         certifications: '',
         languages: ''
     };
     generatedCV: any = null;
     loading = false;
+    errorMsg = '';
+    successMsg = '';
 
     constructor(private jobService: JobService) { }
 
     generateCV() {
+        this.errorMsg = '';
+        this.successMsg = '';
+
+        if (!this.userData.name.trim() || !this.userData.jobTitle.trim()) {
+            this.errorMsg = '⚠️ Please fill in your Name and Target Job Title.';
+            return;
+        }
         this.loading = true;
         this.jobService.generateCV(this.userData).subscribe({
             next: (res) => {
                 this.generatedCV = res.cv;
                 this.loading = false;
+                this.successMsg = '✅ CV Generated Successfully! Scroll down to preview.';
             },
             error: (err) => {
                 console.error(err);
+                this.errorMsg = '❌ Generation Failed: ' + (err.error?.message || err.message || 'Server Error');
                 this.loading = false;
             }
         });
     }
 
     downloadPDF() {
-        const printContent = document.getElementById('cv-preview');
-        if (!printContent) return;
+        const data = document.getElementById('cv-preview');
+        if (!data) return;
 
-        // Create a hidden iframe
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'absolute';
-        iframe.style.width = '0px';
-        iframe.style.height = '0px';
-        iframe.style.border = 'none';
-        document.body.appendChild(iframe);
+        this.loading = true;
 
-        const doc = iframe.contentWindow?.document;
-        if (doc) {
-            doc.open();
-            doc.write(`
-                <html>
-                <head>
-                    <title>${this.userData.name}_CV</title>
-                    <style>
-                        @media print {
-                            @page { margin: 10mm; }
-                            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                        }
-                        body {
-                            font-family: 'Times New Roman', Times, serif;
-                            color: #000;
-                            line-height: 1.5;
-                            margin: 0;
-                            padding: 20px;
-                        }
-                        /* Mimic the Preview Styles Explicitly */
-                        h1 { font-size: 24pt; font-weight: bold; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
-                        .text-center { text-align: center; }
-                        .contact-info { display: flex; justify-content: center; gap: 15px; font-size: 10pt; margin-bottom: 5px; flex-wrap: wrap; }
-                        .links { display: flex; justify-content: center; gap: 15px; font-size: 10pt; color: #1e3a8a; font-weight: 500; }
-                        a { text-decoration: none; color: inherit; }
-                        
-                        hr { border: 0; border-top: 1px solid #000; margin: 15px 0; }
-                        
-                        h2 { 
-                            font-size: 12pt; 
-                            font-weight: bold; 
-                            text-transform: uppercase; 
-                            border-bottom: 1px solid #ccc; 
-                            padding-bottom: 3px; 
-                            margin-top: 20px; 
-                            margin-bottom: 10px; 
-                            letter-spacing: 0.05em;
-                        }
-                        
-                        p, li, div { font-size: 11pt; }
-                        .section-item { margin-bottom: 12px; }
-                        .flex-between { display: flex; justify-content: space-between; align-items: baseline; }
-                        .font-bold { font-weight: bold; }
-                        .italic { font-style: italic; }
-                        .text-sm { font-size: 10pt; }
-                        .mb-1 { margin-bottom: 4px; }
-                        
-                        ul { padding-left: 20px; margin-top: 5px; margin-bottom: 5px; }
-                        li { margin-bottom: 2px; }
-                        
-                        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
-                    </style>
-                </head>
-                <body>
-                    ${printContent.innerHTML}
-                </body>
-                </html>
-            `);
-            doc.close();
+        // Higher scale for better quality
+        html2canvas(data, { scale: 3, useCORS: true } as any).then(canvas => {
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = 210;
+            const pdfHeight = 297;
+            const margin = 0; // Remove PDF margin to use full A4 width (CSS has padding)
 
-            setTimeout(() => {
-                iframe.contentWindow?.focus();
-                iframe.contentWindow?.print();
-                document.body.removeChild(iframe);
-            }, 500);
-        }
+            // Calculate dimensions to fit within the page minus margins
+            const contentWidth = pdfWidth - (margin * 2);
+            const contentHeight = pdfHeight - (margin * 2);
+
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+
+            // Calculate scale ratio to fit the content completely within the single page bounds
+            const ratio = Math.min(contentWidth / imgWidth, contentHeight / imgHeight);
+
+            const finalWidth = imgWidth * ratio;
+            const finalHeight = imgHeight * ratio;
+
+            // Align content to top-left (no margin offset needed)
+            const x = 0;
+            const y = 0;
+
+            const contentDataURL = canvas.toDataURL('image/png');
+
+            pdf.addImage(contentDataURL, 'PNG', x, y, finalWidth, finalHeight);
+
+            pdf.save(`${this.userData.name.replace(/\s+/g, '_')}_CV.pdf`);
+            this.loading = false;
+        }).catch(err => {
+            console.error('PDF Generation Error:', err);
+            this.errorMsg = 'Failed to generate PDF. Please try again.';
+            this.loading = false;
+        });
     }
 }

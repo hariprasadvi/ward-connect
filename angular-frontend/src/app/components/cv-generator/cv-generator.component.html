@@ -32,7 +32,7 @@
 
             <div class="space-y-2">
                 <label class="text-sm font-semibold text-gray-600">Projects</label>
-                <textarea [(ngModel)]="userData.experience"
+                <textarea [(ngModel)]="userData.projects"
                     placeholder="Project Name: Tech Stack used. Description. Link." rows="4"
                     class="input-field"></textarea>
                 <p class="text-xs text-gray-400">*Gemini will parse your projects from here. Be descriptive.</p>
@@ -54,6 +54,10 @@
             <button (click)="generateCV()" [disabled]="loading" class="btn-primary mt-4 w-full">
                 {{ loading ? 'Generating AI CV...' : 'Generate Professional CV' }}
             </button>
+
+            <!-- Feedback Messages -->
+            <p *ngIf="errorMsg" class="text-red-600 text-sm mt-2 text-center font-bold animate-pulse">{{ errorMsg }}</p>
+            <p *ngIf="successMsg" class="text-green-600 text-sm mt-2 text-center font-bold">{{ successMsg }}</p>
         </div>
     </div>
 
@@ -73,45 +77,36 @@
 
         <!-- The Paper -->
         <div class="flex-1 bg-gray-200 overflow-y-auto rounded-xl p-4 border border-gray-300 shadow-inner">
+            <!-- LIVE PREVIEW: Professional LaTeX-style -->
             <div id="cv-preview" *ngIf="generatedCV"
-                class="bg-white text-black font-serif p-[10mm] shadow-xl mx-auto max-w-[210mm] min-h-[297mm]">
+                class="bg-white text-gray-900 font-serif leading-tight p-[12mm] shadow-xl mx-auto w-[210mm] min-w-[210mm] min-h-[297mm]">
 
-                <!-- 1. Header -->
-                <div class="text-center mb-6">
-                    <h1 class="text-3xl font-bold uppercase tracking-wide mb-2">{{ generatedCV.header.name }}</h1>
-
-                    <!-- Contact Info: Only show if at least one item exists -->
-                    <div class="text-sm flex justify-center flex-wrap gap-3 text-gray-800 contact-info"
-                        *ngIf="generatedCV.header.contact.phone || generatedCV.header.contact.email || generatedCV.header.contact.location">
-                        <span *ngIf="generatedCV.header.contact.phone">📞 {{ generatedCV.header.contact.phone }}</span>
-                        <span *ngIf="generatedCV.header.contact.email">✉️ {{ generatedCV.header.contact.email }}</span>
-                        <span *ngIf="generatedCV.header.contact.location">📍 {{ generatedCV.header.contact.location
+                <!-- 1. Header: Centered & Compact -->
+                <div class="text-center mb-4">
+                    <h1 class="text-3xl font-bold uppercase tracking-wide mb-1 text-gray-900">{{ generatedCV.header.name
+                        }}</h1>
+                    <div class="text-[0.9rem] text-gray-800 flex justify-center items-center flex-wrap gap-x-3">
+                        <span *ngIf="generatedCV.header.contact.phone">{{ generatedCV.header.contact.phone }}</span>
+                        <span *ngIf="generatedCV.header.contact.email">• {{ generatedCV.header.contact.email }}</span>
+                        <span *ngIf="generatedCV.header.contact.linkedin">• <a
+                                [href]="generatedCV.header.contact.linkedin" class="hover:underline">LinkedIn</a></span>
+                        <span *ngIf="generatedCV.header.contact.github">• <a [href]="generatedCV.header.contact.github"
+                                class="hover:underline">GitHub</a></span>
+                        <span *ngIf="generatedCV.header.contact.location">• {{ generatedCV.header.contact.location
                             }}</span>
-                    </div>
-
-                    <!-- Links: Only show if at least one link exists -->
-                    <div class="text-sm flex justify-center gap-4 mt-1 font-medium text-blue-900 links"
-                        *ngIf="generatedCV.header.contact.linkedin || generatedCV.header.contact.github">
-                        <a *ngIf="generatedCV.header.contact.linkedin" [href]="generatedCV.header.contact.linkedin"
-                            target="_blank" class="hover:underline">LinkedIn</a>
-                        <a *ngIf="generatedCV.header.contact.github" [href]="generatedCV.header.contact.github"
-                            target="_blank" class="hover:underline">GitHub</a>
                     </div>
                 </div>
 
-                <hr class="border-black mb-4">
-
                 <!-- 2. Professional Summary -->
-                <div class="mb-6" *ngIf="generatedCV.summary">
-                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">
+                <div class="mb-5" *ngIf="generatedCV.summary">
+                    <h2 class="text-md font-bold uppercase border-b border-gray-900 pb-1 mb-2 tracking-wide">
                         Professional Summary</h2>
-                    <p class="text-sm leading-relaxed text-justify">{{ generatedCV.summary }}</p>
+                    <p class="text-sm text-justify leading-snug">{{ generatedCV.summary }}</p>
                 </div>
 
                 <!-- 3. Technical Skills -->
-                <div class="mb-6"
-                    *ngIf="generatedCV.skills.languages || generatedCV.skills.backend || generatedCV.skills.frontend || generatedCV.skills.tools">
-                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">Technical
+                <div class="mb-5" *ngIf="generatedCV.skills">
+                    <h2 class="text-md font-bold uppercase border-b border-gray-900 pb-1 mb-2 tracking-wide">Technical
                         Skills</h2>
                     <div class="text-sm space-y-1">
                         <p *ngIf="generatedCV.skills.languages"><span class="font-bold">Languages:</span> {{
@@ -120,72 +115,74 @@
                             generatedCV.skills.backend }}</p>
                         <p *ngIf="generatedCV.skills.frontend"><span class="font-bold">Frontend:</span> {{
                             generatedCV.skills.frontend }}</p>
-                        <p *ngIf="generatedCV.skills.tools"><span class="font-bold">Tools:</span> {{
+                        <p *ngIf="generatedCV.skills.tools"><span class="font-bold">Tools/Platforms:</span> {{
                             generatedCV.skills.tools }}</p>
                     </div>
                 </div>
 
                 <!-- 4. Projects -->
-                <div class="mb-6" *ngIf="generatedCV.projects && generatedCV.projects.length > 0">
-                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">Projects
+                <div class="mb-5" *ngIf="generatedCV.projects && generatedCV.projects.length > 0">
+                    <h2 class="text-md font-bold uppercase border-b border-gray-900 pb-1 mb-2 tracking-wide">Projects
                     </h2>
-                    <div *ngFor="let proj of generatedCV.projects" class="section-item mb-3">
-                        <div class="flex justify-between items-baseline flex-between">
-                            <h3 class="font-bold text-sm">{{ proj.name }} <span *ngIf="proj.technologies"
-                                    class="font-normal italic">({{ proj.technologies }})</span></h3>
+                    <div *ngFor="let proj of generatedCV.projects" class="mb-3">
+                        <div class="flex justify-between items-baseline">
+                            <span class="font-bold text-sm">{{ proj.name }}</span>
+                            <span *ngIf="proj.technologies" class="text-xs italic text-gray-700">{{ proj.technologies
+                                }}</span>
                         </div>
-                        <p class="text-sm leading-relaxed" *ngIf="proj.description">{{ proj.description }}</p>
-                        <a *ngIf="proj.link" [href]="proj.link" class="text-xs text-blue-800 hover:underline">Live App:
-                            {{ proj.link }}</a>
+                        <div class="flex justify-between items-baseline mb-1">
+                            <a *ngIf="proj.link" [href]="proj.link"
+                                class="text-xs text-blue-900 hover:underline italic">{{ proj.link }}</a>
+                        </div>
+                        <p class="text-sm text-justify leading-snug">{{ proj.description }}</p>
                     </div>
                 </div>
 
-                <!-- 5. Experience / Internship -->
-                <div class="mb-6" *ngIf="generatedCV.experience && generatedCV.experience.length > 0">
-                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">Internship
-                        & Experience</h2>
-                    <div *ngFor="let exp of generatedCV.experience" class="section-item mb-3">
-                        <div class="flex justify-between font-bold text-sm flex-between">
-                            <span>{{ exp.company }}</span>
-                            <span>{{ exp.duration }}</span>
+                <!-- 5. Experience -->
+                <div class="mb-5" *ngIf="generatedCV.experience && generatedCV.experience.length > 0">
+                    <h2 class="text-md font-bold uppercase border-b border-gray-900 pb-1 mb-2 tracking-wide">Experience
+                    </h2>
+                    <div *ngFor="let exp of generatedCV.experience" class="mb-3">
+                        <div class="flex justify-between items-baseline mb-0">
+                            <span class="font-bold text-sm">{{ exp.company }}</span>
+                            <span class="font-bold text-sm">{{ exp.duration }}</span>
                         </div>
-                        <div class="italic text-sm mb-1" *ngIf="exp.role">{{ exp.role }}</div>
-                        <ul class="list-disc list-outside ml-4 text-sm space-y-1"
-                            *ngIf="exp.details && exp.details.length > 0">
+                        <div class="text-sm italic mb-1">{{ exp.role }}</div>
+                        <ul class="list-disc list-outside ml-4 text-sm leading-snug space-y-1 text-justify">
                             <li *ngFor="let point of exp.details">{{ point }}</li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- 6. Education -->
-                <div class="mb-6" *ngIf="generatedCV.education && generatedCV.education.length > 0">
-                    <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">Education
+                <div class="mb-5" *ngIf="generatedCV.education && generatedCV.education.length > 0">
+                    <h2 class="text-md font-bold uppercase border-b border-gray-900 pb-1 mb-2 tracking-wide">Education
                     </h2>
-                    <div *ngFor="let edu of generatedCV.education" class="section-item mb-2">
-                        <div class="flex justify-between font-bold text-sm flex-between">
-                            <span>{{ edu.institution }}</span>
-                            <span>{{ edu.year }}</span>
+                    <div *ngFor="let edu of generatedCV.education" class="mb-2">
+                        <div class="flex justify-between items-baseline">
+                            <span class="font-bold text-sm">{{ edu.institution }}</span>
+                            <span class="font-bold text-sm">{{ edu.year }}</span>
                         </div>
-                        <div class="text-sm" *ngIf="edu.degree">{{ edu.degree }}</div>
-                        <div class="text-sm italic" *ngIf="edu.details">{{ edu.details }}</div>
+                        <div class="flex justify-between items-baseline text-sm">
+                            <span>{{ edu.degree }}</span>
+                            <span class="italic text-gray-700" *ngIf="edu.details">{{ edu.details }}</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 7. Certifications & Languages -->
-                <div class="grid grid-cols-1 gap-4">
-                    <div *ngIf="generatedCV.certifications && generatedCV.certifications.length > 0">
-                        <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">
-                            Certifications</h2>
-                        <ul class="list-none text-sm space-y-1">
-                            <li *ngFor="let cert of generatedCV.certifications">{{ cert }}</li>
-                        </ul>
-                    </div>
-
-                    <div *ngIf="generatedCV.languages_interest && generatedCV.languages_interest.length > 0">
-                        <h2 class="text-lg font-bold uppercase border-b border-gray-400 pb-1 mb-2 tracking-wide">
-                            Languages & Interests</h2>
-                        <p class="text-sm">{{ generatedCV.languages_interest.join(', ') }}</p>
-                    </div>
+                <!-- 7. Certifications & Interests -->
+                <div class="mb-4"
+                    *ngIf="(generatedCV.certifications && generatedCV.certifications.length) || (generatedCV.languages_interest && generatedCV.languages_interest.length)">
+                    <h2 class="text-md font-bold uppercase border-b border-gray-900 pb-1 mb-2 tracking-wide">
+                        Certifications & Interests</h2>
+                    <ul *ngIf="generatedCV.certifications" class="list-none text-sm leading-snug mb-1">
+                        <li *ngFor="let cert of generatedCV.certifications"><strong>Certification:</strong> {{ cert }}
+                        </li>
+                    </ul>
+                    <p *ngIf="generatedCV.languages_interest" class="text-sm leading-snug">
+                        <span class="font-bold">Languages/Interests:</span> {{ generatedCV.languages_interest.join(', ')
+                        }}
+                    </p>
                 </div>
 
             </div>
