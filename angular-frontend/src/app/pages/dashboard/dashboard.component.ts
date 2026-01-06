@@ -17,7 +17,8 @@ export class DashboardComponent {
 
     constructor(
         private authService: AuthService,
-        private pickupService: PickupService
+        private pickupService: PickupService,
+        private router: Router
     ) {
         this.user = this.authService.getCurrentUser();
         this.loadNotifications();
@@ -39,5 +40,9 @@ export class DashboardComponent {
 
     logout() {
         this.authService.logout();
+    }
+
+    navigateToVehicle() {
+        this.router.navigate(['/vehicle']);
     }
 }

@@ -29,6 +29,10 @@ export const routes: Routes = [
         path: 'waste', 
         loadChildren: () => import('./pages/waste/waste.routes').then(m => m.WASTE_ROUTES)
       },
+      { 
+        path: 'vehicle', 
+        loadChildren: () => import('./pages/vehicle/vehicle.routes').then(m => m.routes)
+      },
      { path: 'jobs',
         component: JobDashboardComponent,
         children: [

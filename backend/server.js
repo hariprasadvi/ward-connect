@@ -15,6 +15,7 @@ const wasteComplaintRoutes = require('./src/routes/wasteComplaintRoutes');
 const wasteAiRoutes = require('./src/routes/wasteAiRoutes');
 const houseMessageRoutes = require('./src/routes/houseMessageRoutes');
 const userRoutes = require('./src/routes/userRoutes');
+const vehicleRoutes = require('./src/routes/vehicleRoutes');
 const { authenticate } = require('./src/middleware/auth');
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.use('/auth', authRoutes);
 // Protected Routes
 app.use('/api', authenticate); // Protect all API routes
 app.use('/api/job', jobRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 
 // Test Route
 app.get('/', (req, res) => {
