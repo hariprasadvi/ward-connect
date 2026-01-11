@@ -96,33 +96,21 @@
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <div class="upcoming-meeting">
+        <div class="upcoming-meeting" *ngFor="let meeting of scheduledMeetings">
           <div class="meeting-info">
-            <h4>
-              {{ getMeetingTitle(currentLanguage === 'ml') }}
-            </h4>
+            <h4>{{ meeting.title }}</h4>
             <p>
-              {{ getMeetingLocation(currentLanguage === 'ml') }}
+              <mat-icon inline style="vertical-align: middle; font-size: 16px;">place</mat-icon> {{ meeting.location }}
             </p>
-            <span class="meeting-date">Jan 25, 2024 • 10:00 AM</span>
+            <span class="meeting-date">{{ meeting.date | date: 'medium' }}</span>
           </div>
-          <button mat-raised-button color="primary" routerLink="/kudumbashree/attendance">
+          <button mat-raised-button color="primary" routerLink="/kudumbashree/attendance"
+            [queryParams]="{meetingId: meeting.id}">
             {{ translations().MARK_ATTENDANCE }}
           </button>
         </div>
-        <div class="upcoming-meeting">
-          <div class="meeting-info">
-            <h4>
-              {{ getLoanTitle(currentLanguage === 'ml') }}
-            </h4>
-            <p>
-              {{ getLoanLocation(currentLanguage === 'ml') }}
-            </p>
-            <span class="meeting-date">Jan 28, 2024 • 2:00 PM</span>
-          </div>
-          <button mat-stroked-button color="primary" routerLink="/kudumbashree/loans">
-            {{ translations().APPLY_FOR_LOAN }}
-          </button>
+        <div *ngIf="scheduledMeetings.length === 0" class="no-data">
+          <p>No upcoming meetings scheduled.</p>
         </div>
       </mat-card-content>
     </mat-card>

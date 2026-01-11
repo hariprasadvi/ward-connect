@@ -17,8 +17,8 @@ export interface KudumbashreeMeeting extends BaseModel {
 }
 
 export enum MeetingStatus {
-  SCHEDULED = 'scheduled',
-  ONGOING = 'ongoing',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  SCHEDULED = 'Scheduled',
+  ONGOING = 'Ongoing',
+  COMPLETED = 'Completed',
+  CANCELLED = 'Cancelled'
 }

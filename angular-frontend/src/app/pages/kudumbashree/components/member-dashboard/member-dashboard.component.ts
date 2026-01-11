@@ -13,6 +13,7 @@ import { AuthService, User } from '../../services/auth.service';
 import { TranslationService } from '../../services/translation.service';
 import { ApiService } from '../../services/api.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { MeetingStatus } from '../../models/meeting';
 
 interface DashboardStat {
   title: string;
@@ -57,6 +58,7 @@ export class MemberDashboardComponent implements OnInit {
 
   stats: DashboardStat[] = [];
   recentActivities: RecentActivity[] = [];
+  scheduledMeetings: any[] = [];
   isLoading = true;
 
   private dashboardService = inject(DashboardService);
@@ -115,6 +117,15 @@ export class MemberDashboardComponent implements OnInit {
              // Fallback if no activities sent
              this.recentActivities = [];
         }
+
+        // Fetch Scheduled Meetings
+        this.apiService.getMeetings().subscribe({
+          next: (meetings) => {
+            console.log('Fetched meetings:', meetings);
+            this.scheduledMeetings = meetings.filter(m => m.status === MeetingStatus.SCHEDULED);
+          },
+          error: (err) => console.error('Error fetching meetings:', err)
+        });
 
         this.isLoading = false;
       },

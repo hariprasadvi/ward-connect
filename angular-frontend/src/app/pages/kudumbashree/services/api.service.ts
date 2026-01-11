@@ -17,65 +17,65 @@ export class ApiService {
     const formData = new FormData();
     formData.append('audio', audioBlob);
     formData.append('meetingId', meetingId);
-    return this.http.post(`${this.baseUrl}/meetings/record`, formData);
+    return this.http.post(`${this.baseUrl}/kudumbashree/meeting/record`, formData);
   }
 
   getMeetingTranscript(meetingId: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/meetings/${meetingId}/transcript`);
+    return this.http.get(`${this.baseUrl}/kudumbashree/meeting/${meetingId}/transcript`);
   }
 
   // Attendance endpoints
   markAttendance(attendanceData: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/attendance`, attendanceData);
+    return this.http.post(`${this.baseUrl}/kudumbashree/attendance`, attendanceData);
   }
 
   // Loan management endpoints
   applyLoan(loanData: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/loans/apply`, loanData);
+    return this.http.post(`${this.baseUrl}/kudumbashree/loan/apply`, loanData);
   }
 
   getLoans(): Observable<Loan[]> {
-    return this.http.get<Loan[]>(`${this.baseUrl}/loans`);
+    return this.http.get<Loan[]>(`${this.baseUrl}/kudumbashree/loan`);
   }
 
   // Meeting organizer endpoints
   scheduleMeeting(meetingData: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/meetings/schedule`, meetingData);
+    return this.http.post(`${this.baseUrl}/kudumbashree/meeting/schedule`, meetingData);
   }
 
   getMeetings(): Observable<KudumbashreeMeeting[]> {
-    return this.http.get<KudumbashreeMeeting[]>(`${this.baseUrl}/meetings`);
+    return this.http.get<KudumbashreeMeeting[]>(`${this.baseUrl}/kudumbashree/meeting`);
   }
 
 
   // Attendance with payment
   markAttendanceWithPayment(attendanceData: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/attendance/mark-with-payment`, attendanceData);
+    return this.http.post(`${this.baseUrl}/kudumbashree/attendance/mark-with-payment`, attendanceData);
   }
 
   generatePaymentQR(attendanceId: string, amount: number): Observable<{ qrCode: string; transactionId: string }> {
     return this.http.post<{ qrCode: string; transactionId: string }>(
-      `${this.baseUrl}/attendance/generate-payment-qr`,
+      `${this.baseUrl}/kudumbashree/attendance/generate-payment-qr`,
       { attendanceId, amount }
     );
   }
 
   verifyPayment(transactionId: string): Observable<{ verified: boolean; transaction: any }> {
     return this.http.get<{ verified: boolean; transaction: any }>(
-      `${this.baseUrl}/payments/verify/${transactionId}`
+      `${this.baseUrl}/kudumbashree/financial/verify/${transactionId}`
     );
   }
 
   // Financial reports
   getFinancialReport(dateRange: any): Observable<FinancialReport> {
-    return this.http.post<FinancialReport>(`${this.baseUrl}/financial/report`, dateRange);
+    return this.http.post<FinancialReport>(`${this.baseUrl}/kudumbashree/report/financial/report`, dateRange); // Check reportRoutes.js for exact path if needed, usually it's report-controller related
   }
 
   getAttendanceCollections(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/financial/attendance-collections`);
+    return this.http.get<any[]>(`${this.baseUrl}/kudumbashree/financial/attendance-collections`);
   }
 
   recordPayment(paymentData: any): Observable<FinancialTransaction> {
-    return this.http.post<FinancialTransaction>(`${this.baseUrl}/financial/record-payment`, paymentData);
+    return this.http.post<FinancialTransaction>(`${this.baseUrl}/kudumbashree/financial/record-payment`, paymentData);
   }
 }

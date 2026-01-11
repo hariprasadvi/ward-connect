@@ -28,6 +28,19 @@ const Meeting = sequelize.define('Meeting', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    latitude: {
+        type: DataTypes.DECIMAL(10, 8),
+        allowNull: true,
+    },
+    longitude: {
+        type: DataTypes.DECIMAL(11, 8),
+        allowNull: true,
+    },
+    radius: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 100, // meters
+    },
     description: {
         type: DataTypes.TEXT,
         allowNull: true,

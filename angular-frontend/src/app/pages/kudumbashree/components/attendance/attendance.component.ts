@@ -54,7 +54,11 @@ export class AttendanceComponent {
         await this.processPayment();
       }
     } catch (error) {
-      this.attendanceStatus = `${this.translations().ERROR}: ${error}`;
+      if (typeof error === 'object' && error !== null && 'error' in error) {
+         this.attendanceStatus = (error as any).error.message || 'Error occurred';
+      } else {
+         this.attendanceStatus = `${this.translations().ERROR}: ${error}`;
+      }
       this.isScanning = false;
       this.isProcessingPayment = false;
     }
@@ -64,14 +68,26 @@ export class AttendanceComponent {
     this.isScanning = false;
     this.isProcessingPayment = true;
     
+    // Get meeting ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const meetingId = urlParams.get('meetingId');
+
+    if (!meetingId) {
+        this.attendanceStatus = 'No meeting selected.';
+        this.isProcessingPayment = false;
+        return;
+    }
+
     const attendanceData = {
       location: this.currentLocation,
+      latitude: this.currentLocation.latitude,
+      longitude: this.currentLocation.longitude,
       timestamp: new Date(),
       faceVerified: true,
-      meetingTitle: 'Monthly Community KudumbashreeMeeting', // This would come from selected KudumbashreeMeeting
-      meetingId: 'meeting_001',
-      userId: 'user_001',
-      userName: 'Community Member'
+      meetingTitle: 'Meeting Attendance', 
+      meetingId: meetingId,
+      userId: 'user_001', // Should come from AuthService
+      userName: 'Community Member' // Should come from AuthService
     };
 
     try {
@@ -99,7 +115,9 @@ export class AttendanceComponent {
               ...attendanceData,
               attendanceFee: this.attendanceFee,
               feePaid: true,
-              paymentTransactionId: paymentResult.transactionId
+              paymentTransactionId: paymentResult.transactionId,
+              latitude: this.currentLocation.latitude,
+              longitude: this.currentLocation.longitude
             }).subscribe({
               next: () => {
                 console.log('Attendance recorded with payment');

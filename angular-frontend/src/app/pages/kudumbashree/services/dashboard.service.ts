@@ -17,17 +17,17 @@ export class DashboardService {
   constructor() { }
 
   getAdminDashboard(): Observable<DashboardStats> {
-    return this.http.get<DashboardStats>(`${this.apiUrl}/reports/admin-dashboard`);
+    return this.http.get<DashboardStats>(`${this.apiUrl}/kudumbashree/report/admin-dashboard`);
   }
 
   getMemberDashboard(userId: string): Observable<MemberDashboard> {
     // Backend uses token to identify user, so userId arg is theoretically redundant if using interceptor
     // but we can keep it signature compatible or just use the endpoint.
-    return this.http.get<MemberDashboard>(`${this.apiUrl}/reports/member-dashboard`);
+    return this.http.get<MemberDashboard>(`${this.apiUrl}/kudumbashree/report/member-dashboard`);
   }
 
   getFinancialSummary(): Observable<FinancialSummary> {
-    return this.http.get<any>(`${this.apiUrl}/reports/admin-dashboard`).pipe(
+    return this.http.get<any>(`${this.apiUrl}/kudumbashree/report/admin-dashboard`).pipe(
       map((stats: any) => ({
         totalFunds: 0, // Placeholder
         availableBalance: stats.recoveredAmount || 0,
@@ -41,10 +41,10 @@ export class DashboardService {
   }
 
   approveMember(userId: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/kudumbashree/approve/${userId}`, {});
+    return this.http.post(`${this.apiUrl}/kudumbashree/member/approve/${userId}`, {});
   }
 
   getAllMembers(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/kudumbashree/members`);
+    return this.http.get<User[]>(`${this.apiUrl}/kudumbashree/member/members`);
   }
 }

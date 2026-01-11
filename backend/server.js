@@ -33,8 +33,25 @@ app.use('/auth', authRoutes);
 
 // Protected Routes
 app.use('/api', authenticate); // Protect all API routes
+
+// Core Routes
+app.use('/api/users', userRoutes);
+app.use('/api/vehicle', vehicleRoutes); // Single 'vehicle' to match frontend service
 app.use('/api/job', jobRoutes);
-app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/house-messages', houseMessageRoutes);
+
+// Waste Management Routes
+app.use('/api/waste/pickups', wastePickupRoutes);
+app.use('/api/waste/complaints', wasteComplaintRoutes);
+app.use('/api/waste/ai', wasteAiRoutes);
+
+// Kudumbashree Routes
+app.use('/api/kudumbashree/meeting', meetingRoutes);
+app.use('/api/kudumbashree/attendance', attendanceRoutes);
+app.use('/api/kudumbashree/loan', loanRoutes);
+app.use('/api/kudumbashree/financial', financialRoutes);
+app.use('/api/kudumbashree/member', memberRoutes);
+app.use('/api/kudumbashree/report', reportRoutes);
 
 // Test Route
 app.get('/', (req, res) => {

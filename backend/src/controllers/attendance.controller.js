@@ -11,6 +11,23 @@ exports.markAttendance = async (req, res) => {
              return res.status(400).json({ message: 'Face verification failed.' });
         }
 
+        // Location Verification
+        const meeting = await Meeting.findByPk(meetingId);
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found.' });
+        }
+
+        if (meeting.latitude && meeting.longitude && latitude && longitude) {
+            const distance = calculateDistance(latitude, longitude, meeting.latitude, meeting.longitude);
+            if (distance > meeting.radius) {
+                return res.status(400).json({ 
+                    message: 'Location verification failed. You are not at the meeting location.',
+                    distance: Math.round(distance),
+                    requiredRadius: meeting.radius
+                });
+            }
+        }
+
         const attendance = await Attendance.create({
             meetingId,
             userId,
@@ -33,6 +50,23 @@ exports.markAttendanceWithPayment = async (req, res) => {
         
         if (!face_verified) {
              return res.status(400).json({ message: 'Face verification failed.' });
+        }
+
+        // Location Verification
+        const meeting = await Meeting.findByPk(meetingId);
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found.' });
+        }
+
+        if (meeting.latitude && meeting.longitude && latitude && longitude) {
+            const distance = calculateDistance(latitude, longitude, meeting.latitude, meeting.longitude);
+            if (distance > meeting.radius) {
+                return res.status(400).json({ 
+                    message: 'Location verification failed. You are not at the meeting location.',
+                    distance: Math.round(distance),
+                    requiredRadius: meeting.radius
+                });
+            }
         }
 
         // 1. Create Financial Transaction
@@ -76,3 +110,19 @@ exports.generatePaymentQR = async (req, res) => {
         res.status(500).json({ message: 'Error generating QR code', error: error.message });
     }
 };
+
+// Haversine formula to calculate distance in meters
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+}

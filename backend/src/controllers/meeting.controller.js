@@ -3,13 +3,16 @@ const KudumbashreeGroup = require('../models/KudumbashreeGroup');
 
 exports.scheduleMeeting = async (req, res) => {
     try {
-        const { groupId, date, title, location, description } = req.body;
+        const { groupId, date, title, location, description, latitude, longitude, radius } = req.body;
         const meeting = await Meeting.create({
             groupId,
             date,
             title,
             location,
             description,
+            latitude,
+            longitude,
+            radius: radius || 100,
             status: 'Scheduled'
         });
 

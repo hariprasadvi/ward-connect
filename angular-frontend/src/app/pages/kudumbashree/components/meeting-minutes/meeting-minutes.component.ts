@@ -88,8 +88,12 @@ export class MeetingMinutesComponent implements OnInit {
   }
 
   loadMeetings() {
-    // For now, use sample data
-    this.meetings = this.sampleMeetings;
+    this.apiService.getMeetings().subscribe({
+      next: (meetings) => {
+        this.meetings = meetings;
+      },
+      error: (error) => console.error('Error fetching meetings:', error)
+    });
   }
 
   onMeetingSelect() {

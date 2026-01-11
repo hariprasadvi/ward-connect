@@ -37,6 +37,27 @@
           }
         </mat-form-field>
 
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Latitude</mat-label>
+            <input matInput formControlName="latitude" type="number" placeholder="e.g. 10.123456">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Longitude</mat-label>
+            <input matInput formControlName="longitude" type="number" placeholder="e.g. 76.123456">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Radius (meters)</mat-label>
+            <input matInput formControlName="radius" type="number" placeholder="Default: 100">
+          </mat-form-field>
+        </div>
+
+        <button type="button" mat-stroked-button (click)="getCurrentLocation()" style="margin-bottom: 16px;">
+          <mat-icon>my_location</mat-icon> Get Current Location
+        </button>
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>{{ translations().DESCRIPTION }} ({{ translations().OPTIONAL }})</mat-label>
           <mat-icon matPrefix>description</mat-icon>
