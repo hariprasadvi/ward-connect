@@ -10,6 +10,7 @@ export interface User {
   phone?: string;
   communityUnit?: string;
   joinDate?: Date;
+  profile_image?: string;
 }
 
 @Injectable({
@@ -62,7 +63,8 @@ export class AuthService {
         role: kudumbashreeRole,
         is_approved: mainUser.is_approved !== undefined ? mainUser.is_approved : true, // Default to true if missing for backward compatibility
         phone: mainUser.mobile_number || mainUser.phone,
-        communityUnit: mainUser.ward_number || 'Default Unit'
+        communityUnit: mainUser.ward_number || 'Default Unit',
+        profile_image: mainUser.profile_image
       };
       this.currentUser.set(kudumbashreeUser);
     } else {

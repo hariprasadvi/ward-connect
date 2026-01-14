@@ -96,6 +96,13 @@ exports.getMemberDashboard = async (req, res) => {
         const repaidAmount = await Loan.sum('repaid_amount', { where: whereUser }) || 0;
         const pendingAmount = totalLoanAmount - repaidAmount;
 
+        // Fetch attended meeting IDs
+        const attendedMeetings = await Attendance.findAll({
+            where: { userId, status: 'Present' },
+            attributes: ['meetingId']
+        });
+        const attendedMeetingIds = attendedMeetings.map(a => a.meetingId);
+
         // Recent Activities (Mock/Aggregated from tables)
         const recentActivities = []; // Implement aggregation if needed
         
@@ -111,7 +118,8 @@ exports.getMemberDashboard = async (req, res) => {
                 repaidAmount,
                 pendingAmount,
                 nextMeeting,
-                recentActivities
+                recentActivities,
+                attendedMeetingIds // Add this
             }
         });
 

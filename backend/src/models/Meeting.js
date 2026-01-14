@@ -45,6 +45,15 @@ const Meeting = sequelize.define('Meeting', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    processingStatus: {
+        type: DataTypes.ENUM('PENDING', 'UPLOADING', 'PROCESSING', 'COMPLETED', 'FAILED'),
+        allowNull: false,
+        defaultValue: 'PENDING'
+    },
+    audioData: {
+        type: DataTypes.BLOB, // Plain BLOB for Postgres (BYTEA)
+        allowNull: true
+    },
     status: {
         type: DataTypes.ENUM('Scheduled', 'Completed', 'Cancelled'),
         allowNull: false,

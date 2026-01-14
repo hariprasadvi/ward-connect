@@ -108,6 +108,9 @@
             [queryParams]="{meetingId: meeting.id}">
             {{ translations().MARK_ATTENDANCE }}
           </button>
+          <button mat-icon-button color="warn" (click)="deleteMeeting(meeting.id)" matTooltip="Delete Meeting">
+            <mat-icon>delete</mat-icon>
+          </button>
         </div>
         <div *ngIf="scheduledMeetings.length === 0" class="no-data">
           <p>No upcoming meetings scheduled.</p>

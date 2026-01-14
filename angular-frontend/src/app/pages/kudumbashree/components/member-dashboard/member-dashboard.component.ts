@@ -118,11 +118,15 @@ export class MemberDashboardComponent implements OnInit {
              this.recentActivities = [];
         }
 
-        // Fetch Scheduled Meetings
+         // Fetch Scheduled Meetings
         this.apiService.getMeetings().subscribe({
           next: (meetings) => {
             console.log('Fetched meetings:', meetings);
-            this.scheduledMeetings = meetings.filter(m => m.status === MeetingStatus.SCHEDULED);
+            const attendedIds = (statsData as any).attendedMeetingIds || [];
+            // Filter out meetings that are scheduled AND already attended by the user
+            this.scheduledMeetings = meetings.filter(m => 
+                m.status === MeetingStatus.SCHEDULED && !attendedIds.includes(Number(m.id))
+            );
           },
           error: (err) => console.error('Error fetching meetings:', err)
         });
@@ -219,5 +223,20 @@ export class MemberDashboardComponent implements OnInit {
 
   getLoanLocation(isMalayalam: boolean): string {
     return 'Kudumbashree Office';
+  }
+
+  deleteMeeting(meetingId: string) {
+    if (confirm('Are you sure you want to delete this meeting?')) {
+      this.apiService.deleteMeeting(meetingId).subscribe({
+        next: () => {
+          console.log('Meeting deleted successfully');
+          this.loadDashboardData(); // Refresh list
+        },
+        error: (err) => {
+          console.error('Error deleting meeting:', err);
+          alert('Failed to delete meeting: ' + (err.error?.message || err.message));
+        }
+      });
+    }
   }
 }

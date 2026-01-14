@@ -1,6 +1,7 @@
 import { BaseModel } from './base';
 
 export interface KudumbashreeMeeting extends BaseModel {
+  groupId: string;
   title: string;
   description: string;
   date: Date;

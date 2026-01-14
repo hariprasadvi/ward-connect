@@ -1,0 +1,84 @@
+<div class="settings-container">
+    <div class="header-section">
+        <h1>{{ translations().SYSTEM_SETTINGS }}</h1>
+        <p>Manage system preferences and view attendance reports</p>
+    </div>
+
+    <mat-card class="content-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>event_available</mat-icon>
+                Meeting Attendance Record
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <!-- Meeting Selector -->
+            <div class="selection-area">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Select Meeting</mat-label>
+                    <mat-select [value]="selectedMeetingId" (selectionChange)="onMeetingSelect($event.value)">
+                        <mat-option *ngFor="let meeting of meetings" [value]="meeting.id">
+                            {{ meeting.title }} - {{ meeting.date | date:'mediumDate' }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div class="loading-container" *ngIf="isAttendanceLoading">
+                <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+            </div>
+
+            <!-- Attendance Table -->
+            <div class="table-container" *ngIf="!isAttendanceLoading && selectedMeetingId">
+                <div *ngIf="attendanceList.length === 0" class="no-data">
+                    <p>No attendance records found for this meeting.</p>
+                </div>
+
+                <table mat-table [dataSource]="attendanceList" class="full-width" *ngIf="attendanceList.length > 0">
+
+                    <!-- Member Column -->
+                    <ng-container matColumnDef="member">
+                        <th mat-header-cell *matHeaderCellDef> Member </th>
+                        <td mat-cell *matCellDef="let element">
+                            <div class="member-info">
+                                <span class="name">{{ element.User?.name || 'Unknown' }}</span>
+                                <span class="sub-text">{{ element.User?.email }}</span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef> Status </th>
+                        <td mat-cell *matCellDef="let element">
+                            <span [class]="'status-badge ' + element.status.toLowerCase()">
+                                {{ element.status }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Payment Column -->
+                    <ng-container matColumnDef="payment">
+                        <th mat-header-cell *matHeaderCellDef> Payment </th>
+                        <td mat-cell *matCellDef="let element">
+                            <span [class]="'payment-badge ' + element.payment_status.toLowerCase()">
+                                {{ element.payment_status }}
+                                <span *ngIf="element.thrift_amount"> (₹{{ element.thrift_amount }})</span>
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Time Column -->
+                    <ng-container matColumnDef="time">
+                        <th mat-header-cell *matHeaderCellDef> Time </th>
+                        <td mat-cell *matCellDef="let element"> {{ element.createdAt | date:'shortTime' }} </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

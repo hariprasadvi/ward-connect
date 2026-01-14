@@ -1,0 +1,94 @@
+.settings-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header-section {
+    margin-bottom: 2rem;
+}
+
+.header-section h1 {
+    font-size: 2rem;
+    margin: 0;
+    color: #333;
+}
+
+.header-section p {
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.content-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.selection-area {
+    margin-bottom: 2rem;
+    max-width: 400px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.member-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.member-info .name {
+    font-weight: 500;
+}
+
+.member-info .sub-text {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge.present {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.absent {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.payment-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.payment-badge.paid {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.payment-badge.pending {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-style: italic;
+}

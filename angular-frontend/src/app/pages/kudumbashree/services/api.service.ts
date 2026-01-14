@@ -24,9 +24,21 @@ export class ApiService {
     return this.http.get(`${this.baseUrl}/kudumbashree/meeting/${meetingId}/transcript`);
   }
 
+  getProcessingStatus(meetingId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/kudumbashree/meeting/${meetingId}/status`);
+  }
+
   // Attendance endpoints
   markAttendance(attendanceData: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/kudumbashree/attendance`, attendanceData);
+  }
+
+  getAttendanceByMeeting(meetingId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/kudumbashree/attendance/by-meeting/${meetingId}`);
+  }
+
+  getAttendanceHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/kudumbashree/attendance/user-history`);
   }
 
   // Loan management endpoints
@@ -43,8 +55,12 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/kudumbashree/meeting/schedule`, meetingData);
   }
 
-  getMeetings(): Observable<KudumbashreeMeeting[]> {
-    return this.http.get<KudumbashreeMeeting[]>(`${this.baseUrl}/kudumbashree/meeting`);
+  getMeetings(type: 'active' | 'history' = 'active'): Observable<KudumbashreeMeeting[]> {
+    return this.http.get<KudumbashreeMeeting[]>(`${this.baseUrl}/kudumbashree/meeting?type=${type}`);
+  }
+
+  deleteMeeting(meetingId: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/kudumbashree/meeting/${meetingId}`);
   }
 
 
@@ -58,6 +74,14 @@ export class ApiService {
       `${this.baseUrl}/kudumbashree/attendance/generate-payment-qr`,
       { attendanceId, amount }
     );
+  }
+
+  createRazorpayOrder(amount: number): Observable<any> {
+      return this.http.post(`${this.baseUrl}/kudumbashree/financial/create-order`, { amount });
+  }
+
+  verifyRazorpayPayment(paymentData: any): Observable<any> {
+      return this.http.post(`${this.baseUrl}/kudumbashree/financial/verify-payment`, paymentData);
   }
 
   verifyPayment(transactionId: string): Observable<{ verified: boolean; transaction: any }> {

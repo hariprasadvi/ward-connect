@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -49,39 +49,8 @@ export class MeetingMinutesComponent implements OnInit {
   recordingTime = 0;
   private recordingInterval: any;
 
-  // Sample meetings for demo
-  private sampleMeetings: KudumbashreeMeeting[] = [
-    {
-      id: '1',
-      title: 'Monthly Community KudumbashreeMeeting',
-      description: 'Regular monthly KudumbashreeMeeting to discuss community issues and updates',
-      date: new Date('2024-01-15'),
-      startTime: '10:00',
-      endTime: '12:00',
-      location: 'Community Hall',
-      organizerId: 'admin1',
-      organizerName: 'Community Coordinator',
-      status: 'completed' as any,
-      attendees: ['user1', 'user2', 'user3'],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '2',
-      title: 'Loan Committee Review',
-      description: 'Review of pending loan applications and disbursements',
-      date: new Date('2024-01-20'),
-      startTime: '14:00',
-      endTime: '16:00',
-      location: 'Kudumbashree Office',
-      organizerId: 'admin2',
-      organizerName: 'Loan Officer',
-      status: 'scheduled' as any,
-      attendees: ['user4', 'user5'],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ];
+  // Sample meetings for demo - Removed to avoid type issues and unused code
+  // private sampleMeetings: KudumbashreeMeeting[] = [];
 
   ngOnInit() {
     this.loadMeetings();
@@ -106,46 +75,144 @@ export class MeetingMinutesComponent implements OnInit {
     this.summary = '';
   }
 
-  startRecording() {
+  mediaRecorder: MediaRecorder | null = null;
+  audioChunks: any[] = [];
+  recognition: any;
+
+  interimTranscript = '';
+
+  constructor(private ngZone: NgZone) {} // Inject NgZone
+
+  async startRecording() {
     if (!this.selectedMeeting) return;
     
-    this.isRecording = true;
-    this.recordingTime = 0;
-    this.recordingInterval = setInterval(() => {
-      this.recordingTime++;
-    }, 1000);
-    
-    // Simulate recording process
-    setTimeout(() => {
-      if (this.isRecording) {
-        this.stopRecording();
+    try {
+      // 1. Start Voice Recording (for backend upload)
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.audioChunks = [];
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.audioChunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        this.uploadAudio(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      this.mediaRecorder.start();
+
+      // 2. Start Live Speech Recognition (for UI display)
+      if ('webkitSpeechRecognition' in window) {
+        // @ts-ignore
+        this.recognition = new window.webkitSpeechRecognition();
+        this.recognition.continuous = true;
+        this.recognition.interimResults = true;
+        this.recognition.lang = 'ml-IN'; // Malayalam
+
+        this.recognition.onresult = (event: any) => {
+          this.ngZone.run(() => { // proper angular tracking
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+              if (event.results[i].isFinal) {
+                this.transcript += event.results[i][0].transcript + ' ';
+              } else {
+                interim += event.results[i][0].transcript;
+              }
+            }
+            this.interimTranscript = interim;
+          });
+        };
+
+        this.recognition.onerror = (event: any) => {
+          console.error('Speech recognition error', event.error);
+        };
+
+        this.recognition.start();
+      } else {
+        console.warn('Web Speech API not supported in this browser.');
+        this.transcript = "Live transcription not supported in this browser. Backend processing will still work.";
       }
-    }, 10000);
+
+      this.isRecording = true;
+      this.recordingTime = 0;
+      
+      this.recordingInterval = setInterval(() => {
+        this.recordingTime++;
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      alert('Could not access microphone. Please allow permissions.');
+    }
   }
 
   stopRecording() {
-    this.isRecording = false;
+    if (this.mediaRecorder && this.isRecording) {
+      this.mediaRecorder.stop();
+      this.isRecording = false;
+    }
+
+    if (this.recognition) {
+      this.recognition.stop();
+    }
+    
+    this.interimTranscript = ''; // Clear interim text
+
     if (this.recordingInterval) {
       clearInterval(this.recordingInterval);
       this.recordingInterval = null;
     }
-    
-    // Simulate processing the recording
-    this.simulateProcessing();
   }
 
-  private simulateProcessing() {
-    setTimeout(() => {
-      const meetingTitle = this.selectedMeetingDetails?.title || 'KudumbashreeMeeting';
-      const meetingDate = this.selectedMeetingDetails?.date ? 
-        new Date(this.selectedMeetingDetails.date).toLocaleDateString('en-US', { 
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-        }) : 'Unknown Date';
-      const meetingLocation = this.selectedMeetingDetails?.location || 'Unknown Location';
+  uploadAudio(blob: Blob) {
+    if (!this.selectedMeeting) return;
+    
+    this.transcript = 'Uploading...';
+    this.summary = 'Waiting for upload...';
+    
+    this.apiService.recordMeetingAudio(this.selectedMeeting, blob).subscribe({
+      next: (response) => {
+        console.log('Upload successful', response);
+        this.pollStatus(this.selectedMeeting);
+      },
+      error: (error) => {
+        console.error('Upload failed:', error);
+        this.transcript = 'Upload failed. ' + (error.error?.message || error.message);
+        this.summary = 'Upload failed.';
+      }
+    });
+  }
 
-      this.transcript = `KudumbashreeMeeting Transcript for: ${meetingTitle}\n\nDate: ${meetingDate}\nLocation: ${meetingLocation}\n\nSample transcript content...`;
-      this.summary = `KudumbashreeMeeting SUMMARY: ${meetingTitle}\n\nSample summary content...`;
-    }, 2000);
+  pollStatus(meetingId: string) {
+    this.transcript = 'Processing... (Please wait)';
+    this.summary = 'Processing...';
+
+    const pollInterval = setInterval(() => {
+        this.apiService.getProcessingStatus(meetingId).subscribe({
+            next: (status) => {
+                console.log('Processing Status:', status.processingStatus);
+                if (status.processingStatus === 'COMPLETED') {
+                    clearInterval(pollInterval);
+                    this.transcript = status.transcript;
+                    this.summary = status.summary;
+                } else if (status.processingStatus === 'FAILED') {
+                    clearInterval(pollInterval);
+                    this.transcript = 'Processing Failed.';
+                    this.summary = 'Processing Failed.';
+                }
+            },
+            error: (err) => {
+                console.error('Polling error:', err);
+                clearInterval(pollInterval);
+                this.transcript = 'Polling Error.';
+            }
+        });
+    }, 5000);
   }
 
   generateSummary() {
@@ -158,9 +225,6 @@ export class MeetingMinutesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error generating summary:', error);
-        if (!this.transcript) {
-          this.simulateProcessing();
-        }
       }
     });
   }

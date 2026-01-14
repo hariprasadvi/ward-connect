@@ -153,12 +153,14 @@ export interface TranslationKeys {
   NO_RESULTS_FOUND: string;
   
   // Add index signature to allow string indexing
+  SYSTEM_SETTINGS: string;
   [key: string]: string;
 }
 
 const ENGLISH_TRANSLATIONS: TranslationKeys = {
   // App
   APP_TITLE: 'Kudumbashree Services',
+  SYSTEM_SETTINGS: 'System Settings',
 
   // Navigation
   ATTENDANCE: 'Attendance',
@@ -312,6 +314,7 @@ const ENGLISH_TRANSLATIONS: TranslationKeys = {
 const MALAYALAM_TRANSLATIONS: TranslationKeys = {
   // App
   APP_TITLE: 'കുടുംബശ്രീ സേവനങ്ങൾ',
+  SYSTEM_SETTINGS: 'സിസ്റ്റം ക്രമീകരണങ്ങൾ',
   
   // Navigation
   ATTENDANCE: 'ഹാജരാകൽ',

@@ -40,6 +40,7 @@ export class MeetingOrganizerComponent {
 
   constructor() {
     this.meetingForm = this.fb.group({
+      groupId: [1, Validators.required], // Hardcoded to 1 for now as per single-group prototype
       title: ['', Validators.required],
       date: ['', Validators.required],
       location: ['', Validators.required],

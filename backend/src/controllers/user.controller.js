@@ -7,7 +7,7 @@ const updateProfile = async (req, res) => {
     const userId = req.user.id;
     const { 
       full_name, email, ward_number, panchayat_name, 
-      address, aadhaar_number, house_number 
+      address, aadhaar_number, house_number, profile_image
     } = req.body;
 
     const user = await User.findByPk(userId);
@@ -20,6 +20,7 @@ const updateProfile = async (req, res) => {
     user.address = address || user.address;
     user.aadhaar_number = aadhaar_number || user.aadhaar_number;
     user.house_number = house_number || user.house_number;
+    user.profile_image = profile_image || user.profile_image;
 
     await user.save();
 
