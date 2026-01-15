@@ -58,6 +58,18 @@ app.get('/', (req, res) => {
   res.send('WardConnect Backend is Running');
 });
 
+// Import Models for Association
+const Vehicle = require('./src/models/vehicle.model');
+const Booking = require('./src/models/booking.model');
+const User = require('./src/models/User');
+
+// Define Associations
+Vehicle.hasMany(Booking, { foreignKey: 'vehicleId', onDelete: 'CASCADE' });
+Booking.belongsTo(Vehicle, { foreignKey: 'vehicleId', onDelete: 'CASCADE' });
+
+User.hasMany(Booking, { foreignKey: 'userId' });
+Booking.belongsTo(User, { foreignKey: 'userId' });
+
 // Database Connection & Server Start
 const startServer = async () => {
   try {

@@ -23,6 +23,10 @@ export class VehicleService {
         return this.http.put(`${this.apiUrl}/${vehicleId}/availability`, { isAvailable });
     }
 
+    deleteVehicle(vehicleId: number): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/delete/${vehicleId}`);
+    }
+
     // User APIs
     searchVehicles(type?: string): Observable<any[]> {
         let url = `${this.apiUrl}/search`;
@@ -38,5 +42,21 @@ export class VehicleService {
 
     emergencySos(data: { userId: number, latitude: number, longitude: number }): Observable<any> {
         return this.http.post(`${this.apiUrl}/emergency`, data);
+    }
+
+    updateLocation(vehicleId: number, latitude: number, longitude: number): Observable<any> {
+        return this.http.put(`${this.apiUrl}/update-location/${vehicleId}`, { latitude, longitude });
+    }
+
+    getOwnerRequests(ownerId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/requests/${ownerId}`);
+    }
+
+    respondToBooking(bookingId: number, status: string, amount?: number): Observable<any> {
+        return this.http.post(`${this.apiUrl}/respond`, { bookingId, status, amount });
+    }
+
+    getBookingStatus(bookingId: number): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/booking/${bookingId}`);
     }
 }

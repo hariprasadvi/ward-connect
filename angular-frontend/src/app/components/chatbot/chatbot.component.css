@@ -1,0 +1,94 @@
+/* Scoped styles for the markdown content */
+.markdown-body {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: inherit;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.markdown-body h1 { font-size: 1.5em; }
+.markdown-body h2 { font-size: 1.3em; }
+.markdown-body h3 { font-size: 1.1em; }
+
+.markdown-body p {
+    margin-bottom: 1em;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    margin-bottom: 1em;
+    padding-left: 2em;
+    list-style: disc;
+}
+
+.markdown-body ol {
+    list-style: decimal;
+}
+
+.markdown-body li {
+    margin-bottom: 0.25em;
+}
+
+.markdown-body li > p {
+    margin-bottom: 0.5em; /* Reduce spacing for paragraphs inside lists */
+}
+
+/* Code Styles */
+.markdown-body pre {
+    background-color: #f3f4f6;
+    padding: 1em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+    margin-bottom: 1em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.9em;
+}
+
+.markdown-body code {
+    background-color: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 0.25em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.9em;
+}
+
+.markdown-body pre code {
+    background-color: transparent;
+    padding: 0;
+    font-size: 100%;
+}
+
+.markdown-body blockquote {
+    border-left: 4px solid #e5e7eb;
+    padding-left: 1em;
+    color: #6b7280;
+    margin-bottom: 1em;
+}
+
+.markdown-body table {
+    width: 100%;
+    margin-bottom: 1em;
+    border-collapse: collapse;
+}
+
+.markdown-body th,
+.markdown-body td {
+    padding: 0.5em;
+    border: 1px solid #e5e7eb;
+}
+
+.markdown-body th {
+    background-color: #f9fafb;
+    font-weight: 600;
+}

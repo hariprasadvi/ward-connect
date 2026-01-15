@@ -55,4 +55,43 @@
 
     <!-- SOS Button -->
     <app-emergency-sos></app-emergency-sos>
+
+    <!-- Booking Modal -->
+    <div *ngIf="selectedVehicle" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Book Ride</h3>
+
+            <div class="mb-4 bg-indigo-50 p-3 rounded-lg">
+                <p class="font-bold text-indigo-900">{{ selectedVehicle.type }}</p>
+                <p class="text-sm text-indigo-700">{{ selectedVehicle.registrationNumber }}</p>
+                <p class="text-xs text-indigo-600">Driver: {{ selectedVehicle.driverName }}</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                    <input type="text" [(ngModel)]="bookingData.source"
+                        class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                    <input type="text" [(ngModel)]="bookingData.destination" placeholder="Where do you want to go?"
+                        class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                    <input type="datetime-local" [(ngModel)]="bookingData.bookingTime"
+                        class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <button (click)="closeBookingModal()"
+                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
+                <button (click)="confirmBooking()"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">Confirm
+                    Request</button>
+            </div>
+        </div>
+    </div>
 </div>

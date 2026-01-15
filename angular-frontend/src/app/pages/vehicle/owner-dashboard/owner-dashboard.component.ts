@@ -37,6 +37,7 @@ export class OwnerDashboardComponent implements OnInit {
       this.ownerId = this.currentUser.id; // Assuming user object has an id property
       if (this.ownerId) {
         this.loadMyVehicles();
+        this.loadBookingRequests();
       }
     }
   }
@@ -48,6 +49,49 @@ export class OwnerDashboardComponent implements OnInit {
       error: (err) => console.error('Error loading vehicles', err)
     });
   }
+
+  // --- Booking Requests Logic ---
+  bookingRequests: any[] = [];
+
+  loadBookingRequests() {
+    if (!this.ownerId) return;
+    this.vehicleService.getOwnerRequests(this.ownerId).subscribe({
+      next: (data) => this.bookingRequests = data,
+      error: (err) => console.error('Error loading requests', err)
+    });
+
+    // Poll every 10 seconds for new requests
+    setTimeout(() => this.loadBookingRequests(), 10000);
+  }
+
+  acceptBooking(booking: any, amountInput: string) {
+    const amount = parseFloat(amountInput);
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    this.vehicleService.respondToBooking(booking.id, 'Confirmed', amount).subscribe({
+      next: (res) => {
+        alert('Booking Accepted!');
+        this.loadBookingRequests(); // Refresh list
+      },
+      error: (err) => alert('Error accepting booking')
+    });
+  }
+
+  declineBooking(booking: any) {
+    if (!confirm('Are you sure you want to decline this booking?')) return;
+
+    this.vehicleService.respondToBooking(booking.id, 'Cancelled').subscribe({
+      next: (res) => {
+        alert('Booking Declined');
+        this.loadBookingRequests(); // Refresh list
+      },
+      error: (err) => alert('Error declining booking')
+    });
+  }
+  // ------------------------------
 
   addVehicle() {
     const vehicleData = { ...this.newVehicle, ownerId: this.ownerId };
@@ -68,18 +112,34 @@ export class OwnerDashboardComponent implements OnInit {
   }
 
   updateLocation(vehicle: any) {
-    // In a real app, this would call a specific update-location API.
-    // Here we can re-use addVehicle or assume a mock update for now, 
-    // or ideally implement an update endpoint.
-    // For this demo, we'll just alert success as the backend update logic wasn't explicitly requested 
-    // as a new API, but I will simulate it by 'refreshing' or just notifying.
-    // Ideally user wants to "set their ride" -> update location.
+    if (!vehicle.latitude || !vehicle.longitude) {
+      alert('Please enter valid coordinates');
+      return;
+    }
 
-    // NOTE: Since I don't have a specific update API yet, I will use a simple alert 
-    // to simulate the action as per "owner can do thier needed things".
-    // If strict backend implementation needed, I'd add a PUT route. 
-    // For now, I will assume the frontend binding updates local state and we can pretend it saved.
-    alert(`Location for ${vehicle.registrationNumber} updated to ${vehicle.latitude}, ${vehicle.longitude}`);
+    this.vehicleService.updateLocation(vehicle.id, vehicle.latitude, vehicle.longitude).subscribe({
+      next: (res) => {
+        alert(`Location updated for ${vehicle.registrationNumber}`);
+      },
+      error: (err) => {
+        console.error('Error updating location', err);
+        alert('Failed to update location');
+      }
+    });
+  }
+
+  getCurrentLocation(target: any) {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        target.latitude = position.coords.latitude;
+        target.longitude = position.coords.longitude;
+      }, (error) => {
+        console.error('Error getting location', error);
+        alert('Could not get your location. Please check browser permissions.');
+      });
+    } else {
+      alert('Geolocation is not supported by this browser.');
+    }
   }
 
   toggleAvailability(vehicle: any) {
@@ -91,6 +151,21 @@ export class OwnerDashboardComponent implements OnInit {
       },
       error: (err) => console.error('Error updating availability', err)
     });
+  }
+
+  deleteVehicle(vehicle: any) {
+    if (confirm(`Are you sure you want to remove ${vehicle.registrationNumber}? This cannot be undone.`)) {
+      this.vehicleService.deleteVehicle(vehicle.id).subscribe({
+        next: (res) => {
+          alert('Vehicle removed successfully');
+          this.loadMyVehicles();
+        },
+        error: (err) => {
+          console.error('Error deleting vehicle', err);
+          alert('Failed to remove vehicle');
+        }
+      });
+    }
   }
 }
 

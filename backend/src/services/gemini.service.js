@@ -66,23 +66,23 @@ const generateCV = async (userData) => {
         Links: ${userData.linkedin}
         extra_fields: Location: ${userData.location || ''}, GitHub: ${userData.github || ''}, Certifications: ${userData.certifications || ''}, Languages: ${userData.languages || ''}
 
-        Task: Generate a JSON object for a professional CV that fills an A4 page.
-            CRITICAL: The content must be DENSE, DETAILED, and PROFESSIONAL.Avoid brevity.
+        Task: Generate a JSON object for a professional CV using ONLY relevant provided data.
+            CRITICAL: DO NOT INVENT OR HALLUCINATE DATA. If a field is empty in input, leave it empty or generic in output.
 
                 Structure(Strictly follow these keys):
         {
             "header": {
-                "name": "String (Full Name)",
-                    "title": "String (Target Role)",
+                "name": "String (Full Name from input)",
+                    "title": "String (Target Role from input)",
                         "contact": {
                     "email": "String",
-                        "phone": "String",
+                         "phone": "String",
                             "location": "String",
                                 "linkedin": "String",
                                     "github": "String"
                 }
             },
-            "summary": "String (Comprehensive 4-5 sentence professional summary. Focus on technical depth, achievements, and career goals. Do not be vague.)",
+            "summary": "String (Professional summary based ONLY on provided skills and role. Do not invent years of experience if not stated.)",
                 "skills": {
                 "languages": "String",
                     "backend": "String",
@@ -90,21 +90,18 @@ const generateCV = async (userData) => {
                             "tools": "String"
             },
             "experience": [
-                { "company": "String", "role": "String", "duration": "String", "details": ["String (At least 4-5 detailed bullet points per role. Use action verbs. Quantify results where possible.)"] }
+                { "company": "String", "role": "String", "duration": "String", "details": ["String (Format provided experience into bullet points. DO NOT invent duties not implied by the input.)"] }
             ],
-                "projects": [{ "name": "String", "technologies": "String", "link": "String", "description": "String (Detailed description of the project, architecture, and impact. 3-4 sentences.)" }],
-                    "education": [{ "institution": "String", "degree": "String", "year": "String", "details": "String (Include CGPA, coursework, or relevant academic achievements to fill space)" }],
+                "projects": [{ "name": "String", "technologies": "String", "link": "String", "description": "String" }],
+                    "education": [{ "institution": "String", "degree": "String", "year": "String", "details": "String" }],
                         "certifications": ["String"],
                             "languages_interest": ["String"]
         }
       
       IMPORTANT RULES:
-        1. ** DENSITY IS KEY **: The user wants a "full" CV.If the input is sparse, EXPAND on technical concepts relevant to the keywords provided.
-      2. ** NO SHORT ANSWERS **: Bullet points should be long and descriptive(e.g., instead of "Fixed bugs", say "Diagnosed and resolved critical backend concurrency issues, improving API response time by 40%").
-      3. ** STRICT SEPARATION **: Standard rules apply(Experience vs Projects).
-      4. ** FORMATTING **: Company names and definitions must be professional.
-      5. ** EMPTY FIELDS **: Handle gracefully(empty string).
-      6. ** JSON ONLY **: Return strictly JSON.
+        1. ** NO HALLUCINATIONS **: Use ONLY data provided in variables. If a field like 'Projects' is empty, return an empty array [].
+      2. ** PROFESSIONAL FORMAT **: Format the provided text professionally (fix grammar/spelling), but do not add new facts.
+      3. ** JSON ONLY **: Return strictly JSON.
     `;
 
         const result = await model.generateContent(prompt);
