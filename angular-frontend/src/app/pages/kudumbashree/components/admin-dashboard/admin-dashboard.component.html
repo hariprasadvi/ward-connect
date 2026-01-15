@@ -122,16 +122,14 @@
         <div class="pending-loans">
           <div class="pending-loan" *ngFor="let loan of pendingLoans">
             <div class="loan-info">
-              <h4>{{ loan.userName }}</h4>
+              <h4>{{ loan.User?.full_name || 'Unknown' }}</h4>
               <p>{{ loan.purpose }}</p>
               <span class="loan-amount">{{ getFormattedAmount(loan.amount) }}</span>
             </div>
             <div class="loan-actions">
-              <button mat-icon-button color="primary" [matTooltip]="translations().APPROVE_LOAN">
-                <mat-icon>check_circle</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" [matTooltip]="translations().REJECT_LOAN">
-                <mat-icon>cancel</mat-icon>
+              <button mat-icon-button color="primary" [matTooltip]="translations().APPROVE_LOAN"
+                (click)="reviewLoan(loan)">
+                <mat-icon>visibility</mat-icon> <!-- Changed to visibility for review -->
               </button>
             </div>
           </div>

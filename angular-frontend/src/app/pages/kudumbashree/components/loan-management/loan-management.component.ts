@@ -7,10 +7,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { ApiService } from '../../services/api.service';
 import { TranslationService } from '../../services/translation.service';
-import { Loan, LoanStatus } from '../../models';
+import { LoanService, Loan } from '../../services/loan.service';
 
 @Component({
   selector: 'app-loan-management',
@@ -23,14 +24,15 @@ import { Loan, LoanStatus } from '../../models';
     MatFormFieldModule,
     MatInputModule,
     MatTableModule,
-    MatIconModule
+    MatIconModule,
+    MatTabsModule
   ],
   templateUrl: './loan-management.component.html',
-  styleUrl: './loan-management.component.scss' // Fixed: changed from .css to .scss
+  styleUrl: './loan-management.component.scss'
 })
 export class LoanManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private apiService = inject(ApiService);
+  private loanService = inject(LoanService);
   private translationService = inject(TranslationService);
 
   translations = this.translationService.translations$;
@@ -38,52 +40,6 @@ export class LoanManagementComponent implements OnInit {
   loanForm: FormGroup;
   loans: Loan[] = [];
   displayedColumns: string[] = ['loanNumber', 'amount', 'purpose', 'appliedDate', 'status'];
-
-  // Sample data for demonstration
-  private sampleLoans: Loan[] = [
-    {
-      id: '1',
-      loanNumber: 'LN001',
-      userId: 'user1',
-      userName: 'Rani S',
-      amount: 25000,
-      purpose: 'Small Business',
-      status: 'approved' as any,
-      appliedDate: new Date('2024-01-15'),
-      interestRate: 8.5,
-      tenureMonths: 24,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '2',
-      loanNumber: 'LN002',
-      userId: 'user2',
-      userName: 'Lakshmi M',
-      amount: 15000,
-      purpose: 'Education',
-      status: 'pending' as any,
-      appliedDate: new Date('2024-01-20'),
-      interestRate: 7.5,
-      tenureMonths: 18,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '3',
-      loanNumber: 'LN003',
-      userId: 'user3',
-      userName: 'Geetha P',
-      amount: 50000,
-      purpose: 'Housing Repair',
-      status: 'rejected' as any,
-      appliedDate: new Date('2024-01-10'),
-      interestRate: 9.0,
-      tenureMonths: 36,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ];
 
   constructor() {
     this.loanForm = this.fb.group({
@@ -102,17 +58,17 @@ export class LoanManagementComponent implements OnInit {
     if (this.loanForm.valid) {
         const loanData = {
             ...this.loanForm.value,
-            // Backend should handle basic status/date logic if not provided
-            // typically we just send amount, purpose, tenure, description
+            tenure_months: this.loanForm.value.tenure 
         };
 
-        this.apiService.applyLoan(loanData).subscribe({
+        this.loanService.applyLoan(loanData).subscribe({
             next: (res) => {
                 alert('Loan application submitted successfully!');
                 this.loanForm.reset({ tenure: 12 });
                 this.loadLoans(); // Reload list
             },
             error: (err) => {
+                console.error("Loan Application Failed:", err);
                 alert('Failed to apply loan: ' + (err.error?.message || err.message));
             }
         });
@@ -120,7 +76,7 @@ export class LoanManagementComponent implements OnInit {
   }
 
   loadLoans() {
-    this.apiService.getLoans().subscribe({
+    this.loanService.getLoans().subscribe({
         next: (loans) => {
             this.loans = loans;
         },
@@ -128,20 +84,15 @@ export class LoanManagementComponent implements OnInit {
     });
   }
 
-  getStatusClass(status: LoanStatus): string {
-    return `status-${status.toLowerCase()}`;
+  getStatusClass(status: string): string {
+    return `status-${(status || '').toLowerCase()}`;
   }
 
-  getStatusTranslation(status: LoanStatus): string {
-    const statusTranslations: { [key: string]: string } = {
-      'pending': 'PENDING',
-      'approved': 'APPROVED',
-      'rejected': 'REJECTED'
-    };
-    return statusTranslations[status as any] || status;
+  getStatusTranslation(status: string): string {
+    // Basic translation or uppercase fallback
+    return (status || '').toUpperCase();
   }
 
-  // Fixed: Add missing methods
   calculateEMI(): number {
     const amount = this.loanForm.get('amount')?.value || 0;
     const tenure = this.loanForm.get('tenure')?.value || 12;
@@ -156,20 +107,32 @@ export class LoanManagementComponent implements OnInit {
     return Math.round(emi);
   }
 
+  calculateTotalRepayment(): number {
+    const tenure = this.loanForm.get('tenure')?.value || 0;
+    const emi = this.calculateEMI();
+    return emi * tenure;
+  }
+
+  calculateTotalInterest(): number {
+    const amount = this.loanForm.get('amount')?.value || 0;
+    const totalRepayment = this.calculateTotalRepayment();
+    return Math.round(totalRepayment - amount);
+  }
+
   getFormattedAmount(amount: number): string {
-    return '₹' + amount.toLocaleString('en-IN');
+    return '₹' + (amount || 0).toLocaleString('en-IN');
   }
 
   getApprovedCount(): number {
-    return this.loans.filter(loan => (loan.status as any) === 'approved').length;
+    return this.loans.filter(loan => loan.status === 'Approved').length;
   }
 
   getPendingCount(): number {
-    return this.loans.filter(loan => (loan.status as any) === 'pending').length;
+    return this.loans.filter(loan => loan.status === 'Pending').length;
   }
 
   getTotalLoanAmount(): number {
-    return this.loans.reduce((total, loan) => total + loan.amount, 0);
+    return this.loans.reduce((total, loan) => total + (Number(loan.amount) || 0), 0);
   }
 
   clearForm() {

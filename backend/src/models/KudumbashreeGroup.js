@@ -24,6 +24,11 @@ const KudumbashreeGroup = sequelize.define('KudumbashreeGroup', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    total_funds: {
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false,
+        defaultValue: 0.00,
+    },
 }, {
     timestamps: true,
 });

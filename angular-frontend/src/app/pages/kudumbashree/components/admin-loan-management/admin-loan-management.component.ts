@@ -13,6 +13,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { FormsModule } from '@angular/forms';
 
 import { TranslationService } from '../../services/translation.service';
+import { LoanService } from '../../services/loan.service';
 
 interface Loan {
   id: string;
@@ -25,7 +26,7 @@ interface Loan {
   amount: number;
   purpose: string;
   description: string;
-  status: 'pending' | 'approved' | 'rejected' | 'disbursed';
+  status: 'pending' | 'approved' | 'rejected' | 'disbursed' | 'active';
   appliedDate: Date;
   interestRate: number;
   tenureMonths: number;
@@ -58,6 +59,7 @@ interface Loan {
 export class AdminLoanManagementComponent implements OnInit {
   private translationService = inject(TranslationService);
   private dialog = inject(MatDialog);
+  private loanService = inject(LoanService); // Inject LoanService
 
   translations = this.translationService.translations$;
 
@@ -75,111 +77,46 @@ export class AdminLoanManagementComponent implements OnInit {
   }
 
   loadLoans() {
-    // Simulate API call
-    setTimeout(() => {
-      this.loans = [
-        {
-          id: '1',
-          loanNumber: 'LN004',
-          userId: 'user4',
-          userName: 'Sunitha R',
-          userEmail: 'sunitha@community.com',
-          userPhone: '9876543213',
-          communityUnit: 'Unit 2D',
-          amount: 20000,
-          purpose: 'Small Business',
-          description: 'Starting a small tailoring business',
-          status: 'pending',
-          appliedDate: new Date('2024-01-18'),
-          interestRate: 8.5,
-          tenureMonths: 24,
-          emiAmount: 907
+    this.loanService.getLoans().subscribe({
+        next: (loans) => {
+            // Map backend data to UI interface if needed, or use Loan interface directly
+            // Backend Loan has User object, so we can map it
+            this.loans = loans.map((l: any) => ({
+                id: l.id,
+                loanNumber: 'LN' + String(l.id).padStart(3, '0'), // Generate ID if missing
+                userId: l.userId,
+                userName: l.User?.full_name || 'Unknown',
+                userEmail: l.User?.email || 'N/A',
+                userPhone: l.User?.phone || 'N/A', // Assuming phone is available
+                communityUnit: l.User?.ward_number || 'N/A', // Mapping ward to unit
+                amount: Number(l.amount),
+                purpose: l.purpose,
+                description: l.description || l.purpose, // Fallback
+                status: l.status.toLowerCase(),
+                appliedDate: l.createdAt || new Date(),
+                interestRate: 8.5, // Static for now
+                tenureMonths: l.tenure_months,
+                emiAmount: this.calculateEMI(l.amount, l.tenure_months),
+                approvedBy: l.admin_comments || '', // construct from logs or comments
+                approvedDate: l.start_date
+            }));
+            this.applyFilters();
         },
-        {
-          id: '2',
-          loanNumber: 'LN005',
-          userId: 'user5',
-          userName: 'Meena K',
-          userEmail: 'meena@community.com',
-          userPhone: '9876543214',
-          communityUnit: 'Unit 8E',
-          amount: 15000,
-          purpose: 'Education',
-          description: 'Children education fees',
-          status: 'pending',
-          appliedDate: new Date('2024-01-17'),
-          interestRate: 7.5,
-          tenureMonths: 18,
-          emiAmount: 897
-        },
-        {
-          id: '3',
-          loanNumber: 'LN002',
-          userId: 'user2',
-          userName: 'Lakshmi M',
-          userEmail: 'lakshmi@community.com',
-          userPhone: '9876543211',
-          communityUnit: 'Unit 3B',
-          amount: 15000,
-          purpose: 'Education',
-          description: 'Daughter college fees',
-          status: 'approved',
-          appliedDate: new Date('2024-01-20'),
-          interestRate: 7.5,
-          tenureMonths: 18,
-          emiAmount: 897,
-          approvedBy: 'Admin',
-          approvedDate: new Date('2024-01-21')
-        },
-        {
-          id: '4',
-          loanNumber: 'LN001',
-          userId: 'user1',
-          userName: 'Rani S',
-          userEmail: 'rani@community.com',
-          userPhone: '9876543210',
-          communityUnit: 'Unit 5A',
-          amount: 25000,
-          purpose: 'Small Business',
-          description: 'Grocery shop expansion',
-          status: 'disbursed',
-          appliedDate: new Date('2024-01-15'),
-          interestRate: 8.5,
-          tenureMonths: 24,
-          emiAmount: 1134,
-          approvedBy: 'Admin',
-          approvedDate: new Date('2024-01-16')
-        },
-        {
-          id: '5',
-          loanNumber: 'LN003',
-          userId: 'user3',
-          userName: 'Geetha P',
-          userEmail: 'geetha@community.com',
-          userPhone: '9876543212',
-          communityUnit: 'Unit 7C',
-          amount: 50000,
-          purpose: 'Housing Repair',
-          description: 'House roof repair',
-          status: 'rejected',
-          appliedDate: new Date('2024-01-10'),
-          interestRate: 9.0,
-          tenureMonths: 36,
-          emiAmount: 1590,
-          approvedBy: 'Admin',
-          approvedDate: new Date('2024-01-12'),
-          rejectionReason: 'Insufficient income proof'
-        }
-      ];
-      this.filteredLoans = [...this.loans];
-    }, 1000);
+        error: (err) => console.error('Error loading loans', err)
+    });
+  }
+
+  calculateEMI(amount: number, tenure: number): number {
+    if (!amount || !tenure) return 0;
+    const r = 8.5 / 12 / 100;
+    return Math.round(amount * r * Math.pow(1 + r, tenure) / (Math.pow(1 + r, tenure) - 1));
   }
 
   applyFilters() {
     this.filteredLoans = this.loans.filter(loan => {
-      const matchesSearch = loan.userName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                          loan.loanNumber.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                          loan.purpose.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesSearch = (loan.userName || '').toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                          (loan.loanNumber || '').toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                          (loan.purpose || '').toLowerCase().includes(this.searchTerm.toLowerCase());
       
       const matchesStatus = this.statusFilter === 'all' || loan.status === this.statusFilter;
       const matchesUnit = this.unitFilter === 'all' || loan.communityUnit === this.unitFilter;
@@ -189,46 +126,65 @@ export class AdminLoanManagementComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    return `status-${status}`;
+    return `status-${(status || '').toLowerCase()}`;
   }
 
   getStatusTranslation(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      'pending': 'Pending',
-      'approved': 'Approved',
-      'rejected': 'Rejected',
-      'disbursed': 'Disbursed'
-    };
-    return statusMap[status] || status;
+    return (status || '').charAt(0).toUpperCase() + (status || '').slice(1);
   }
 
-  approveLoan(loan: Loan) {
-    loan.status = 'approved';
-    loan.approvedBy = 'Admin';
-    loan.approvedDate = new Date();
+  approveLoan(loan: any) {
+    if(confirm(`Approve loan for ${loan.userName}?`)) {
+        this.loanService.updateLoanStatus(Number(loan.id), 'Approved', 'Approved via Admin Panel').subscribe({
+            next: () => {
+                alert('Loan Approved Successfully');
+                this.loadLoans();
+            },
+            error: (err) => alert('Error approving loan: ' + (err.error?.message || err.message))
+        });
+    }
   }
 
-  rejectLoan(loan: Loan) {
-    loan.status = 'rejected';
-    loan.approvedBy = 'Admin';
-    loan.approvedDate = new Date();
-    loan.rejectionReason = 'Application does not meet criteria';
+  rejectLoan(loan: any) {
+    const reason = prompt('Enter rejection reason:');
+    if (reason) {
+        this.loanService.updateLoanStatus(Number(loan.id), 'Rejected', reason).subscribe({
+            next: () => {
+                alert('Loan Rejected');
+                this.loadLoans();
+            },
+            error: (err) => alert('Error rejecting loan')
+        });
+    }
   }
 
-  disburseLoan(loan: Loan) {
-    loan.status = 'disbursed';
+  disburseLoan(loan: any) {
+     // If we have a separate disburse step, implement here. 
+     // For now, Approval might auto-disburse or set to Active.
+     // If stuck in 'Approved' but not 'Active', we might need a specific call.
+     // Assuming 'Approved' transitions to 'Active' automatically in backend logic or separate step.
+     // Re-using update status for now if needed.
+     alert('Disbursement logic is handled during approval or requires backend update.');
   }
 
-  viewLoanDetails(loan: Loan) {
-    console.log('View details for loan:', loan.loanNumber);
+  viewLoanDetails(loan: any) {
+    // Implement proper dialog or view
+    alert(`
+    Loan Details:
+    ID: ${loan.loanNumber}
+    Applicant: ${loan.userName}
+    Amount: ₹${loan.amount}
+    Purpose: ${loan.purpose}
+    Status: ${loan.status}
+    `);
   }
 
   getFormattedAmount(amount: number): string {
-    return '₹' + amount.toLocaleString('en-IN');
+    return '₹' + (amount || 0).toLocaleString('en-IN');
   }
 
   getUniqueUnits(): string[] {
-    return [...new Set(this.loans.map(loan => loan.communityUnit))];
+    return [...new Set(this.loans.map(loan => loan.communityUnit).filter(u => u !== 'N/A'))];
   }
 
   getPendingLoansCount(): number {
@@ -240,6 +196,6 @@ export class AdminLoanManagementComponent implements OnInit {
   }
 
   getActiveLoansCount(): number {
-    return this.loans.filter(loan => loan.status === 'disbursed').length;
+    return this.loans.filter(loan => loan.status === 'active' || loan.status === 'disbursed' || loan.status === 'approved').length;
   }
 }

@@ -1,5 +1,5 @@
 // member-dashboard.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -31,6 +31,12 @@ interface RecentActivity {
   status?: string;
 }
 
+import { LoanService, Loan } from '../../services/loan.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+
 @Component({
   selector: 'app-member-dashboard',
   standalone: true,
@@ -42,7 +48,11 @@ interface RecentActivity {
     MatIconModule,
     MatButtonModule,
     MatListModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatDialogModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   templateUrl: './member-dashboard.component.html',
   styleUrl: './member-dashboard.component.scss'
@@ -51,6 +61,9 @@ export class MemberDashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private translationService = inject(TranslationService);
   private apiService = inject(ApiService);
+  private dashboardService = inject(DashboardService);
+  private loanService = inject(LoanService);
+  private dialog = inject(MatDialog);
 
   translations = this.translationService.translations$;
   user = this.authService.user;
@@ -59,13 +72,13 @@ export class MemberDashboardComponent implements OnInit {
   stats: DashboardStat[] = [];
   recentActivities: RecentActivity[] = [];
   scheduledMeetings: any[] = [];
+  activeLoans: Loan[] = []; // New property for active loans
   isLoading = true;
-
-  private dashboardService = inject(DashboardService);
   // translations/user/etc already injected
 
   ngOnInit() {
     this.loadDashboardData();
+    this.loadLoans();
   }
 
   loadDashboardData() {
@@ -153,7 +166,7 @@ export class MemberDashboardComponent implements OnInit {
         title: 'Apply for Loan',
         description: 'Apply for a new community loan',
         icon: 'account_balance',
-        route: '/kudumbashree/loans',
+        action: () => this.openApplyLoanDialog(), // Changed from route
         color: '#388e3c'
       },
       {
@@ -223,6 +236,71 @@ export class MemberDashboardComponent implements OnInit {
 
   getLoanLocation(isMalayalam: boolean): string {
     return 'Kudumbashree Office';
+  }
+
+  loadLoans() {
+    const userId = this.user()?.id;
+    if (userId) {
+      this.loanService.getLoans(Number(userId)).subscribe({
+        next: (loans) => {
+          this.activeLoans = loans.filter(l => l.status === 'Active' || l.status === 'Pending');
+        },
+        error: (err) => console.error('Error loading loans:', err)
+      });
+    }
+  }
+
+  @ViewChild('applyLoanDialog') applyLoanDialog!: TemplateRef<any>;
+  newLoan = { amount: 0, purpose: '', tenure_months: 12 };
+  dialogRef: any;
+
+  openApplyLoanDialog() {
+    this.newLoan = { amount: 0, purpose: '', tenure_months: 12 };
+    this.dialogRef = this.dialog.open(this.applyLoanDialog, { width: '400px' });
+  }
+
+  submitLoanApplication() {
+    const userId = this.user()?.id;
+    // Assuming user has a groupId or we need to fetch it. 
+    // In real app, groupId comes from user profile. For now, checking if user object has it or using a default/mock.
+    // The backend `applyLoan` expects `groupId`.
+    // Let's assume we can get it from user or default to 1 for this MVP if missing.
+    const groupId = (this.user() as any)?.groupId || 1; 
+
+    if (userId) {
+       const loanData = {
+           userId,
+           groupId,
+           ...this.newLoan
+       };
+
+       this.loanService.applyLoan(loanData).subscribe({
+           next: (res) => {
+               alert(`Loan Application Submitted! Risk Score: ${res.ai_assessment?.riskScore}`);
+               this.dialogRef.close();
+               this.loadLoans();
+               this.loadDashboardData();
+           },
+           error: (err) => {
+               console.error(err);
+               alert('Error applying for loan');
+           }
+       });
+    }
+  }
+
+  payLoan(loan: Loan) {
+      const amount = prompt(`Enter amount to repay for loan (Outstanding: ₹${loan.amount - (loan.repaid_amount || 0)})`);
+      if (amount && Number(amount) > 0) {
+          this.loanService.repayLoan(Number(loan.id), Number(amount)).subscribe({
+              next: () => {
+                  alert('Repayment Successful!');
+                  this.loadLoans();
+                  this.loadDashboardData();
+              },
+              error: (err) => alert('Repayment Failed')
+          });
+      }
   }
 
   deleteMeeting(meetingId: string) {
