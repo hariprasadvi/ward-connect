@@ -59,4 +59,67 @@ export class VehicleService {
     getBookingStatus(bookingId: number): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/booking/${bookingId}`);
     }
+
+    getUserHistory(userId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/history/user/${userId}`);
+    }
+
+
+
+    getOwnerHistory(ownerId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/history/owner/${ownerId}`);
+    }
+
+    // --- Helper Methods for Price Estimation ---
+
+    rateVehicle(bookingId: number, rating: number): Observable<any> {
+        return this.http.post(`${this.apiUrl}/rate`, { bookingId, rating });
+    }
+
+    calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+        const R = 6371; // Radius of the earth in km
+        const dLat = this.deg2rad(lat2 - lat1);
+        const dLon = this.deg2rad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const d = R * c; // Distance in km
+        return parseFloat(d.toFixed(2));
+    }
+
+    deg2rad(deg: number): number {
+        return deg * (Math.PI / 180);
+    }
+
+    estimatePrice(distanceKm: number, vehicleType: string): number {
+        let baseRate = 0;
+        let perKmRate = 0;
+
+        switch (vehicleType.toLowerCase()) {
+            case 'auto':
+                baseRate = 25;
+                perKmRate = 15;
+                break;
+            case 'taxi':
+                baseRate = 50;
+                perKmRate = 20;
+                break;
+            case 'ambulance':
+                baseRate = 500;
+                perKmRate = 30;
+                break;
+            case 'jeep':
+                baseRate = 60;
+                perKmRate = 18;
+                break;
+            default: // Bus or others
+                baseRate = 10; // Min ticket (simulated)
+                perKmRate = 5;
+        }
+
+        const totalor = baseRate + (distanceKm * perKmRate);
+        return Math.ceil(totalor);
+    }
 }

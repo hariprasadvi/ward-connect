@@ -6,5 +6,6 @@ import { VehicleEntryComponent } from './vehicle-entry/vehicle-entry.component';
 export const routes: Routes = [
     { path: '', component: VehicleEntryComponent },
     { path: 'owner', component: OwnerDashboardComponent },
-    { path: 'search', component: UserSearchComponent }
+    { path: 'search', component: UserSearchComponent },
+    { path: 'history', loadComponent: () => import('./components/booking-history/booking-history.component').then(m => m.BookingHistoryComponent) }
 ];

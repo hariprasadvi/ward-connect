@@ -36,6 +36,14 @@ const Vehicle = sequelize.define('Vehicle', {
         type: DataTypes.FLOAT,
         allowNull: true
     },
+    averageRating: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0.0
+    },
+    totalRatings: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
     isAvailable: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
