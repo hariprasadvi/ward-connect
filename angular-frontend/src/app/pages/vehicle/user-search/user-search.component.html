@@ -1,97 +1,240 @@
-<div class="h-screen flex flex-col">
-    <!-- Header -->
-    <div class="bg-white shadow z-10 p-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-gray-800">Find a Ride</h1>
-        <div class="flex gap-4 items-center">
-            <select (change)="onFilterChange($event)"
-                class="border rounded-lg px-3 py-1 text-sm bg-gray-50 focus:ring-2 focus:ring-indigo-500">
-                <option value="">All Vehicles</option>
-                <option value="Auto">Auto</option>
-                <option value="Taxi">Taxi</option>
-                <option value="Ambulance">Ambulance</option>
-                <option value="Bus">Bus</option>
-            </select>
+<div class="h-screen w-full flex flex-col md:flex-row bg-gray-50 overflow-hidden relative font-sans">
+
+    <!-- Sidebar Panel (Desktop: Left | Mobile: Bottom Sheet) -->
+    <div
+        class="w-full md:w-[420px] flex-shrink-0 bg-white shadow-2xl z-30 flex flex-col h-[55vh] md:h-full absolute bottom-0 md:relative md:top-0 rounded-t-3xl md:rounded-none transition-all duration-300 border-r border-gray-100">
+
+        <!-- Header Area -->
+        <div class="p-5 border-b border-gray-100 bg-white flex-shrink-0 relative">
+            <!-- Mobile Handle -->
+            <div class="md:hidden w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4"></div>
+
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Find a Ride</h1>
+                    <p class="text-xs text-gray-500 font-medium mt-1">
+                        <span *ngIf="vehicles.length > 0">{{ vehicles.length }} vehicles nearby</span>
+                        <span *ngIf="vehicles.length === 0">Searching...</span>
+                    </p>
+                </div>
+                <a routerLink="/vehicle/history"
+                    class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-700 px-3 py-2 rounded-xl transition text-sm font-bold flex items-center gap-2">
+                    <span>🕒</span> Rides
+                </a>
+            </div>
+
+            <!-- Filters (Pills) -->
+            <div class="flex flex-col gap-3">
+                <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    <button *ngFor="let type of ['All', 'Auto', 'Taxi', 'Ambulance', 'Bus', 'Jeep']"
+                        (click)="filterType(type)"
+                        [class.bg-black]="currentFilter === type || (type === 'All' && !currentFilter)"
+                        [class.text-white]="currentFilter === type || (type === 'All' && !currentFilter)"
+                        [class.bg-gray-100]="currentFilter !== type && !(type === 'All' && !currentFilter)"
+                        [class.text-gray-600]="currentFilter !== type && !(type === 'All' && !currentFilter)"
+                        class="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all">
+                        {{ type }}
+                    </button>
+                </div>
+
+                <!-- Distance Filter -->
+                <div class="flex items-center gap-2 px-1 rounded-xl bg-gray-50 border border-gray-100 p-1 w-max">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-2">Radius:</span>
+                    <div class="flex gap-1">
+                        <button *ngFor="let dist of [5, 10, 20, 50, 'All']" (click)="setDistance(dist)"
+                            [class.bg-white]="(maxDistance === dist) || (dist === 'All' && maxDistance === Infinity)"
+                            [class.shadow-sm]="(maxDistance === dist) || (dist === 'All' && maxDistance === Infinity)"
+                            [class.text-indigo-600]="(maxDistance === dist) || (dist === 'All' && maxDistance === Infinity)"
+                            [class.text-gray-500]="!((maxDistance === dist) || (dist === 'All' && maxDistance === Infinity))"
+                            class="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all hover:bg-white/50">
+                            {{ dist === 'All' ? '∞' : dist + 'km' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scrollable Vehicle List -->
+        <div class="overflow-y-auto flex-1 p-4 space-y-4 bg-gray-50/50 relative">
+
+            <!-- Loading State -->
+            <div *ngIf="isLoading" class="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center">
+                <div class="animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent mb-3">
+                </div>
+                <p class="text-xs font-bold text-indigo-600 animate-pulse">Scanning area...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!isLoading && vehicles.length === 0"
+                class="flex flex-col items-center justify-center py-12 text-center">
+                <div class="bg-gray-100 p-4 rounded-full mb-3 text-3xl">🏜️</div>
+                <h3 class="font-bold text-gray-800">No vehicles found</h3>
+                <p class="text-xs text-gray-500 mt-1 max-w-[200px]">Try moving the map or changing your filter.</p>
+            </div>
+
+            <!-- Vehicle Cards -->
+            <div *ngFor="let vehicle of vehicles"
+                class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group"
+                (click)="flyToVehicle(vehicle)">
+
+                <div class="flex justify-between items-start">
+                    <!-- Icon & Details -->
+                    <div class="flex gap-4">
+                        <div class="h-12 w-12 bg-gray-50 rounded-xl flex items-center justify-center p-2">
+                            <img [src]="icons[vehicle.type.toLowerCase()]?.options?.iconUrl || icons['default'].options.iconUrl"
+                                class="w-full h-full object-contain" alt="icon">
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-lg leading-tight">{{ vehicle.type }}</h3>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-xs font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{{
+                                    vehicle.registrationNumber }}</span>
+                                <span *ngIf="vehicle.averageRating"
+                                    class="flex items-center text-xs font-bold text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded">
+                                    {{ vehicle.averageRating | number:'1.1-1' }} ★
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Estimate (if available) -->
+                    <div *ngIf="userLat" class="text-right">
+                        <!-- Simple distance for list view -->
+                    </div>
+                </div>
+
+                <div class="mt-4 flex items-center justify-between border-t border-gray-50 pt-3">
+                    <p class="text-xs text-gray-500 font-medium flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                        {{ vehicle.driverName }}
+                    </p>
+                    <button (click)="$event.stopPropagation(); bookVehicle(vehicle)"
+                        class="bg-black text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-gray-800 transition shadow-lg transform active:scale-95">
+                        Book Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Spacer for bottom scrolling on mobile -->
+            <div class="h-16 md:hidden"></div>
         </div>
     </div>
 
-    <!-- Map Container -->
-    <div class="flex-grow relative">
-        <div id="map" class="h-full w-full z-0"></div>
+    <!-- Map Area -->
+    <div class="flex-1 relative h-[45vh] md:h-full z-0 bg-gray-200">
+        <div id="map" class="h-full w-full outline-none"></div>
 
-        <!-- Loading Overlay -->
-        <div *ngIf="isLoading"
-            class="absolute inset-0 bg-white/80 z-30 flex items-center justify-center backdrop-blur-sm">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
-        </div>
+        <!-- Map Overlay Actions (Optional) -->
+        <button (click)="getUserLocation()"
+            class="absolute top-4 right-4 bg-white p-3 rounded-xl shadow-lg hover:bg-gray-50 z-[400] transition active:scale-95"
+            title="My Location">
+            📍
+        </button>
+    </div>
 
-        <!-- Vehicle List Overlay (Bottom Sheet Style) -->
+    <!-- Booking Modal -->
+    <div *ngIf="selectedVehicle"
+        class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fade-in transition-all">
         <div
-            class="absolute bottom-4 left-4 right-4 bg-white rounded-xl shadow-2xl p-4 max-h-64 overflow-y-auto z-20 md:w-96 md:bottom-8 md:left-8 md:right-auto">
-            <h3 class="font-bold text-gray-700 mb-3 sticky top-0 bg-white">Available Vehicles ({{ vehicles.length }})
-            </h3>
+            class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 ring-1 ring-white/20">
 
-            <div *ngIf="vehicles.length === 0" class="text-center text-gray-500 py-4">
-                No vehicles found nearby.
+            <!-- Modal Header -->
+            <div
+                class="bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white text-center relative overflow-hidden">
+                <!-- Decorative Circle -->
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                <div class="absolute top-10 -left-10 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
+
+                <button (click)="closeBookingModal()"
+                    class="absolute top-5 right-5 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full text-white transition backdrop-blur-sm">✕</button>
+
+                <div
+                    class="w-20 h-20 bg-white/10 rounded-2xl mx-auto flex items-center justify-center backdrop-blur-md mb-4 ring-1 ring-white/30 shadow-lg">
+                    <img [src]="icons[selectedVehicle.type.toLowerCase()]?.options?.iconUrl"
+                        class="w-12 h-12 object-contain drop-shadow-xl">
+                </div>
+                <h2 class="text-3xl font-extrabold tracking-tight">{{ selectedVehicle.type }}</h2>
+                <div class="flex items-center justify-center gap-2 text-indigo-100 text-sm font-medium mt-1">
+                    <span class="opacity-80">{{ selectedVehicle.registrationNumber }}</span>
+                    <span class="w-1 h-1 rounded-full bg-white/50"></span>
+                    <span class="opacity-80">{{ selectedVehicle.driverName }}</span>
+                </div>
             </div>
 
-            <div *ngFor="let vehicle of vehicles"
-                class="flex justify-between items-center border-b py-3 last:border-0 hover:bg-gray-50 transition p-2 rounded cursor-pointer"
-                (click)="flyToVehicle(vehicle)">
-                <div>
-                    <div class="font-bold text-gray-800 flex items-center gap-2">
-                        {{ vehicle.type }}
-                        <span class="text-xs font-normal bg-gray-100 px-2 rounded">{{ vehicle.registrationNumber
-                            }}</span>
+            <div class="p-6 space-y-6">
+                <!-- Route Inputs -->
+                <div class="space-y-4 relative">
+                    <!-- Connector Line -->
+                    <div
+                        class="absolute left-[1.15rem] top-9 bottom-9 w-0.5 bg-gradient-to-b from-indigo-500 to-black/20 -z-10">
                     </div>
-                    <div class="text-xs text-gray-500">Driver: {{ vehicle.driverName }}</div>
+
+                    <div class="group">
+                        <label
+                            class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">From</label>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-sm shadow-sm">
+                                📍</div>
+                            <input type="text" [(ngModel)]="bookingData.source"
+                                class="flex-1 bg-gray-50 border-none rounded-xl text-sm font-bold text-gray-700 px-4 py-3 ring-1 ring-gray-100"
+                                readonly>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <label
+                            class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">To</label>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center text-sm shadow-md ring-2 ring-black/20">
+                                🏁</div>
+                            <input type="text" [(ngModel)]="bookingData.destination" (input)="onDestinationChange()"
+                                placeholder="Where to?"
+                                class="flex-1 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 px-4 py-3 focus:ring-2 focus:ring-black focus:border-transparent placeholder:font-medium placeholder:text-gray-400 transition-all shadow-sm">
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <label
+                            class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">When</label>
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-9 h-9 rounded-full bg-indigo-50 border border-gray-100 flex items-center justify-center text-sm shadow-sm">
+                                🕒</div>
+                            <input type="datetime-local" [(ngModel)]="bookingData.bookingTime"
+                                class="flex-1 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 px-4 py-3 focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm">
+                        </div>
+                    </div>
                 </div>
-                <button (click)="bookVehicle(vehicle)"
-                    class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-indigo-700 transition">
-                    Book
+
+                <!-- Price Quote -->
+                <div
+                    class="bg-gray-900 rounded-2xl p-5 flex justify-between items-center shadow-lg transform transition hover:scale-[1.02] duration-300 relative overflow-hidden group">
+                    <!-- Shine effect -->
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer">
+                    </div>
+
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Estimated Fare
+                        </p>
+                        <p class="text-white font-black text-2xl tracking-tight">₹{{bookingData.estimatedPrice}}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Total Distance
+                        </p>
+                        <p class="text-indigo-400 font-bold text-lg">{{bookingData.distanceKm}} km</p>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button (click)="confirmBooking()"
+                    class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-4 rounded-xl font-bold text-lg hover:from-indigo-700 hover:to-indigo-800 transition-all shadow-xl shadow-indigo-200 active:scale-[0.98]">
+                    Confirm Booking
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- SOS Button -->
-    <app-emergency-sos></app-emergency-sos>
-
-    <!-- Booking Modal -->
-    <div *ngIf="selectedVehicle" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Book Ride</h3>
-
-            <div class="mb-4 bg-indigo-50 p-3 rounded-lg">
-                <p class="font-bold text-indigo-900">{{ selectedVehicle.type }}</p>
-                <p class="text-sm text-indigo-700">{{ selectedVehicle.registrationNumber }}</p>
-                <p class="text-xs text-indigo-600">Driver: {{ selectedVehicle.driverName }}</p>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Source</label>
-                    <input type="text" [(ngModel)]="bookingData.source"
-                        class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                    <input type="text" [(ngModel)]="bookingData.destination" placeholder="Where do you want to go?"
-                        class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                    <input type="datetime-local" [(ngModel)]="bookingData.bookingTime"
-                        class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-3 mt-6">
-                <button (click)="closeBookingModal()"
-                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel</button>
-                <button (click)="confirmBooking()"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">Confirm
-                    Request</button>
-            </div>
-        </div>
-    </div>
 </div>

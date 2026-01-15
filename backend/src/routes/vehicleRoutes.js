@@ -104,7 +104,10 @@ router.get('/requests/:ownerId', async (req, res) => {
                     attributes: ['full_name', 'mobile_number', 'ward_number'] // Fetch user details
                 }
             ],
-            where: { status: 'Pending' }
+            where: {
+                status: ['Pending', 'Confirmed']
+            },
+            order: [['createdAt', 'DESC']]
         });
 
         res.status(200).json(bookings);
@@ -143,6 +146,51 @@ router.post('/respond', async (req, res) => {
     } catch (error) {
         console.error('Error responding to booking:', error);
         res.status(500).json({ message: 'Error responding to booking', error: error.message });
+    }
+});
+
+// --- History API: User ---
+router.get('/history/user/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const bookings = await Booking.findAll({
+            where: { userId },
+            include: [{
+                model: Vehicle,
+                attributes: ['registrationNumber', 'type', 'driverName', 'contactNumber']
+            }],
+            order: [['createdAt', 'DESC']]
+        });
+        res.status(200).json(bookings);
+    } catch (error) {
+        console.error('Error fetching user history:', error);
+        res.status(500).json({ message: 'Error fetching history', error: error.message });
+    }
+});
+
+// --- History API: Owner ---
+router.get('/history/owner/:ownerId', async (req, res) => {
+    try {
+        const { ownerId } = req.params;
+        // Find bookings for vehicles owned by this owner
+        const bookings = await Booking.findAll({
+            include: [
+                {
+                    model: Vehicle,
+                    where: { ownerId },
+                    attributes: ['registrationNumber', 'type']
+                },
+                {
+                    model: User,
+                    attributes: ['full_name', 'mobile_number']
+                }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+        res.status(200).json(bookings);
+    } catch (error) {
+        console.error('Error fetching owner history:', error);
+        res.status(500).json({ message: 'Error fetching history', error: error.message });
     }
 });
 
@@ -270,6 +318,38 @@ router.delete('/delete/:vehicleId', async (req, res) => {
     } catch (error) {
         console.error('Error deleting vehicle:', error);
         res.status(500).json({ message: 'Error deleting vehicle', error: error.message });
+    }
+});
+
+// --- User API: Rate Vehicle ---
+router.post('/rate', async (req, res) => {
+    try {
+        const { bookingId, rating } = req.body;
+        const booking = await Booking.findByPk(bookingId);
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        const vehicle = await Vehicle.findByPk(booking.vehicleId);
+        if (!vehicle) {
+            return res.status(404).json({ message: 'Vehicle not found' });
+        }
+
+        // Calculate new average
+        const currentTotal = vehicle.averageRating * vehicle.totalRatings;
+        vehicle.totalRatings += 1;
+        vehicle.averageRating = (currentTotal + rating) / vehicle.totalRatings;
+
+        await vehicle.save();
+
+        // Mark booking as rated (optional flag if needed, or just rely on UI state)
+        // For now, let's assume UI handles "Already Rated" check locally or we add a flag later.
+
+        res.status(200).json({ message: 'Rating submitted', vehicle });
+    } catch (error) {
+        console.error('Error submitting rating:', error);
+        res.status(500).json({ message: 'Error submitting rating', error: error.message });
     }
 });
 

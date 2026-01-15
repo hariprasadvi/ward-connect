@@ -1,34 +1,46 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VehicleService } from '../../../services/vehicle.service';
 import { AuthService } from '../../../services/auth.service';
-
+import { ToastService } from '../../../services/toast.service';
+import { RouterModule } from '@angular/router';
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-owner-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './owner-dashboard.component.html',
   styleUrls: ['./owner-dashboard.component.css']
 })
-export class OwnerDashboardComponent implements OnInit {
+export class OwnerDashboardComponent implements OnInit, AfterViewInit {
   newVehicle = {
     registrationNumber: '',
     type: 'Auto',
     driverName: '',
     contactNumber: '',
-    latitude: 10.0, // Default for demo
-    longitude: 76.3  // Default for demo
+    latitude: 10.0,
+    longitude: 76.3
   };
 
   myVehicles: any[] = [];
   ownerId: number | null = null;
   currentUser: any;
+  showAddVehicleForm = false;
+
+  // Stats
+  activeRidesCount = 0;
+  pendingRequestsCount = 0;
+
+  // Map
+  private map: L.Map | undefined;
+  private markers: L.Marker[] = [];
 
   constructor(
     private vehicleService: VehicleService,
-    private authService: AuthService
+    private authService: AuthService,
+    private toastService: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -42,10 +54,116 @@ export class OwnerDashboardComponent implements OnInit {
     }
   }
 
+  ngAfterViewInit(): void {
+    this.initMap();
+  }
+
+  toggleAddVehicle() {
+    this.showAddVehicleForm = !this.showAddVehicleForm;
+  }
+
+  // --- Map Logic ---
+  initMap(): void {
+    // Default to Kerala/Kochi center if no location
+    this.map = L.map('dashboard-map').setView([10.0, 76.3], 10);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(this.map);
+
+    // If vehicles exist, add markers
+    if (this.myVehicles.length > 0) {
+      this.updateMapMarkers();
+    }
+  }
+
+  updateMapMarkers() {
+    if (!this.map) return;
+
+    // Clear existing markers
+    this.markers.forEach(m => m.remove());
+    this.markers = [];
+
+    const bounds = L.latLngBounds([]);
+
+    this.myVehicles.forEach(vehicle => {
+      if (vehicle.latitude && vehicle.longitude) {
+        const icon = L.icon({
+          iconUrl: this.getIconUrl(vehicle.type),
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+          popupAnchor: [0, -32]
+        });
+
+        const marker = L.marker([vehicle.latitude, vehicle.longitude], {
+          icon: icon,
+          draggable: true // Allow dragging to update location
+        }).addTo(this.map!);
+
+        marker.bindPopup(`
+            <b>${vehicle.type}</b><br>
+            ${vehicle.registrationNumber}<br>
+            <span style="font-size:10px; color:gray">Drag to update</span>
+        `);
+
+        // Handle Drag End -> Update Location
+        marker.on('dragend', (event) => {
+          const position = marker.getLatLng();
+          this.updateLocationFromMap(vehicle, position.lat, position.lng);
+        });
+
+        this.markers.push(marker);
+        bounds.extend([vehicle.latitude, vehicle.longitude]);
+      }
+    });
+
+    if (this.myVehicles.length > 0 && bounds.isValid()) {
+      this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }
+
+  getIconUrl(type: string): string {
+    const typeLower = type.toLowerCase();
+    const iconMap: any = {
+      'auto': 'https://cdn-icons-png.flaticon.com/512/3097/3097180.png',
+      'taxi': 'https://cdn-icons-png.flaticon.com/512/2555/2555013.png',
+      'ambulance': 'https://cdn-icons-png.flaticon.com/512/2896/2896623.png',
+      'jeep': 'https://cdn-icons-png.flaticon.com/512/3097/3097138.png',
+      'bus': 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png'
+    };
+    return iconMap[typeLower] || 'https://cdn-icons-png.flaticon.com/512/741/741407.png';
+  }
+
+  focusMapOnVehicle(vehicle: any) {
+    if (this.map && vehicle.latitude && vehicle.longitude) {
+      this.map.flyTo([vehicle.latitude, vehicle.longitude], 15);
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to map
+    }
+  }
+
+  updateLocationFromMap(vehicle: any, lat: number, lng: number) {
+    if (confirm(`Update location for ${vehicle.registrationNumber}?`)) {
+      this.vehicleService.updateLocation(vehicle.id, lat, lng).subscribe({
+        next: () => {
+          this.toastService.show('Location Updated 📍', 'success');
+          vehicle.latitude = lat;
+          vehicle.longitude = lng;
+        },
+        error: () => {
+          this.toastService.show('Update failed', 'error');
+        }
+      });
+    }
+  }
+  // --- End Map Logic ---
+
   loadMyVehicles() {
     if (!this.ownerId) return;
     this.vehicleService.getMyVehicles(this.ownerId).subscribe({
-      next: (data) => this.myVehicles = data,
+      next: (data) => {
+        this.myVehicles = data;
+        this.updateMapMarkers();
+      },
       error: (err) => console.error('Error loading vehicles', err)
     });
   }
@@ -56,7 +174,10 @@ export class OwnerDashboardComponent implements OnInit {
   loadBookingRequests() {
     if (!this.ownerId) return;
     this.vehicleService.getOwnerRequests(this.ownerId).subscribe({
-      next: (data) => this.bookingRequests = data,
+      next: (data) => {
+        this.bookingRequests = data;
+        this.calculateStats();
+      },
       error: (err) => console.error('Error loading requests', err)
     });
 
@@ -64,19 +185,24 @@ export class OwnerDashboardComponent implements OnInit {
     setTimeout(() => this.loadBookingRequests(), 10000);
   }
 
+  calculateStats() {
+    this.pendingRequestsCount = this.bookingRequests.filter(r => r.status === 'Pending').length;
+    this.activeRidesCount = this.bookingRequests.filter(r => r.status === 'Confirmed').length;
+  }
+
   acceptBooking(booking: any, amountInput: string) {
     const amount = parseFloat(amountInput);
     if (!amount || amount <= 0) {
-      alert('Please enter a valid amount');
+      this.toastService.show('Please enter a valid amount', 'warning');
       return;
     }
 
     this.vehicleService.respondToBooking(booking.id, 'Confirmed', amount).subscribe({
       next: (res) => {
-        alert('Booking Accepted!');
+        this.toastService.show('Booking Accepted!', 'success');
         this.loadBookingRequests(); // Refresh list
       },
-      error: (err) => alert('Error accepting booking')
+      error: (err) => this.toastService.show('Error accepting booking', 'error')
     });
   }
 
@@ -85,10 +211,10 @@ export class OwnerDashboardComponent implements OnInit {
 
     this.vehicleService.respondToBooking(booking.id, 'Cancelled').subscribe({
       next: (res) => {
-        alert('Booking Declined');
+        this.toastService.show('Booking Declined', 'info');
         this.loadBookingRequests(); // Refresh list
       },
-      error: (err) => alert('Error declining booking')
+      error: (err) => this.toastService.show('Error declining booking', 'error')
     });
   }
   // ------------------------------
@@ -97,7 +223,8 @@ export class OwnerDashboardComponent implements OnInit {
     const vehicleData = { ...this.newVehicle, ownerId: this.ownerId };
     this.vehicleService.addVehicle(vehicleData).subscribe({
       next: (res) => {
-        alert('Vehicle added successfully!');
+        this.toastService.show('Vehicle added successfully!', 'success');
+        this.showAddVehicleForm = false; // Close form
         this.loadMyVehicles();
         // Reset form but keep location for convenience
         this.newVehicle.registrationNumber = '';
@@ -106,7 +233,7 @@ export class OwnerDashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error adding vehicle', err);
-        alert('Failed to add vehicle');
+        this.toastService.show('Failed to add vehicle', 'error');
       }
     });
   }
@@ -116,16 +243,7 @@ export class OwnerDashboardComponent implements OnInit {
       alert('Please enter valid coordinates');
       return;
     }
-
-    this.vehicleService.updateLocation(vehicle.id, vehicle.latitude, vehicle.longitude).subscribe({
-      next: (res) => {
-        alert(`Location updated for ${vehicle.registrationNumber}`);
-      },
-      error: (err) => {
-        console.error('Error updating location', err);
-        alert('Failed to update location');
-      }
-    });
+    this.updateLocationFromMap(vehicle, vehicle.latitude, vehicle.longitude);
   }
 
   getCurrentLocation(target: any) {
@@ -135,10 +253,10 @@ export class OwnerDashboardComponent implements OnInit {
         target.longitude = position.coords.longitude;
       }, (error) => {
         console.error('Error getting location', error);
-        alert('Could not get your location. Please check browser permissions.');
+        this.toastService.show('Could not get your location. Please check browser permissions.', 'error');
       });
     } else {
-      alert('Geolocation is not supported by this browser.');
+      this.toastService.show('Geolocation is not supported by this browser.', 'error');
     }
   }
 
@@ -157,15 +275,27 @@ export class OwnerDashboardComponent implements OnInit {
     if (confirm(`Are you sure you want to remove ${vehicle.registrationNumber}? This cannot be undone.`)) {
       this.vehicleService.deleteVehicle(vehicle.id).subscribe({
         next: (res) => {
-          alert('Vehicle removed successfully');
+          this.toastService.show('Vehicle removed successfully', 'success');
           this.loadMyVehicles();
         },
         error: (err) => {
           console.error('Error deleting vehicle', err);
-          alert('Failed to remove vehicle');
+          this.toastService.show('Failed to remove vehicle', 'error');
         }
       });
     }
+  }
+
+  completeRide(booking: any) {
+    if (!confirm('Mark this ride as Completed?')) return;
+
+    this.vehicleService.respondToBooking(booking.id, 'Completed').subscribe({
+      next: (res) => {
+        this.toastService.show('Ride Completed! 🏁', 'success');
+        this.loadBookingRequests();
+      },
+      error: (err) => this.toastService.show('Error completing ride', 'error')
+    });
   }
 }
 
