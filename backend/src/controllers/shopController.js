@@ -3,6 +3,7 @@ const WishlistItem = require('../models/WishlistItem');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
+const { sequelize } = require('../config/database');
 const User = require('../models/User');
 
 const shopController = {
@@ -213,6 +214,70 @@ const shopController = {
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Error removing item' });
+        }
+    },
+
+    // --- Order Operations ---
+    checkout: async (req, res) => {
+        const t = await sequelize.transaction();
+        try {
+            // 1. Get Cart Items
+            const cartItems = await CartItem.findAll({
+                where: { userId: req.user.id },
+                include: [{ model: Product }],
+                transaction: t
+            });
+
+            if (cartItems.length === 0) {
+                await t.rollback();
+                return res.status(400).json({ message: 'Cart is empty' });
+            }
+
+            // 2. Calculate Total
+            let totalAmount = 0;
+            cartItems.forEach(item => {
+                const price = item.Product ? item.Product.price : item.productPrice;
+                totalAmount += price * item.quantity;
+            });
+
+            // 3. Create Order
+            const order = await Order.create({
+                userId: req.user.id,
+                totalAmount,
+                shippingAddress: req.body.shippingAddress || req.user.address || 'Default Address',
+                paymentMethod: req.body.paymentMethod || 'Cash on Delivery',
+                status: 'Pending'
+            }, { transaction: t });
+
+            // 4. Create Order Items
+            const orderItemsData = cartItems.map(item => ({
+                orderId: order.id,
+                productId: item.productId,
+                quantity: item.quantity,
+                price: item.Product ? item.Product.price : item.productPrice,
+                status: 'Pending'
+            }));
+
+            await OrderItem.bulkCreate(orderItemsData, { transaction: t });
+
+            // 5. Clear Cart
+            await CartItem.destroy({
+                where: { userId: req.user.id },
+                transaction: t
+            });
+
+            await t.commit(); // Commit transaction
+
+            res.status(201).json({
+                message: 'Order placed successfully',
+                orderId: order.id,
+                totalAmount
+            });
+
+        } catch (error) {
+            await t.rollback();
+            console.error('Checkout error:', error);
+            res.status(500).json({ message: 'Error during checkout' });
         }
     },
 

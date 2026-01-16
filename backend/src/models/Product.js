@@ -64,8 +64,6 @@ const Product = sequelize.define('Product', {
     timestamps: true,
 });
 
-// Association
-User.hasMany(Product, { foreignKey: 'sellerId' });
-Product.belongsTo(User, { foreignKey: 'sellerId' });
+// Associations moved to src/models/associations.js
 
 module.exports = Product;

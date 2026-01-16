@@ -5,16 +5,32 @@ const WishlistItem = require('./WishlistItem');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
 
-// CartItem Associations
-CartItem.belongsTo(User, { foreignKey: 'userId' });
+// --- Product Associations ---
+User.hasMany(Product, { foreignKey: 'sellerId' });
+Product.belongsTo(User, { foreignKey: 'sellerId' });
+
+// --- Cart Associations ---
 User.hasMany(CartItem, { foreignKey: 'userId' });
-CartItem.belongsTo(Product, { foreignKey: 'productId' });
+CartItem.belongsTo(User, { foreignKey: 'userId' });
+
 Product.hasMany(CartItem, { foreignKey: 'productId' });
+CartItem.belongsTo(Product, { foreignKey: 'productId' });
 
-// WishlistItem Associations
-WishlistItem.belongsTo(User, { foreignKey: 'userId' });
+// --- Wishlist Associations ---
 User.hasMany(WishlistItem, { foreignKey: 'userId' });
-WishlistItem.belongsTo(Product, { foreignKey: 'productId' });
-Product.hasMany(WishlistItem, { foreignKey: 'productId' });
+WishlistItem.belongsTo(User, { foreignKey: 'userId' });
 
-console.log("Extra associations loaded.");
+Product.hasMany(WishlistItem, { foreignKey: 'productId' });
+WishlistItem.belongsTo(Product, { foreignKey: 'productId' });
+
+// --- Order Associations ---
+User.hasMany(Order, { foreignKey: 'userId' });
+Order.belongsTo(User, { foreignKey: 'userId' });
+
+Order.hasMany(OrderItem, { foreignKey: 'orderId' });
+OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
+
+Product.hasMany(OrderItem, { foreignKey: 'productId' });
+OrderItem.belongsTo(Product, { foreignKey: 'productId' });
+
+console.log("All Shop associations loaded.");

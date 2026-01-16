@@ -1,4 +1,4 @@
-```javascript
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -90,11 +90,11 @@ const startServer = async () => {
 
     // Sync models
     // Using { alter: true } matches schemas
-    // await sequelize.sync({ alter: true });
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
+    // await sequelize.sync();
 
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${ PORT } `);
+      console.log(`Server is running on port ${PORT} `);
     });
   } catch (error) {
     console.error('Unable to connect to the database:', error);

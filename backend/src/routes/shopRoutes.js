@@ -15,6 +15,7 @@ router.get('/cart', shopController.getCart);
 router.post('/cart', shopController.addToCart);
 router.put('/cart/:id', shopController.updateCartQuantity);
 router.delete('/cart/:id', shopController.removeFromCart);
+router.post('/checkout', shopController.checkout);
 
 // Wishlist Routes
 router.get('/wishlist', shopController.getWishlist);

@@ -42,10 +42,6 @@ const OrderItem = sequelize.define('OrderItem', {
     timestamps: true,
 });
 
-Order.hasMany(OrderItem, { foreignKey: 'orderId' });
-OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
-
-Product.hasMany(OrderItem, { foreignKey: 'productId' });
-OrderItem.belongsTo(Product, { foreignKey: 'productId' });
+// Associations moved to src/models/associations.js
 
 module.exports = OrderItem;

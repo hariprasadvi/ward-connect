@@ -36,7 +36,6 @@ const Order = sequelize.define('Order', {
     timestamps: true,
 });
 
-User.hasMany(Order, { foreignKey: 'userId' });
-Order.belongsTo(User, { foreignKey: 'userId' });
+// Associations moved to src/models/associations.js
 
 module.exports = Order;
