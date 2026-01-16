@@ -96,7 +96,7 @@ import { ShopService, CartItem } from '../shop.service';
                     <p class="text-xs text-gray-500 mt-2">Inclusive of all taxes</p>
                  </div>
 
-                 <button class="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-all transform hover:-translate-y-1 shadow-lg shadow-gray-200">
+                 <button (click)="checkout()" class="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-all transform hover:-translate-y-1 shadow-lg shadow-gray-200">
                     Proceed to Checkout
                  </button>
 
@@ -126,5 +126,13 @@ export class CartComponent {
 
    updateQty(id: number, qty: number) {
       this.shopService.updateQuantity(id, qty);
+   }
+
+   async checkout() {
+      // For now using default address/payment. In real app, open a modal or navigate to address page.
+      if (confirm('Place order with Cash on Delivery?')) {
+         await this.shopService.checkout('My Saved Address', 'Cash on Delivery');
+         alert('Order Placed Successfully!');
+      }
    }
 }

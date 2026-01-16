@@ -279,4 +279,15 @@ export class ShopService {
       throw e;
     }
   }
+  async checkout(shippingAddress: string, paymentMethod: string) {
+    try {
+      const payload = { shippingAddress, paymentMethod };
+      const response = await firstValueFrom(this.http.post<any>(`${this.apiUrl}/checkout`, payload));
+      this.cartItems.set([]); // Clear cart locally
+      return response;
+    } catch (e) {
+      console.error('Checkout failed', e);
+      throw e;
+    }
+  }
 }
