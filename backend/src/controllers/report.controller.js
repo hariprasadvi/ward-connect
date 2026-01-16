@@ -3,6 +3,7 @@ const Meeting = require('../models/Meeting');
 const Attendance = require('../models/Attendance');
 const User = require('../models/User');
 const KudumbashreeProfile = require('../models/KudumbashreeProfile');
+const Notification = require('../models/Notification');
 const { sequelize } = require('../config/database');
 const { Op } = require('sequelize');
 
@@ -92,9 +93,33 @@ exports.getMemberDashboard = async (req, res) => {
 
         const loansTaken = await Loan.count({ where: whereUser });
         const activeLoans = await Loan.count({ where: { ...whereUser, status: 'Active' } });
-        const totalLoanAmount = await Loan.sum('amount', { where: whereUser }) || 0;
-        const repaidAmount = await Loan.sum('repaid_amount', { where: whereUser }) || 0;
-        const pendingAmount = totalLoanAmount - repaidAmount;
+        
+        // Calculate Totals using iteration to handle overdue correctly if needed, or DB sum
+        // Pending Amount = (Total Principal - Repaid) + Total Overdue
+        // Note: 'amount' in Loan model is Principal. 'repaid_amount' is what they paid back.
+        // 'overdue_amount' is penalty added on top.
+        
+        const loans = await Loan.findAll({ where: whereUser });
+        const totalLoanAmount = loans.reduce((sum, loan) => sum + parseFloat(loan.amount), 0);
+        const repaidAmount = loans.reduce((sum, loan) => sum + parseFloat(loan.repaid_amount), 0);
+        const totalOverdue = loans.reduce((sum, loan) => sum + parseFloat(loan.overdue_amount || 0), 0);
+        
+        // Correct Pending Amount: (Principal - Repaid) + Overdue. 
+        // Note: repaid_amount might cover principal + interest + overdue. 
+        // Simplest: Outstanding = (Amount + Overdue) - Repaid
+        // But wait, in our repay logic:
+        // if pay overdue, overdue decreases. 
+        // So actually 'overdue_amount' is remaining overdue.
+        // And (amount - repaid) is remaining principal (roughly).
+        // So Total Pending = (amount - repaid) + overdue_amount
+        
+        let pendingAmount = 0;
+        loans.forEach(loan => {
+             const principalOutstanding = parseFloat(loan.amount) - parseFloat(loan.repaid_amount);
+             const overdue = parseFloat(loan.overdue_amount || 0);
+             // Ensure we don't count negative if repaid > amount (unlikely but safe)
+             pendingAmount += (principalOutstanding > 0 ? principalOutstanding : 0) + overdue;
+        });
 
         // Fetch attended meeting IDs
         const attendedMeetings = await Attendance.findAll({
@@ -119,7 +144,11 @@ exports.getMemberDashboard = async (req, res) => {
                 pendingAmount,
                 nextMeeting,
                 recentActivities,
-                attendedMeetingIds // Add this
+                attendedMeetingIds, // Add this
+                notifications: await Notification.findAll({
+                    where: { userId, isRead: false },
+                    order: [['createdAt', 'DESC']]
+                })
             }
         });
 

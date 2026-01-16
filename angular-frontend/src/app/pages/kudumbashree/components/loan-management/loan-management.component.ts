@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -8,10 +9,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { PayLoanDialogComponent } from '../pay-loan-dialog/pay-loan-dialog.component';
 
 import { ApiService } from '../../services/api.service';
 import { TranslationService } from '../../services/translation.service';
 import { LoanService, Loan } from '../../services/loan.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-loan-management',
@@ -25,7 +29,8 @@ import { LoanService, Loan } from '../../services/loan.service';
     MatInputModule,
     MatTableModule,
     MatIconModule,
-    MatTabsModule
+    MatTabsModule,
+    MatDialogModule
   ],
   templateUrl: './loan-management.component.html',
   styleUrl: './loan-management.component.scss'
@@ -34,12 +39,19 @@ export class LoanManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
   private loanService = inject(LoanService);
   private translationService = inject(TranslationService);
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private dialog = inject(MatDialog);
+
+  user = this.authService.user;
+
+  selectedIndex = 0;
 
   translations = this.translationService.translations$;
 
   loanForm: FormGroup;
   loans: Loan[] = [];
-  displayedColumns: string[] = ['loanNumber', 'amount', 'purpose', 'appliedDate', 'status'];
+  displayedColumns: string[] = ['loanNumber', 'amount', 'purpose', 'appliedDate', 'status', 'actions'];
 
   constructor() {
     this.loanForm = this.fb.group({
@@ -52,11 +64,26 @@ export class LoanManagementComponent implements OnInit {
 
   ngOnInit() {
     this.loadLoans();
+    this.route.queryParams.subscribe(params => {
+      if (params['tab'] === 'new') {
+        this.selectedIndex = 1; // Switch to 'New Application' tab
+      }
+    });
   }
 
   applyForLoan() {
     if (this.loanForm.valid) {
+        const userId = this.user()?.id;
+        const groupId = (this.user() as any)?.groupId || 1; // Default to 1 if missing for now
+
+        if (!userId) {
+            alert('User not identified. Please try logging in again.');
+            return;
+        }
+
         const loanData = {
+            userId,
+            groupId,
             ...this.loanForm.value,
             tenure_months: this.loanForm.value.tenure 
         };
@@ -137,5 +164,18 @@ export class LoanManagementComponent implements OnInit {
 
   clearForm() {
     this.loanForm.reset({ tenure: 12 });
+  }
+
+  payLoan(loan: Loan) {
+    const dialogRef = this.dialog.open(PayLoanDialogComponent, {
+      width: '400px',
+      data: { loan }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadLoans();
+      }
+    });
   }
 }

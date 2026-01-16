@@ -84,6 +84,10 @@ export class ApiService {
       return this.http.post(`${this.baseUrl}/kudumbashree/financial/verify-payment`, paymentData);
   }
 
+  getUserTransactions(userId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/kudumbashree/financial/user-transactions/${userId}`);
+  }
+
   verifyPayment(transactionId: string): Observable<{ verified: boolean; transaction: any }> {
     return this.http.get<{ verified: boolean; transaction: any }>(
       `${this.baseUrl}/kudumbashree/financial/verify/${transactionId}`

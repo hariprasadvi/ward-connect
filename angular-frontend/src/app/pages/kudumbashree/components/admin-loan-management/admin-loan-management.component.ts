@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslationService } from '../../services/translation.service';
 import { LoanService } from '../../services/loan.service';
+import { ApiService } from '../../services/api.service';
 
 interface Loan {
   id: string;
@@ -34,6 +35,12 @@ interface Loan {
   approvedBy?: string;
   approvedDate?: Date;
   rejectionReason?: string;
+  
+  // New Fields
+  outstandingAmount: number;
+  repaidAmount: number;
+  monthsRemaining: number;
+  overdueAmount: number;
 }
 
 @Component({
@@ -60,12 +67,13 @@ export class AdminLoanManagementComponent implements OnInit {
   private translationService = inject(TranslationService);
   private dialog = inject(MatDialog);
   private loanService = inject(LoanService); // Inject LoanService
+  private apiService = inject(ApiService); // Inject ApiService if needed for custom calls, or use loanService
 
   translations = this.translationService.translations$;
 
   loans: Loan[] = [];
   filteredLoans: Loan[] = [];
-  displayedColumns: string[] = ['loanNumber', 'user', 'amount', 'purpose', 'appliedDate', 'status', 'actions'];
+  displayedColumns: string[] = ['loanNumber', 'user', 'amount', 'outstanding', 'monthsRemaining', 'status', 'actions']; // Updated Columns
   
   // Filter properties
   searchTerm: string = '';
@@ -81,25 +89,47 @@ export class AdminLoanManagementComponent implements OnInit {
         next: (loans) => {
             // Map backend data to UI interface if needed, or use Loan interface directly
             // Backend Loan has User object, so we can map it
-            this.loans = loans.map((l: any) => ({
-                id: l.id,
-                loanNumber: 'LN' + String(l.id).padStart(3, '0'), // Generate ID if missing
-                userId: l.userId,
-                userName: l.User?.full_name || 'Unknown',
-                userEmail: l.User?.email || 'N/A',
-                userPhone: l.User?.phone || 'N/A', // Assuming phone is available
-                communityUnit: l.User?.ward_number || 'N/A', // Mapping ward to unit
-                amount: Number(l.amount),
-                purpose: l.purpose,
-                description: l.description || l.purpose, // Fallback
-                status: l.status.toLowerCase(),
-                appliedDate: l.createdAt || new Date(),
-                interestRate: 8.5, // Static for now
-                tenureMonths: l.tenure_months,
-                emiAmount: this.calculateEMI(l.amount, l.tenure_months),
-                approvedBy: l.admin_comments || '', // construct from logs or comments
-                approvedDate: l.start_date
-            }));
+            this.loans = loans.map((l: any) => {
+                const amount = Number(l.amount) || 0;
+                const repaid = Number(l.repaid_amount) || 0;
+                const overdue = Number(l.overdue_amount) || 0;
+                
+                const outstanding = (amount - repaid + overdue);
+                
+                // Calculate Months Remaining
+                let monthsLeft = l.tenure_months;
+                if (l.start_date && l.status === 'Active') {
+                    const startDate = new Date(l.start_date);
+                    const now = new Date();
+                    const monthsPassed = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+                    monthsLeft = Math.max(0, l.tenure_months - monthsPassed);
+                }
+
+                return {
+                    id: l.id,
+                    loanNumber: 'LN' + String(l.id).padStart(3, '0'), // Generate ID if missing
+                    userId: l.userId,
+                    userName: l.User?.full_name || 'Unknown',
+                    userEmail: l.User?.email || 'N/A',
+                    userPhone: l.User?.phone || 'N/A', // Assuming phone is available
+                    communityUnit: l.User?.ward_number || 'N/A', // Mapping ward to unit
+                    amount: amount,
+                    purpose: l.purpose,
+                    description: l.description || l.purpose, // Fallback
+                    status: l.status.toLowerCase(),
+                    appliedDate: l.createdAt ? new Date(l.createdAt) : new Date(),
+                    interestRate: 8.5, // Static for now
+                    tenureMonths: l.tenure_months,
+                    emiAmount: this.calculateEMI(l.amount, l.tenure_months),
+                    approvedBy: l.admin_comments || '', // construct from logs or comments
+                    approvedDate: l.start_date ? new Date(l.start_date) : undefined,
+                    
+                    outstandingAmount: outstanding > 0 ? outstanding : 0,
+                    repaidAmount: repaid,
+                    monthsRemaining: monthsLeft,
+                    overdueAmount: overdue
+                };
+            });
             this.applyFilters();
         },
         error: (err) => console.error('Error loading loans', err)
@@ -197,5 +227,19 @@ export class AdminLoanManagementComponent implements OnInit {
 
   getActiveLoansCount(): number {
     return this.loans.filter(loan => loan.status === 'active' || loan.status === 'disbursed' || loan.status === 'approved').length;
+  }
+
+  remindPayment(loan: any) {
+    if (confirm(`Send payment reminder to ${loan.userName}?`)) {
+      this.loanService.remindPayment(Number(loan.id)).subscribe({
+        next: (res) => {
+          alert('Reminder sent successfully!');
+        },
+        error: (err) => {
+          console.error('Error sending reminder:', err);
+          alert('Failed to send reminder.');
+        }
+      });
+    }
   }
 }

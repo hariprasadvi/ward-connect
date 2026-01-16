@@ -14,7 +14,10 @@ export interface Loan {
   risk_score?: number;
   ai_analysis?: string;
   repaid_amount?: number;
+  overdue_amount?: number;
+  last_penalty_check_date?: Date;
   start_date?: Date;
+  loanNumber?: string; // Frontend often expects this
   User?: {
     full_name: string;
   };
@@ -44,5 +47,9 @@ export class LoanService {
 
   repayLoan(id: number, amount: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${id}/repay`, { amount });
+  }
+
+  remindPayment(id: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/remind-payment`, {});
   }
 }

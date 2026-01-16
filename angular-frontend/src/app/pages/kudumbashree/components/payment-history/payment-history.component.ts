@@ -13,6 +13,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 
 import { TranslationService } from '../../services/translation.service';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 interface Payment {
   id: string;
@@ -48,7 +50,12 @@ interface Payment {
   styleUrl: './payment-history.component.scss'
 })
 export class PaymentHistoryComponent implements OnInit {
+  private apiService = inject(ApiService);
+  private authService = inject(AuthService);
   private translationService = inject(TranslationService);
+  
+  user = this.authService.user;
+  isLoading = false;
 
   translations = this.translationService.translations$;
 
@@ -77,68 +84,37 @@ export class PaymentHistoryComponent implements OnInit {
   }
 
   loadPayments() {
-    // Simulate API call
-    setTimeout(() => {
-      this.payments = [
-        {
-          id: '1',
-          transactionId: 'TXN001234',
-          amount: 50,
-          type: 'attendance',
-          method: 'upi',
-          status: 'completed',
-          date: new Date('2024-01-15'),
-          description: 'Monthly Community KudumbashreeMeeting',
-          meetingTitle: 'Monthly Community KudumbashreeMeeting'
-        },
-        {
-          id: '2',
-          transactionId: 'TXN001235',
-          amount: 1500,
-          type: 'loan_emi',
-          method: 'upi',
-          status: 'completed',
-          date: new Date('2024-01-10'),
-          description: 'Loan EMI Payment',
-          loanNumber: 'LN001'
-        },
-        {
-          id: '3',
-          transactionId: 'TXN001236',
-          amount: 50,
-          type: 'attendance',
-          method: 'cash',
-          status: 'pending',
-          date: new Date('2024-01-18'),
-          description: 'Special General KudumbashreeMeeting',
-          meetingTitle: 'Special General KudumbashreeMeeting'
-        },
-        {
-          id: '4',
-          transactionId: 'TXN001237',
-          amount: 1000,
-          type: 'savings',
-          method: 'bank_transfer',
-          status: 'completed',
-          date: new Date('2024-01-05'),
-          description: 'Monthly Savings Contribution'
-        },
-        {
-          id: '5',
-          transactionId: 'TXN001238',
-          amount: 2000,
-          type: 'loan_emi',
-          method: 'upi',
-          status: 'failed',
-          date: new Date('2024-01-12'),
-          description: 'Loan EMI Payment',
-          loanNumber: 'LN002'
-        }
-      ];
-      this.filteredPayments = [...this.payments];
-      this.calculateStatistics();
-    }, 1000);
+    const userId = this.user()?.id;
+    if (!userId) return;
+
+    this.isLoading = true;
+    this.apiService.getUserTransactions(userId.toString()).subscribe({
+      next: (transactions) => {
+        this.payments = transactions.map(t => ({
+          id: t.id.toString(),
+          transactionId: t.transaction_id || ('TXN' + t.id),
+          amount: parseFloat(t.amount),
+          type: t.type.toLowerCase().includes('loan') ? 'loan_emi' : 
+                t.type.toLowerCase().includes('attendance') ? 'attendance' : 
+                t.type.toLowerCase() as any,
+          method: 'upi', // Default or fetch if available
+          status: t.status ? t.status.toLowerCase() as any : 'completed',
+          date: new Date(t.createdAt),
+          description: t.description || (t.type + ' Payment'),
+          meetingTitle: t.meeting_id ? 'Meeting Payment' : undefined,
+          loanNumber: t.loan_id ? ('LN' + t.loan_id) : undefined
+        }));
+        this.filteredPayments = [...this.payments];
+        this.calculateStatistics();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading payments:', err);
+        this.isLoading = false;
+      }
+    });
   }
+
 
   calculateStatistics() {
     this.totalPaid = this.payments

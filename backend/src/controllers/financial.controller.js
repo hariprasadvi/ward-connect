@@ -128,3 +128,16 @@ exports.recordPayment = async (req, res) => {
         res.status(500).json({ message: 'Error recording payment', error: error.message });
     }
 };
+
+exports.getUserTransactions = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const transactions = await FinancialTransaction.findAll({
+            where: { userId },
+            order: [['createdAt', 'DESC']]
+        });
+        res.status(200).json(transactions);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching user transactions', error: error.message });
+    }
+};

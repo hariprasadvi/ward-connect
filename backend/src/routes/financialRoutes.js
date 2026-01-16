@@ -7,5 +7,6 @@ router.get('/attendance-collections', financialController.getAttendanceCollectio
 router.post('/record-payment', financialController.recordPayment);
 router.post('/create-order', financialController.createOrder);
 router.post('/verify-payment', financialController.verifyPayment);
+router.get('/user-transactions/:userId', financialController.getUserTransactions);
 
 module.exports = router;

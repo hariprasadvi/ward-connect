@@ -60,6 +60,15 @@ const Loan = sequelize.define('Loan', {
         type: DataTypes.DECIMAL(5, 2),
         allowNull: true,
     },
+    overdue_amount: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0.00,
+    },
+    last_penalty_check_date: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
     ai_analysis: {
         type: DataTypes.TEXT,
         allowNull: true,

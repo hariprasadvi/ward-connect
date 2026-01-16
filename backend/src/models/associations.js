@@ -33,4 +33,9 @@ OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
 Product.hasMany(OrderItem, { foreignKey: 'productId' });
 OrderItem.belongsTo(Product, { foreignKey: 'productId' });
 
+// --- Notification Associations ---
+const Notification = require('./Notification');
+User.hasMany(Notification, { foreignKey: 'userId' });
+Notification.belongsTo(User, { foreignKey: 'userId' });
+
 console.log("All Shop associations loaded.");

@@ -4,7 +4,7 @@
     <p>Manage your loans and applications</p>
   </div>
 
-  <mat-tab-group animationDuration="300ms">
+  <mat-tab-group animationDuration="300ms" [(selectedIndex)]="selectedIndex">
 
     <!-- Tab 1: My Loans (History) -->
     <mat-tab>
@@ -67,6 +67,16 @@
                   <span [class]="getStatusClass(loan.status)">
                     {{ getStatusTranslation(loan.status) }}
                   </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>{{ translations().ACTIONS }}</th>
+                <td mat-cell *matCellDef="let loan">
+                  <button mat-stroked-button color="primary" *ngIf="loan.status === 'Active'" (click)="payLoan(loan)">
+                    {{ translations()['PAY'] || 'Pay' }}
+                  </button>
+                  <span *ngIf="loan.status !== 'Active'">-</span>
                 </td>
               </ng-container>
 

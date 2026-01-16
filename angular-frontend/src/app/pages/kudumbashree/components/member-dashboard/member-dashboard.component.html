@@ -14,6 +14,14 @@
     </div>
   </div>
 
+  <!-- Notifications -->
+  <div class="notifications-section" *ngIf="notifications.length > 0">
+    <div class="notification-alert" *ngFor="let notification of notifications">
+      <mat-icon color="warn">notifications_active</mat-icon>
+      <span>{{ notification.message }}</span>
+    </div>
+  </div>
+
   <!-- Stats Grid -->
   <div class="stats-grid">
     <mat-card *ngFor="let stat of stats" class="stat-card" [style.border-left-color]="stat.color"
@@ -43,8 +51,7 @@
     <mat-card-content>
       <div class="actions-grid">
         <button *ngFor="let action of getQuickActions()" mat-raised-button class="action-button"
-          [routerLink]="action.route" (click)="action.action ? action.action() : null"
-          [style.background]="action.color">
+          [routerLink]="action.route" [queryParams]="action.queryParams" [style.background]="action.color">
           <mat-icon>{{ action.icon }}</mat-icon>
           <div class="action-text">
             <strong>{{ action.title }}</strong>
@@ -146,31 +153,3 @@
   </mat-card>
 
 </div>
-
-<!-- Apply Loan Dialog Template -->
-<ng-template #applyLoanDialog>
-  <h2 mat-dialog-title>Apply for Loan</h2>
-  <mat-dialog-content>
-    <form class="loan-form">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Amount (₹)</mat-label>
-        <input matInput type="number" [(ngModel)]="newLoan.amount" name="amount" required>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Purpose</mat-label>
-        <input matInput [(ngModel)]="newLoan.purpose" name="purpose" required>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Tenure (Months)</mat-label>
-        <input matInput type="number" [(ngModel)]="newLoan.tenure_months" name="tenure" required>
-      </mat-form-field>
-    </form>
-  </mat-dialog-content>
-  <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-raised-button color="primary" (click)="submitLoanApplication()"
-      [disabled]="!newLoan.amount || !newLoan.purpose || !newLoan.tenure_months">Apply</button>
-  </mat-dialog-actions>
-</ng-template>

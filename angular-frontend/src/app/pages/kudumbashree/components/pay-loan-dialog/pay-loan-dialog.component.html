@@ -1,0 +1,35 @@
+<h2 mat-dialog-title>Loan Repayment</h2>
+<mat-dialog-content>
+    <div class="loan-summary">
+        <div class="summary-item">
+            <span>Principal Outstanding:</span>
+            <strong>₹{{ (loan.amount - loan.repaid_amount) | number:'1.2-2' }}</strong>
+        </div>
+        <div class="summary-item error" *ngIf="loan.overdue_amount > 0">
+            <span>Overdue Penalty:</span>
+            <strong>₹{{ loan.overdue_amount | number:'1.2-2' }}</strong>
+        </div>
+        <div class="total-outstanding">
+            <span>Total Payable:</span>
+            <strong>₹{{ outstandingAmount | number:'1.2-2' }}</strong>
+        </div>
+    </div>
+
+    <form [formGroup]="paymentForm" class="payment-form">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Amount to Pay (₹)</mat-label>
+            <input matInput type="number" formControlName="amount">
+            <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">Amount is required</mat-error>
+            <mat-error *ngIf="paymentForm.get('amount')?.hasError('min')">Minimum amount is ₹1</mat-error>
+            <mat-error *ngIf="paymentForm.get('amount')?.hasError('max')">Amount cannot exceed outstanding</mat-error>
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" [disabled]="paymentForm.invalid || isLoading" (click)="payWithRazorpay()">
+        <span *ngIf="!isLoading">Pay Now</span>
+        <span *ngIf="isLoading">Processing...</span>
+    </button>
+</mat-dialog-actions>

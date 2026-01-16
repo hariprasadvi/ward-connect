@@ -135,6 +135,29 @@
           </td>
         </ng-container>
 
+        <!-- Outstanding Column (NEW) -->
+        <ng-container matColumnDef="outstanding">
+          <th mat-header-cell *matHeaderCellDef>Remaining</th>
+          <td mat-cell *matCellDef="let loan">
+            <div class="outstanding-info">
+              <strong [class.text-danger]="loan.overdueAmount > 0">{{ getFormattedAmount(loan.outstandingAmount)
+                }}</strong>
+              <div *ngIf="loan.overdueAmount > 0" class="overdue-tag">
+                Overdue: {{ getFormattedAmount(loan.overdueAmount) }}
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Months Remaining Column (NEW) -->
+        <ng-container matColumnDef="monthsRemaining">
+          <th mat-header-cell *matHeaderCellDef>Duration Left</th>
+          <td mat-cell *matCellDef="let loan">
+            <span *ngIf="loan.status === 'active'">{{ loan.monthsRemaining }} months</span>
+            <span *ngIf="loan.status !== 'active'" class="text-muted">-</span>
+          </td>
+        </ng-container>
+
         <!-- Purpose Column -->
         <ng-container matColumnDef="purpose">
           <th mat-header-cell *matHeaderCellDef>Purpose</th>
@@ -175,6 +198,11 @@
               <button mat-icon-button color="primary" [matTooltip]="'View ' + loan.loanNumber"
                 (click)="viewLoanDetails(loan)">
                 <mat-icon>visibility</mat-icon>
+              </button>
+
+              <button *ngIf="loan.status === 'active' && loan.outstandingAmount > 0" mat-icon-button color="accent"
+                matTooltip="Send Payment Reminder" (click)="remindPayment(loan)">
+                <mat-icon>notifications_active</mat-icon>
               </button>
 
               <ng-container *ngIf="loan.status === 'pending'">
