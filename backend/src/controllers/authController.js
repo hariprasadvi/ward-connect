@@ -27,9 +27,9 @@ exports.signup = async (req, res) => {
 
         const password_hash = await bcrypt.hash(password, 10);
 
-  // Auto-approve citizens, but NOT Kudumbashree roles basically (unless you want random citizens approved)
+        // Auto-approve citizens, but NOT Kudumbashree roles basically (unless you want random citizens approved)
         // Modified: Kudumbashree Member/Admin will NOT be auto-approved.
-        const is_approved = ['Citizen'].includes(role); 
+        const is_approved = ['Citizen'].includes(role);
 
         const newUser = await User.create({
             full_name,
@@ -53,7 +53,8 @@ exports.signup = async (req, res) => {
             user: { id: newUser.id, role: newUser.role, is_approved }
         });
     } catch (error) {
-        // ...
+        console.error('Signup error:', error);
+        res.status(500).json({ message: 'Server error during signup', error: error.message });
     }
 };
 
