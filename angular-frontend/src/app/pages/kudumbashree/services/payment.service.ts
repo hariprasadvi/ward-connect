@@ -40,30 +40,21 @@ export class PaymentService {
   }
 
   // Record attendance fee payment
-  async recordAttendancePayment(attendanceData: any): Promise<{ success: boolean; qrCode?: string; transactionId?: string }> {
+  async recordAttendancePayment(attendanceData: any): Promise<{ success: boolean; orderId?: string; amount?: number; key?: string }> {
     try {
-        // In a real flow, we might need to create a pending attendance record first to get ID
-        // Or call a specific endpoint that returns QR for a KudumbashreeMeeting attendance fee
-        // For now, let's assume we call generatePaymentQR with a placeholder or meetingId as ID
-        // adapting to what the backend likely expects or what api service offers.
+        // Step 1: Create Order on Backend
+        const response: any = await this.apiService['createRazorpayOrder'](this.attendanceFee).toPromise();
         
-        // Since api.service 'generatePaymentQR' takes attendanceId, but we don't have it yet,
-        // we might use a different flow or assume the backend accepts a composite ID/KudumbashreeMeeting ID.
-        // Let's rely on apiService.
-        
-        // For compliance with "remove demo values", we must blindly call the API.
-        // If it fails, it fails, but it's "connected".
-        
-        // Let's Assume we call `apiService.generatePaymentQR` with meetingId temporarily
-        const response: any = await this.apiService.generatePaymentQR(attendanceData.meetingId, this.attendanceFee).toPromise();
         return {
             success: true,
-            qrCode: response.qrCode,
-            transactionId: response.transactionId
+            orderId: response.id,
+            amount: response.amount,
+            key: response.key_id
         };
-    } catch (error) {
-      console.error('Error recording payment:', error);
-      return { success: false };
+    } catch (error: any) {
+      console.error('Error creating payment order:', error);
+      // Re-throw so component can show the specific backend error message
+      throw error;
     }
   }
 

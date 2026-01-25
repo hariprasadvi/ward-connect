@@ -10,11 +10,13 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 
 import { AuthService, User } from '../../services/auth.service';
 import { TranslationService } from '../../services/translation.service';
 import { ApiService } from '../../services/api.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { LoanService, Loan } from '../../services/loan.service';
 
 interface AdminStat {
   title: string;
@@ -32,17 +34,6 @@ interface Member {
   joinDate: Date;
   is_approved: boolean;
   status: string;
-}
-
-interface Loan {
-  id: string;
-  loanNumber: string;
-  userId: string;
-  userName: string;
-  amount: number;
-  purpose: string;
-  status: string;
-  appliedDate: Date;
 }
 
 @Component({
@@ -67,6 +58,9 @@ export class AdminDashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private translationService = inject(TranslationService);
   private apiService = inject(ApiService);
+  private dashboardService = inject(DashboardService);
+  private loanService = inject(LoanService);
+  private dialog = inject(MatDialog);
 
   translations = this.translationService.translations$;
   user = this.authService.user;
@@ -77,14 +71,21 @@ export class AdminDashboardComponent implements OnInit {
   displayedColumns: string[] = ['name', 'communityUnit', 'joinDate', 'status'];
   isLoading = true;
 
-  private dashboardService = inject(DashboardService);
-  // translations/user/etc already injected
-
   ngOnInit() {
     this.loadDashboardData();
   }
 
   loadDashboardData() {
+    // 1. Load Pending Loans
+    this.loanService.getLoans(undefined, undefined).subscribe({
+      next: (loans) => {
+        this.pendingLoans = loans.filter(l => l.status === 'Pending');
+        this.updatePendingStat();
+      },
+      error: (err) => console.error('Error loading loans', err)
+    });
+
+    // 2. Load Dashboard Stats
     this.dashboardService.getAdminDashboard().subscribe({
       next: (data) => {
         this.stats = [
@@ -93,7 +94,7 @@ export class AdminDashboardComponent implements OnInit {
             value: data.totalMembers,
             icon: 'people',
             color: '#1976d2',
-            change: '+0%' // Backend doesn't provide change yet
+            change: '+0%'
           },
           {
             title: this.translations().ACTIVE_LOANS,
@@ -111,20 +112,17 @@ export class AdminDashboardComponent implements OnInit {
           },
           {
             title: this.translations().PENDING_APPROVAL,
-            value: data.pendingLoans,
+            value: data.pendingLoans || 0,
             icon: 'pending_actions',
             color: '#d32f2f',
             change: '0%'
           }
         ];
         
-        // Load recent members if available or separate call
-        // For now, we will fetch members separately or assume empty until backend supports it in dashboard
-        // Actually, let's call getAllMembers if needed, but dashboard stats are primary. 
-        // We will leave recentMembers empty or fetch separately if there is an endpoint.
-        // memberRoutes has router.get('/members', memberController.getAllMembers);
+        // Update pending stat if loans loaded first or now
+        this.updatePendingStat();
+
         this.loadMembers();
-        
         this.isLoading = false;
       },
       error: (err) => {
@@ -132,6 +130,13 @@ export class AdminDashboardComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  updatePendingStat() {
+     // If stats initialized and pendingLoans loaded, sync them.
+     if (this.stats.length > 3) {
+         this.stats[3].value = this.pendingLoans.length; // Use client side count for accuracy
+     }
   }
 
   loadMembers() {
@@ -142,13 +147,48 @@ export class AdminDashboardComponent implements OnInit {
                 name: m.full_name || m.name,
                 email: m.email,
                 communityUnit: m.ward_number || m.communityUnit,
-                joinDate: new Date(),
+                joinDate: new Date(), // Backend doesn't send date?
                 is_approved: !!m.is_approved,
                 status: m.is_approved ? 'Active' : 'Pending'
             }));
         },
         error: (err) => console.error(err)
     });
+  }
+
+  reviewLoan(loan: Loan) {
+    const confirmed = confirm(`
+    Review Loan Application:
+    Applicant: ${loan.User?.full_name || 'Unknown'}
+    Amount: ₹${loan.amount}
+    Purpose: ${loan.purpose}
+    
+    AI Risk Assessment:
+    Score: ${loan.risk_score} / 100
+    Analysis: ${loan.ai_analysis}
+    
+    Approve this loan?
+    `);
+
+    if (confirmed) {
+        this.loanService.updateLoanStatus(Number(loan.id), 'Approved', 'Approved by Admin').subscribe({
+            next: () => {
+                alert('Loan Approved!');
+                this.loadDashboardData();
+            },
+            error: (err) => alert('Error approving loan: ' + (err.error?.message || err.message))
+        });
+    } else {
+      if(confirm('Reject this loan?')) {
+          this.loanService.updateLoanStatus(Number(loan.id), 'Rejected', 'Rejected by Admin').subscribe({
+              next: () => {
+                  alert('Loan Rejected');
+                  this.loadDashboardData();
+              },
+              error: (err) => alert('Error rejecting loan')
+          });
+      }
+    }
   }
 
   getAdminActions() {
@@ -199,7 +239,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   getFormattedAmount(amount: number): string {
-    return '₹' + amount.toLocaleString('en-IN');
+    return '₹' + (amount || 0).toLocaleString('en-IN');
   }
 
   getStatusTranslation(status: string): string {

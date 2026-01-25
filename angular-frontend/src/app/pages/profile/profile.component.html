@@ -21,6 +21,21 @@
         </mat-card-header>
         <mat-card-content class="mt-4">
             <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+
+                <!-- Profile Image Upload -->
+                <div class="mb-6 flex flex-col items-center">
+                    <div class="relative w-32 h-32 mb-4">
+                        <img [src]="profileForm.get('profile_image')?.value || 'assets/placeholder-profile.jpg'"
+                            class="w-full h-full rounded-full object-cover border-4 border-indigo-100 shadow-lg">
+                        <button type="button" mat-mini-fab color="primary" class="absolute bottom-0 right-0"
+                            (click)="fileInput.click()">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                    </div>
+                    <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" class="hidden">
+                    <p class="text-sm text-gray-500">Update Profile Photo</p>
+                </div>
+
                 <div class="grid-container">
                     <mat-form-field appearance="outline">
                         <mat-label>Full Name</mat-label>

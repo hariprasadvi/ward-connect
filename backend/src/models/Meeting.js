@@ -28,9 +28,31 @@ const Meeting = sequelize.define('Meeting', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    latitude: {
+        type: DataTypes.DECIMAL(10, 8),
+        allowNull: true,
+    },
+    longitude: {
+        type: DataTypes.DECIMAL(11, 8),
+        allowNull: true,
+    },
+    radius: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 100, // meters
+    },
     description: {
         type: DataTypes.TEXT,
         allowNull: true,
+    },
+    processingStatus: {
+        type: DataTypes.ENUM('PENDING', 'UPLOADING', 'PROCESSING', 'COMPLETED', 'FAILED'),
+        allowNull: false,
+        defaultValue: 'PENDING'
+    },
+    audioData: {
+        type: DataTypes.BLOB, // Plain BLOB for Postgres (BYTEA)
+        allowNull: true
     },
     status: {
         type: DataTypes.ENUM('Scheduled', 'Completed', 'Cancelled'),

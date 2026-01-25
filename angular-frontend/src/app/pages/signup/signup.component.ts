@@ -34,8 +34,22 @@ export class SignupComponent {
             house_number: ['', Validators.required],
             aadhaar_number: [''],
             password: ['', Validators.required],
-            confirm_password: ['', Validators.required]
+            confirm_password: ['', Validators.required],
+            profile_image: ['']
         });
+    }
+
+    onFileSelected(event: any) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.signupForm.patchValue({
+                    profile_image: reader.result
+                });
+            };
+            reader.readAsDataURL(file);
+        }
     }
 
     onSubmit() {

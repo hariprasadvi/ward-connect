@@ -1,5 +1,5 @@
 // member-dashboard.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,7 @@ import { AuthService, User } from '../../services/auth.service';
 import { TranslationService } from '../../services/translation.service';
 import { ApiService } from '../../services/api.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { MeetingStatus } from '../../models/meeting';
 
 interface DashboardStat {
   title: string;
@@ -30,6 +31,10 @@ interface RecentActivity {
   status?: string;
 }
 
+import { LoanService, Loan } from '../../services/loan.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { PayLoanDialogComponent } from '../pay-loan-dialog/pay-loan-dialog.component';
+
 @Component({
   selector: 'app-member-dashboard',
   standalone: true,
@@ -41,7 +46,8 @@ interface RecentActivity {
     MatIconModule,
     MatButtonModule,
     MatListModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatDialogModule
   ],
   templateUrl: './member-dashboard.component.html',
   styleUrl: './member-dashboard.component.scss'
@@ -50,6 +56,9 @@ export class MemberDashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private translationService = inject(TranslationService);
   private apiService = inject(ApiService);
+  private dashboardService = inject(DashboardService);
+  private loanService = inject(LoanService);
+  private dialog = inject(MatDialog);
 
   translations = this.translationService.translations$;
   user = this.authService.user;
@@ -57,13 +66,16 @@ export class MemberDashboardComponent implements OnInit {
 
   stats: DashboardStat[] = [];
   recentActivities: RecentActivity[] = [];
+  scheduledMeetings: any[] = [];
+  activeLoans: Loan[] = []; // New property for active loans
   isLoading = true;
-
-  private dashboardService = inject(DashboardService);
   // translations/user/etc already injected
 
+  notifications: any[] = [];
+  
   ngOnInit() {
     this.loadDashboardData();
+    this.loadLoans();
   }
 
   loadDashboardData() {
@@ -73,19 +85,14 @@ export class MemberDashboardComponent implements OnInit {
     this.dashboardService.getMemberDashboard(userId).subscribe({
       next: (data) => {
         const statsData = data.stats;
+        this.notifications = (statsData as any).notifications || [];
+        
         this.stats = [
           {
-            title: this.translations().TOTAL_LOANS,
-            value: statsData.loansTaken,
-            icon: 'event_available',
+            title: this.translations().ACTIVE_LOANS || 'Active Loans', // Fallback if translation missing
+            value: statsData.activeLoans || 0,
+            icon: 'credit_score',
             color: '#1976d2',
-            route: '/kudumbashree/loans'
-          },
-          {
-            title: this.translations().LOAN_AMOUNT,
-            value: '₹' + (statsData.totalLoanAmount || 0),
-            icon: 'account_balance',
-            color: '#388e3c',
             route: '/kudumbashree/loans'
           },
           {
@@ -96,10 +103,11 @@ export class MemberDashboardComponent implements OnInit {
             route: '/kudumbashree/payments'
           },
           {
-            title: this.translations().ATTENDANCE_RATE,
-            value: (statsData.attendanceRate || 0) + '%',
-            icon: 'star',
-            color: '#ffa000'
+            title: 'Pay Loan',
+            value: 'Pay Now',
+            icon: 'payment',
+            color: '#d32f2f',
+            route: '/kudumbashree/loans' 
           }
         ];
 
@@ -115,6 +123,19 @@ export class MemberDashboardComponent implements OnInit {
              // Fallback if no activities sent
              this.recentActivities = [];
         }
+
+         // Fetch Scheduled Meetings
+        this.apiService.getMeetings().subscribe({
+          next: (meetings) => {
+            console.log('Fetched meetings:', meetings);
+            const attendedIds = (statsData as any).attendedMeetingIds || [];
+            // Filter out meetings that are scheduled AND already attended by the user
+            this.scheduledMeetings = meetings.filter(m => 
+                m.status === MeetingStatus.SCHEDULED && !attendedIds.includes(Number(m.id))
+            );
+          },
+          error: (err) => console.error('Error fetching meetings:', err)
+        });
 
         this.isLoading = false;
       },
@@ -138,7 +159,8 @@ export class MemberDashboardComponent implements OnInit {
         title: 'Apply for Loan',
         description: 'Apply for a new community loan',
         icon: 'account_balance',
-        route: '/kudumbashree/loans',
+        route: '/kudumbashree/loans', // Changed from action to route
+        queryParams: { tab: 'new' }, // Pass query param to open new application tab
         color: '#388e3c'
       },
       {
@@ -208,5 +230,47 @@ export class MemberDashboardComponent implements OnInit {
 
   getLoanLocation(isMalayalam: boolean): string {
     return 'Kudumbashree Office';
+  }
+
+  loadLoans() {
+    const userId = this.user()?.id;
+    if (userId) {
+      this.loanService.getLoans(Number(userId)).subscribe({
+        next: (loans) => {
+          this.activeLoans = loans.filter(l => l.status === 'Active' || l.status === 'Pending');
+        },
+        error: (err) => console.error('Error loading loans:', err)
+      });
+    }
+  }
+
+
+  payLoan(loan: Loan) {
+      const dialogRef = this.dialog.open(PayLoanDialogComponent, {
+        width: '400px',
+        data: { loan }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.loadLoans();
+          this.loadDashboardData();
+        }
+      });
+  }
+
+  deleteMeeting(meetingId: string) {
+    if (confirm('Are you sure you want to delete this meeting?')) {
+      this.apiService.deleteMeeting(meetingId).subscribe({
+        next: () => {
+          console.log('Meeting deleted successfully');
+          this.loadDashboardData(); // Refresh list
+        },
+        error: (err) => {
+          console.error('Error deleting meeting:', err);
+          alert('Failed to delete meeting: ' + (err.error?.message || err.message));
+        }
+      });
+    }
   }
 }

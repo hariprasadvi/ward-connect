@@ -16,7 +16,7 @@ exports.signup = async (req, res) => {
     try {
         const {
             full_name, mobile_number, email, password, role,
-            ward_number, panchayat_name, address, aadhaar_number, house_number
+            ward_number, panchayat_name, address, aadhaar_number, house_number, profile_image
         } = req.body;
 
         // Check if user exists
@@ -43,7 +43,10 @@ exports.signup = async (req, res) => {
             address,
             aadhaar_number,
             is_approved,
-            is_verified: true
+            aadhaar_number,
+            is_approved,
+            is_verified: true,
+            profile_image
         });
 
         // ... (Kudumbashree logic remains)
@@ -53,8 +56,12 @@ exports.signup = async (req, res) => {
             user: { id: newUser.id, role: newUser.role, is_approved }
         });
     } catch (error) {
-        console.error('Signup error:', error);
-        res.status(500).json({ message: 'Server error during signup', error: error.message });
+        console.error("Signup Error:", error);
+        res.status(500).json({
+            message: 'Error creating user',
+            error: error.message,
+            details: error.original ? error.original.detail : null
+        });
     }
 };
 
@@ -90,7 +97,8 @@ exports.login = async (req, res) => {
                 role: user.role,
                 house_number: user.house_number,
                 ward_number: user.ward_number,
-                is_approved: user.is_approved, // Sending approval status to frontend
+                is_approved: user.is_approved,
+                profile_image: user.profile_image, // Sending profile image for face verification
                 completion: calculateCompletion(user)
             }
         });

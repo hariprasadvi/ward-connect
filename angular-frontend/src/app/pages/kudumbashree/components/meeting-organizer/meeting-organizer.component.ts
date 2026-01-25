@@ -40,11 +40,34 @@ export class MeetingOrganizerComponent {
 
   constructor() {
     this.meetingForm = this.fb.group({
+      groupId: [1, Validators.required], // Hardcoded to 1 for now as per single-group prototype
       title: ['', Validators.required],
       date: ['', Validators.required],
       location: ['', Validators.required],
+      latitude: [null],
+      longitude: [null],
+      radius: [100],
       description: ['']
     });
+  }
+
+  getCurrentLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.meetingForm.patchValue({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          alert('Could not get current location. Please enter manually.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by this browser.');
+    }
   }
 
   scheduleMeeting() {

@@ -5,5 +5,8 @@ const financialController = require('../controllers/financial.controller');
 router.post('/report', financialController.getFinancialReport);
 router.get('/attendance-collections', financialController.getAttendanceCollections);
 router.post('/record-payment', financialController.recordPayment);
+router.post('/create-order', financialController.createOrder);
+router.post('/verify-payment', financialController.verifyPayment);
+router.get('/user-transactions/:userId', financialController.getUserTransactions);
 
 module.exports = router;

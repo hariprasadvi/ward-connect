@@ -73,6 +73,12 @@ export const routes: Routes = [
   canActivate: [AuthGuard, RoleGuard],
   data: { role: 'admin' }
 },
+{
+  path: 'admin/settings',
+  loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent),
+  canActivate: [AuthGuard, RoleGuard],
+  data: { role: 'admin' }
+},
   {
     path: 'meeting-minutes',
     loadComponent: () => import('./components/meeting-minutes/meeting-minutes.component').then(m => m.MeetingMinutesComponent),

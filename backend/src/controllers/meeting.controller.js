@@ -1,15 +1,19 @@
 const Meeting = require('../models/Meeting');
 const KudumbashreeGroup = require('../models/KudumbashreeGroup');
+const Attendance = require('../models/Attendance');
 
 exports.scheduleMeeting = async (req, res) => {
     try {
-        const { groupId, date, title, location, description } = req.body;
+        const { groupId, date, title, location, description, latitude, longitude, radius } = req.body;
         const meeting = await Meeting.create({
             groupId,
             date,
             title,
             location,
             description,
+            latitude,
+            longitude,
+            radius: radius || 100,
             status: 'Scheduled'
         });
 
@@ -29,8 +33,37 @@ exports.scheduleMeeting = async (req, res) => {
 
 exports.getMeetings = async (req, res) => {
     try {
-        const { groupId } = req.query; // Admin might want all, Members only their group
-        const where = groupId ? { groupId } : {};
+        const { groupId, type } = req.query; // type: 'active' or 'history'
+        
+        let where = {};
+        if (groupId) where.groupId = groupId;
+
+        const { Op } = require('sequelize');
+        const now = new Date();
+
+        if (type === 'active') {
+            where = {
+                ...where,
+                [Op.or]: [
+                    { status: 'Scheduled' },
+                    { 
+                        date: { [Op.gte]: now }  // Future meetings
+                    }
+                ]
+            };
+        } else if (type === 'history') {
+             where = {
+                ...where,
+                [Op.or]: [
+                    { status: 'Completed' },
+                    { status: 'Cancelled' },
+                    { 
+                        date: { [Op.lt]: now } // Past meetings
+                    }
+                ]
+            };
+        }
+
         const meetings = await Meeting.findAll({
             where,
             include: [{ model: KudumbashreeGroup, attributes: ['name', 'type'] }],
@@ -45,29 +78,44 @@ exports.getMeetings = async (req, res) => {
 exports.recordMeetingAudio = async (req, res) => {
     try {
         const { meetingId } = req.body;
-        // In a real app, we'd handle file upload (e.g. to S3)
-        // Here we simulate saving a URL
-        const audioUrl = req.file ? `/uploads/audio/${req.file.filename}` : 'simulated_audio_url.mp3';
         
-        // Simulate AI Voice-to-Text and Summarization
-        const transcript = "Meeting started at 10 AM. Discussions included loan approvals for 3 members and planning for the upcoming health camp. All members agreed to contribute 100 Rs for the camp.";
-        const summary = "Key Decisions: 1. Loan approved for 3 members. 2. Health camp planning initiated. 3. Contribution of 100 Rs per member agreed.";
+        if (!req.file) {
+            return res.status(400).json({ message: 'No audio file uploaded.' });
+        }
 
+        // Save audio buffer to Database (BLOB)
         await Meeting.update({ 
-            audio_url: audioUrl, 
-            transcript: transcript,
-            summary: summary,
+            audioData: req.file.buffer, // Buffer from memory storage
+            processingStatus: 'UPLOADING', // Technically uploaded to DB now
             status: 'Completed' 
         }, { where: { id: meetingId } });
+
+        // Add to Queue
+        const minutesQueue = require('../queues/minutesQueue');
+        minutesQueue.add({ meetingId });
         
         res.status(200).json({ 
-            message: 'Audio recorded, transcript generated, and summary created.', 
-            audioUrl,
-            transcript,
-            summary
+            message: 'Audio uploaded successfully. AI processing started.', 
+            processingStatus: 'PENDING'
         });
     } catch (error) {
+        console.error('Error in recordMeetingAudio:', error);
         res.status(500).json({ message: 'Error recording audio', error: error.message });
+    }
+};
+
+exports.getProcessingStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const meeting = await Meeting.findByPk(id, { attributes: ['processingStatus', 'transcript', 'summary'] });
+        
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        res.status(200).json(meeting);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching status', error: error.message });
     }
 };
 
@@ -84,5 +132,23 @@ exports.getMeetingTranscript = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching transcript', error: error.message });
+    }
+};
+
+exports.deleteMeeting = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const meeting = await Meeting.findByPk(id);
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+        
+        // Manual Cascade: Delete associated attendance records first
+        await Attendance.destroy({ where: { meetingId: id } });
+
+        await meeting.destroy();
+        res.status(200).json({ message: 'Meeting deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting meeting', error: error.message });
     }
 };

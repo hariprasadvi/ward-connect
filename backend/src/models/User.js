@@ -62,6 +62,10 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    profile_image: {
+        type: DataTypes.TEXT, // Using TEXT to support long Data URLs if needed, though URL string is preferred
+        allowNull: true,
+    },
     is_verified: {
         type: DataTypes.BOOLEAN,
         defaultValue: false, // For mobile verification

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-vehicle-entry',
@@ -11,12 +12,18 @@ import { Router } from '@angular/router';
 })
 export class VehicleEntryComponent implements OnInit {
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
-    // Force default to User/Passenger role to ensure citizens see the Map
-    // This fixes the issue where previous testing stuck the user in 'owner' mode
-    localStorage.setItem('vehicle_role', 'user');
-    this.router.navigate(['/vehicle/search']);
+    const user = this.authService.getCurrentUser();
+    
+    if (user && user.role === 'Vehicle Owner') {
+        this.router.navigate(['/vehicle/owner']);
+    } else {
+        this.router.navigate(['/vehicle/search']);
+    }
   }
 }

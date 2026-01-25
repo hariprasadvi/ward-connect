@@ -73,8 +73,22 @@ export class ProfileComponent implements OnInit {
       ward_number: [''],
       panchayat_name: [''],
       address: [''],
-      aadhaar_number: ['', [Validators.pattern(/^\d{12}$/)]]
+      aadhaar_number: ['', [Validators.pattern(/^\d{12}$/)]],
+      profile_image: ['']
     });
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.profileForm.patchValue({
+          profile_image: reader.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   ngOnInit(): void {

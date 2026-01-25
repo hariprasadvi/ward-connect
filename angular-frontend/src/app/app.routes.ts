@@ -28,7 +28,6 @@ export const routes: Routes = [
   {
     path: 'kudumbashree',
     loadChildren: () => import('./pages/kudumbashree/kudumbashree.routes').then(m => m.routes)
-
   },
   {
     path: 'waste',
@@ -37,6 +36,10 @@ export const routes: Routes = [
   {
     path: 'vehicle',
     loadChildren: () => import('./pages/vehicle/vehicle.routes').then(m => m.routes)
+  },
+  {
+    path: 'shop',
+    loadChildren: () => import('./pages/shop/shop.routes').then(m => m.SHOP_ROUTES)
   },
   {
     path: 'jobs',

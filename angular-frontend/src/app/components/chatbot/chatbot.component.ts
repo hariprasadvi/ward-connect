@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewChecked, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JobService } from '../../services/job.service';
@@ -8,9 +8,12 @@ import { MarkdownPipe } from '../../pipes/markdown.pipe';
     selector: 'app-chatbot',
     standalone: true,
     imports: [CommonModule, FormsModule, MarkdownPipe],
-    templateUrl: './chatbot.component.html'
+    templateUrl: './chatbot.component.html',
+    styleUrls: ['./chatbot.component.css'],
+    encapsulation: ViewEncapsulation.None
 })
-export class ChatbotComponent {
+export class ChatbotComponent implements AfterViewChecked {
+    @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
     messages: { role: string, text: string }[] = [
         { role: 'model', text: 'Hello! I am your AI Career Assistant. Ask me about learning roadmaps, skills, or job market trends.' }
     ];
@@ -49,5 +52,18 @@ export class ChatbotComponent {
                 this.loading = false;
             }
         });
+    }
+
+    ngAfterViewChecked() {
+        this.scrollToBottom();
+    }
+
+    scrollToBottom(): void {
+        try {
+            this.scrollContainer.nativeElement.scrollTo({
+                top: this.scrollContainer.nativeElement.scrollHeight,
+                behavior: 'smooth'
+            });
+        } catch (err) { }
     }
 }

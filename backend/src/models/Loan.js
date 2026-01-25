@@ -56,6 +56,31 @@ const Loan = sequelize.define('Loan', {
         allowNull: false,
         defaultValue: 0.00,
     },
+    risk_score: {
+        type: DataTypes.DECIMAL(5, 2),
+        allowNull: true,
+    },
+    overdue_amount: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0.00,
+    },
+    last_penalty_check_date: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    ai_analysis: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    repayment_schedule: {
+        type: DataTypes.JSON, // Storing schedule as JSON
+        allowNull: true,
+    },
+    admin_comments: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
 }, {
     timestamps: true,
 });

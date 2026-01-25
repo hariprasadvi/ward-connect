@@ -75,7 +75,7 @@
       </div>
       }
 
-      @if (transcript) {
+      @if (transcript || interimTranscript) {
       <div class="results-section">
         <div class="section-header">
           <h3>{{ translations().MEETING_TRANSCRIPT }}</h3>
@@ -83,7 +83,9 @@
             <mat-icon>content_copy</mat-icon>
           </button>
         </div>
-        <div class="transcript-box">{{ transcript }}</div>
+        <div class="transcript-box">
+          {{ transcript }} <span style="color: grey; font-style: italic;">{{ interimTranscript }}</span>
+        </div>
 
         <div class="section-header">
           <h3>{{ translations().MEETING_SUMMARY }}</h3>
