@@ -51,5 +51,30 @@ export const routes: Routes = [
       { path: 'alerts', component: JobAlertsComponent }
     ]
   },
+  {
+    path: 'utilities',
+    loadComponent: () => import('./pages/utility-bills/utility-bills.component').then(m => m.UtilityBillsComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'utilities/electricity',
+    loadComponent: () => import('./pages/utility-bills/electricity-bill/electricity-bill.component').then(m => m.ElectricityBillComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'utilities/water',
+    loadComponent: () => import('./pages/utility-bills/water-bill/water-bill.component').then(m => m.WaterBillComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'utilities/gas',
+    loadComponent: () => import('./pages/utility-bills/gas-booking/gas-booking.component').then(m => m.GasBookingComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'utilities/history',
+    loadComponent: () => import('./pages/utility-bills/payment-history/payment-history.component').then(m => m.PaymentHistoryComponent),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: '' }
 ];

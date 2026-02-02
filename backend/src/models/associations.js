@@ -38,4 +38,9 @@ const Notification = require('./Notification');
 User.hasMany(Notification, { foreignKey: 'userId' });
 Notification.belongsTo(User, { foreignKey: 'userId' });
 
+// --- Bill Associations ---
+const Bill = require('./Bill');
+User.hasMany(Bill, { foreignKey: 'userId' });
+Bill.belongsTo(User, { foreignKey: 'userId' });
+
 console.log("All Shop associations loaded.");

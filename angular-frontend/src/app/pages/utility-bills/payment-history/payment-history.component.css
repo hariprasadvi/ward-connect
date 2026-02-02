@@ -1,0 +1,88 @@
+.container {
+    max-width: 900px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h2 {
+    color: #2c3e50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.bill-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.bill-table th,
+.bill-table td {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.bill-table th {
+    background-color: #f8f9fa;
+    color: #555;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-paid {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-overdue {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.btn-download {
+    background: none;
+    border: 1px solid #3498db;
+    color: #3498db;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-download:hover {
+    background: #3498db;
+    color: white;
+}
+
+.btn-back {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    background: #ecf0f1;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+}

@@ -1,0 +1,53 @@
+<div class="container">
+    <h2>🔥 Book Gas Cylinder</h2>
+
+    <div class="form-group">
+        <label>Select Gas Provider</label>
+        <select [(ngModel)]="selectedProvider" (change)="onProviderChange()">
+            <option value="" disabled selected>-- Select Provider --</option>
+            <option *ngFor="let p of providers" [value]="p.id">{{ p.name }}</option>
+        </select>
+    </div>
+
+    <!-- Details Section (shown after provider selected) -->
+    <div *ngIf="selectedProvider" style="animation: fadeIn 0.5s ease;">
+
+        <div class="form-group">
+            <label>Registered Mobile Number</label>
+            <input type="tel" [(ngModel)]="mobileNumber" maxlength="10" placeholder="Enter 10-digit Mobile Number">
+            <small style="color: #7f8c8d; margin-top: 5px; display: block;">This number will be used for booking
+                reference.</small>
+        </div>
+
+        <!-- SV Number for Commercial -->
+        <div class="form-group" *ngIf="isCommercial()">
+            <label>SV (Subscription Voucher) Number</label>
+            <input type="text" [(ngModel)]="svNumber" placeholder="Enter SV Number">
+        </div>
+
+        <!-- Cylinder Quantity - Only for Commercial -->
+        <div class="form-group" *ngIf="isCommercial()">
+            <label>Cylinder Quantity</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" [(ngModel)]="quantity" min="1" max="100" (change)="updateTotal()"
+                    (input)="updateTotal()" style="flex: 1;">
+                <span style="align-self: center; font-weight: bold; color: #555;">Unit(s)</span>
+            </div>
+            <small *ngIf="quantity > 100" style="color: #e74c3c;">Maximum limit is 100 cylinders.</small>
+        </div>
+
+        <div class="price-box">
+            <span class="price-label">Total Payable Amount</span>
+            <span class="price-value">₹{{ totalAmount | number:'1.2-2' }}</span>
+        </div>
+
+        <button class="btn-book" (click)="bookAndPay()" [disabled]="isLoading">
+            {{ isLoading ? 'Processing...' : 'Book & Pay Now' }}
+        </button>
+    </div>
+
+    <!-- Empty State / Placeholder -->
+    <div *ngIf="!selectedProvider" style="text-align: center; color: #95a5a6; margin-top: 2rem; font-style: italic;">
+        Please select a provider to continue booking.
+    </div>
+</div>

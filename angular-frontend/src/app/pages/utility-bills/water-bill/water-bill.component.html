@@ -1,0 +1,69 @@
+<div class="container">
+    <h2>💧 Pay Water Bill (KWA)</h2>
+
+    <!-- Fetch Form -->
+    <div *ngIf="!fetchedBill">
+        <div class="form-group">
+            <label>Consumer Number</label>
+            <input type="text" [(ngModel)]="consumerNumber" placeholder="Enter Consumer Number" maxlength="15">
+            <small style="color: #666; font-size: 0.8em; margin-top: 4px; display: block;">Try demo:
+                1234567890123</small>
+        </div>
+
+        <div class="form-group">
+            <label>Mobile Number</label>
+            <input type="tel" [(ngModel)]="mobileNumber" maxlength="10" placeholder="Enter 10-digit Mobile Number">
+        </div>
+
+        <div class="form-group">
+            <label>Enter Captcha</label>
+            <div class="captcha-container">
+                <div class="captcha-box">{{ captchaCode }}</div>
+                <button class="btn-refresh" (click)="generateCaptcha()">↻</button>
+            </div>
+            <input type="text" [(ngModel)]="captchaInput" placeholder="Enter the code shown above">
+        </div>
+
+        <button class="btn-fetch" (click)="fetchBill()" [disabled]="isLoading">
+            {{ isLoading ? 'Fetching...' : 'Fetch Bill' }}
+        </button>
+
+        <div *ngIf="errorMessage" class="error-msg">
+            {{ errorMessage }}
+        </div>
+    </div>
+
+    <!-- Bill Details -->
+    <div *ngIf="fetchedBill" class="bill-card">
+        <h3>Bill Details</h3>
+        <div class="bill-row">
+            <span>Bill No:</span>
+            <strong>#{{ fetchedBill.id }}</strong>
+        </div>
+        <div class="bill-row">
+            <span>Consumer Name:</span>
+            <strong>Ward Connect Sample User</strong>
+        </div>
+        <div class="bill-row">
+            <span>Section:</span>
+            <strong>KWA Section II</strong>
+        </div>
+        <div class="bill-row">
+            <span>Bill Type:</span>
+            <strong>Water</strong>
+        </div>
+        <div class="bill-row">
+            <span>Due Date:</span>
+            <strong style="color: #c0392b;">{{ fetchedBill.dueDate | date }}</strong>
+        </div>
+
+        <div class="bill-row bill-total">
+            <span>Total Amount:</span>
+            <span>₹{{ fetchedBill.amount | number:'1.2-2' }}</span>
+        </div>
+
+        <button class="btn-pay" (click)="payBill()">Pay Now</button>
+        <button class="btn-refresh" style="margin-top: 10px; font-size: 0.9em; width: 100%; text-align: center;"
+            (click)="fetchedBill = null">Cancel / Back</button>
+    </div>
+</div>

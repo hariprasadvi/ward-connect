@@ -63,6 +63,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/vehicle', vehicleRoutes);
 app.use('/api/job', jobRoutes);
 app.use('/api/house-messages', houseMessageRoutes);
+app.use('/api/bills', require('./src/routes/bill.routes'));
 
 // Waste Management Routes
 app.use('/api/waste/pickups', wastePickupRoutes);

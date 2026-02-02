@@ -1,0 +1,48 @@
+<div class="container">
+    <h2>
+        <span>📜 Payment History</span>
+        <button class="btn-back" (click)="goBack()">Back</button>
+    </h2>
+
+    <div *ngIf="isLoading" style="text-align: center;">Loading...</div>
+
+    <div *ngIf="!isLoading && bills.length === 0" class="empty-state">
+        <p>No transaction history found.</p>
+    </div>
+
+    <table class="bill-table" *ngIf="!isLoading && bills.length > 0">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Bill Type</th>
+                <th>Consumer #</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let bill of bills">
+                <td>{{ (bill.paymentDate || bill.dueDate) | date:'mediumDate' }}</td>
+                <td>{{ bill.billType }}</td>
+                <td>{{ bill.consumerNumber }}</td>
+                <td>₹{{ bill.amount | number:'1.2-2' }}</td>
+                <td>
+                    <span class="status-badge" [ngClass]="{
+                            'status-paid': bill.status === 'Paid',
+                            'status-pending': bill.status === 'Pending',
+                            'status-overdue': bill.status === 'Overdue'
+                          }">
+                        {{ bill.status }}
+                    </span>
+                </td>
+                <td>
+                    <button *ngIf="bill.status === 'Paid'" class="btn-download" (click)="downloadReceipt(bill)">
+                        📥 Receipt
+                    </button>
+                    <span *ngIf="bill.status !== 'Paid'" style="color: #bbb;">-</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,58 @@
+<div class="container">
+    <h2>⚡ Pay Electricity Bill</h2>
+
+    <div *ngIf="!fetchedBill">
+        <div class="form-group">
+            <label>Consumer Number (13 Digits)</label>
+            <input type="text" [(ngModel)]="consumerNumber" maxlength="13" placeholder="Enter 13-digit Consumer Number">
+            <small style="color: grey;">Try demo: 1234567890123</small>
+        </div>
+
+        <div class="form-group">
+            <label>Mobile Number</label>
+            <input type="tel" [(ngModel)]="mobileNumber" maxlength="10" placeholder="Enter 10-digit Mobile Number">
+        </div>
+
+        <div class="form-group">
+            <label>Enter Captcha</label>
+            <div class="captcha-box">
+                <div class="captcha-code">{{ captchaCode }}</div>
+                <button class="btn-refresh" (click)="generateCaptcha()" title="Refresh Captcha">↻</button>
+            </div>
+            <input type="text" [(ngModel)]="captchaInput" placeholder="Type the characters above">
+        </div>
+
+        <button class="btn-submit" (click)="fetchBill()" [disabled]="isLoading">
+            {{ isLoading ? 'Fetching...' : 'Fetch Bill' }}
+        </button>
+
+        <p class="error-msg" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </div>
+
+    <!-- Bill Result -->
+    <div class="bill-details" *ngIf="fetchedBill">
+        <h3>Bill Details</h3>
+
+        <div class="detail-row">
+            <span>Consumer Number:</span>
+            <strong>{{ fetchedBill.consumerNumber }}</strong>
+        </div>
+        <div class="detail-row">
+            <span>Bill Date:</span>
+            <span>{{ fetchedBill.createdAt | date }}</span>
+        </div>
+        <div class="detail-row">
+            <span>Due Date:</span>
+            <span style="color: #e74c3c;">{{ fetchedBill.dueDate | date }}</span>
+        </div>
+
+        <div class="total-row">
+            <span>Total Payable:</span>
+            <span>₹{{ fetchedBill.amount | number:'1.2-2' }}</span>
+        </div>
+
+        <button class="pay-btn" (click)="payBill()">PAY NOW</button>
+        <button style="margin-top: 10px; background: none; border: none; color: #7f8c8d; width: 100%; cursor: pointer;"
+            (click)="fetchedBill = null">Cancel / Search Another</button>
+    </div>
+</div>
