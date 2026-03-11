@@ -3,8 +3,8 @@ import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
-  { 
-    path: '', 
+  {
+    path: '',
     loadComponent: () => import('./components/kudumbashree-entry/kudumbashree-entry.component').then(m => m.KudumbashreeEntryComponent)
   },
   {
@@ -12,9 +12,9 @@ export const routes: Routes = [
     loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent)
   },
   {
-      path: 'pending-approval',
-      loadComponent: () => import('./components/pending-approval/pending-approval.component').then(m => m.PendingApprovalComponent),
-      canActivate: [AuthGuard] // Only AuthGuard needed, RoleLogic handled in guard or flow
+    path: 'pending-approval',
+    loadComponent: () => import('./components/pending-approval/pending-approval.component').then(m => m.PendingApprovalComponent),
+    canActivate: [AuthGuard] // Only AuthGuard needed, RoleLogic handled in guard or flow
   },
   // Member routes
   {
@@ -68,22 +68,21 @@ export const routes: Routes = [
   },
 
   {
-  path: 'admin/payment-history',
-  loadComponent: () => import('./components/payment-history/payment-history.component').then(m => m.PaymentHistoryComponent),
-  canActivate: [AuthGuard, RoleGuard],
-  data: { role: 'admin' }
-},
-{
-  path: 'admin/settings',
-  loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent),
-  canActivate: [AuthGuard, RoleGuard],
-  data: { role: 'admin' }
-},
+    path: 'admin/payment-history',
+    loadComponent: () => import('./components/payment-history/payment-history.component').then(m => m.PaymentHistoryComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'admin/settings',
+    loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'admin' }
+  },
   {
     path: 'meeting-minutes',
     loadComponent: () => import('./components/meeting-minutes/meeting-minutes.component').then(m => m.MeetingMinutesComponent),
-    canActivate: [AuthGuard, RoleGuard],
-    data: { role: 'admin' }
+    canActivate: [AuthGuard] // removed RoleGuard to allow members
   },
   {
     path: 'meetings',

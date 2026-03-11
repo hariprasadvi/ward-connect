@@ -72,7 +72,7 @@ export class MemberDashboardComponent implements OnInit {
   // translations/user/etc already injected
 
   notifications: any[] = [];
-  
+
   ngOnInit() {
     this.loadDashboardData();
     this.loadLoans();
@@ -86,7 +86,7 @@ export class MemberDashboardComponent implements OnInit {
       next: (data) => {
         const statsData = data.stats;
         this.notifications = (statsData as any).notifications || [];
-        
+
         this.stats = [
           {
             title: this.translations().ACTIVE_LOANS || 'Active Loans', // Fallback if translation missing
@@ -107,31 +107,31 @@ export class MemberDashboardComponent implements OnInit {
             value: 'Pay Now',
             icon: 'payment',
             color: '#d32f2f',
-            route: '/kudumbashree/loans' 
+            route: '/kudumbashree/loans'
           }
         ];
 
         if (statsData.recentActivities) {
-           this.recentActivities = statsData.recentActivities.map((updatedActivity: any) => ({
-             type: updatedActivity.type,
-             description: updatedActivity.description || updatedActivity.title,
-             date: new Date(updatedActivity.date),
-             amount: 0, // Backend needs to send this if needed
-             status: updatedActivity.status
-           }));
+          this.recentActivities = statsData.recentActivities.map((updatedActivity: any) => ({
+            type: updatedActivity.type,
+            description: updatedActivity.description || updatedActivity.title,
+            date: new Date(updatedActivity.date),
+            amount: 0, // Backend needs to send this if needed
+            status: updatedActivity.status
+          }));
         } else {
-             // Fallback if no activities sent
-             this.recentActivities = [];
+          // Fallback if no activities sent
+          this.recentActivities = [];
         }
 
-         // Fetch Scheduled Meetings
+        // Fetch Scheduled Meetings
         this.apiService.getMeetings().subscribe({
           next: (meetings) => {
             console.log('Fetched meetings:', meetings);
             const attendedIds = (statsData as any).attendedMeetingIds || [];
             // Filter out meetings that are scheduled AND already attended by the user
-            this.scheduledMeetings = meetings.filter(m => 
-                m.status === MeetingStatus.SCHEDULED && !attendedIds.includes(Number(m.id))
+            this.scheduledMeetings = meetings.filter(m =>
+              m.status === MeetingStatus.SCHEDULED && !attendedIds.includes(Number(m.id))
             );
           },
           error: (err) => console.error('Error fetching meetings:', err)
@@ -148,6 +148,13 @@ export class MemberDashboardComponent implements OnInit {
 
   getQuickActions() {
     return [
+      {
+        title: 'Meeting Minutes',
+        description: 'Auto-convert meeting speech to text',
+        icon: 'record_voice_over',
+        route: '/kudumbashree/meeting-minutes',
+        color: '#d32f2f'
+      },
       {
         title: 'Mark Attendance',
         description: 'Mark your attendance for current meeting',
@@ -212,7 +219,7 @@ export class MemberDashboardComponent implements OnInit {
       'completed': 'Completed',
       'pending': 'Pending'
     };
-    
+
     return statusMap[status] || status;
   }
 
@@ -246,17 +253,17 @@ export class MemberDashboardComponent implements OnInit {
 
 
   payLoan(loan: Loan) {
-      const dialogRef = this.dialog.open(PayLoanDialogComponent, {
-        width: '400px',
-        data: { loan }
-      });
+    const dialogRef = this.dialog.open(PayLoanDialogComponent, {
+      width: '400px',
+      data: { loan }
+    });
 
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          this.loadLoans();
-          this.loadDashboardData();
-        }
-      });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadLoans();
+        this.loadDashboardData();
+      }
+    });
   }
 
   deleteMeeting(meetingId: string) {

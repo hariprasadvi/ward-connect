@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ShopService, CartItem } from '../shop.service';
+import { UserService } from '../../../services/user.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
    selector: 'app-cart',
@@ -115,6 +117,7 @@ import { ShopService, CartItem } from '../shop.service';
 })
 export class CartComponent {
    private shopService = inject(ShopService);
+   private userService = inject(UserService);
 
    cartItems = this.shopService.cartItems;
    cartTotal = this.shopService.cartTotal;
@@ -129,10 +132,23 @@ export class CartComponent {
    }
 
    async checkout() {
-      // For now using default address/payment. In real app, open a modal or navigate to address page.
-      if (confirm('Place order with Cash on Delivery?')) {
-         await this.shopService.checkout('My Saved Address', 'Cash on Delivery');
-         alert('Order Placed Successfully!');
+      try {
+         // Fetch profile to verify completion status
+         const profile = await firstValueFrom(this.userService.getProfile());
+
+         if (profile.completion < 100) {
+            alert(`Your profile is only ${profile.completion}% complete. Please update your profile to 100% to proceed with checkout.`);
+            return;
+         }
+
+         if (confirm('Place order with Cash on Delivery?')) {
+            const deliveryAddress = profile.address && profile.address.trim() !== '' ? profile.address : 'Default Address Setup Needed';
+            await this.shopService.checkout(deliveryAddress, 'Cash on Delivery');
+            alert('Order Placed Successfully!');
+         }
+      } catch (e: any) {
+         console.error('Checkout failed:', e);
+         alert(e?.error?.message || 'Checkout failed. Please ensure you are logged in and try again.');
       }
    }
 }

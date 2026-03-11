@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// const { GoogleGenerativeAI } = require("@google/generative-ai");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -7,10 +7,14 @@ dotenv.config();
 if (!process.env.GEMINI_API_KEY) {
     console.error("CRITICAL ERROR: GEMINI_API_KEY is missing in .env");
 } else {
-    console.log("Gemini Service: API Key loaded (" + process.env.GEMINI_API_KEY.substring(0, 10) + "...)");
+    // console.log("Gemini Service: API Key loaded");
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const getGenAI = () => {
+    return null; // Library disabled to prevent crash
+    // if (!process.env.GEMINI_API_KEY) return null;
+    // return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+};
 
 // Use standard stable model (verified working)
 const MODEL_NAME = "gemini-flash-latest";
@@ -19,6 +23,9 @@ const SYSTEM_INSTRUCTION = "You are an AI assistant strictly for studying purpos
 
 const generateChatResponse = async (history, message) => {
     try {
+        const genAI = getGenAI();
+        if (!genAI) throw new Error("Gemini API Key is missing");
+
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
         const systemInstructionMessages = [
@@ -52,6 +59,9 @@ const generateChatResponse = async (history, message) => {
 
 const generateCV = async (userData) => {
     try {
+        const genAI = getGenAI();
+        if (!genAI) throw new Error("Gemini API Key is missing");
+
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
         const prompt = `

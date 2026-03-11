@@ -16,6 +16,7 @@ router.post('/cart', shopController.addToCart);
 router.put('/cart/:id', shopController.updateCartQuantity);
 router.delete('/cart/:id', shopController.removeFromCart);
 router.post('/checkout', shopController.checkout);
+router.post('/create-razorpay-order', shopController.createRazorpayOrder);
 
 // Wishlist Routes
 router.get('/wishlist', shopController.getWishlist);

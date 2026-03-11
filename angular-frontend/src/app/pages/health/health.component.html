@@ -1,23 +1,23 @@
 <div class="health-container">
   <div class="content-wrapper">
-    <header style="text-align: center; margin-bottom: 4rem;">
-      <h1 class="heading" style="font-size: 3.5rem; margin-bottom: 1rem; line-height: 1.1;">
+    <header>
+      <h1 class="heading-main">
         Your Health, <span class="text-gradient">Reimagined</span>
       </h1>
-      <p style="font-size: 1.25rem; color: var(--text-muted); max-width: 600px; margin: 0 auto;">
+      <p class="subtext">
         The complete ecosystem for personal and community wellbeing. Secure, simple, and vital.
       </p>
     </header>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+    <div class="card-grid">
       <a *ngFor="let card of cards" [routerLink]="card.to" style="text-decoration: none; color: inherit;">
         <div class="card">
-          <div class="icon-wrapper" [style.background-color]="'color-mix(in srgb, ' + card.color + ', transparent 80%)'"
+          <div class="icon-wrapper" [style.background-color]="'color-mix(in srgb, ' + card.color + ', transparent 85%)'"
             [style.color]="card.color">
-            <mat-icon style="width: 32px; height: 32px; font-size: 32px;">{{card.icon}}</mat-icon>
+            <mat-icon style="width: 36px; height: 36px; font-size: 36px;">{{card.icon}}</mat-icon>
           </div>
-          <h2 class="heading" style="font-size: 1.5rem; margin: 0;">{{card.title}}</h2>
-          <p style="color: var(--text-muted); line-height: 1.6;">{{card.desc}}</p>
+          <h2 class="card-title">{{card.title}}</h2>
+          <p class="card-desc">{{card.desc}}</p>
           <div class="access-link" [style.color]="card.color">
             Access Module <span>&rarr;</span>
           </div>
@@ -26,8 +26,7 @@
     </div>
   </div>
 
-  <footer
-    style="text-align: center; padding: 2rem; color: var(--text-muted); border-top: 1px solid var(--border); background: var(--surface);">
-    © 2026 HealthPlus Services. All rights reserved.
+  <footer>
+    © 2026 WardConnect Health Services. All rights reserved.
   </footer>
 </div>

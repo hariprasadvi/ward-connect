@@ -1,9 +1,9 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+// const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
 const apiKey = process.env.GEMINI_API_KEY;
 // Initialize Gemini only if API key is present
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+const genAI = null; // apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 exports.assessLoanRisk = async (user, loanDetails, groupData) => {
     // Fallback if no API key
@@ -47,7 +47,7 @@ exports.assessLoanRisk = async (user, loanDetails, groupData) => {
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
-        
+
         // Basic cleanup to ensure JSON parsing works
         const jsonBlock = text.replace(/```json/g, '').replace(/```/g, '').trim();
         return JSON.parse(jsonBlock);

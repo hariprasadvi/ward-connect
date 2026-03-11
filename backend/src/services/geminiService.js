@@ -4,10 +4,20 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // Ensure GEMINI_API_KEY is set in .env
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const getGenAI = () => {
+    if (!process.env.GEMINI_API_KEY) return null;
+    return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+}
 
 exports.processMeetingAudio = async (audioBuffer, mimeType) => {
     try {
+        const genAI = getGenAI();
+        if (!genAI) {
+            console.warn("Gemini API Key missing. Returning mock data.");
+            return { transcript: "Mock Transcript: API Key Missing", summary: "Mock Summary: API Key Missing" };
+        }
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         // Convert buffer to base64
@@ -39,10 +49,10 @@ exports.processMeetingAudio = async (audioBuffer, mimeType) => {
 
         const response = await result.response;
         let text = response.text();
-        
+
         // Clean up markdown code blocks if present
         text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        
+
         try {
             return JSON.parse(text);
         } catch (e) {
