@@ -43,4 +43,9 @@ const Bill = require('./Bill');
 User.hasMany(Bill, { foreignKey: 'userId' });
 Bill.belongsTo(User, { foreignKey: 'userId' });
 
+// --- Civic Request Associations ---
+const CivicRequest = require('./CivicRequest');
+User.hasMany(CivicRequest, { foreignKey: 'userId' });
+CivicRequest.belongsTo(User, { foreignKey: 'userId' });
+
 console.log("All Shop associations loaded.");

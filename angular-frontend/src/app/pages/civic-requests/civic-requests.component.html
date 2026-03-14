@@ -1,0 +1,140 @@
+<div class="civic-container">
+    <!-- Sub Navbar / Menu -->
+    <nav class="sub-nav">
+        <div class="nav-brand" (click)="setTab('landing')">Civic Connect</div>
+        <div class="nav-links">
+            <button [class.active]="activeTab === 'report'" (click)="setTab('report')">Issue Report</button>
+            <button [class.active]="activeTab === 'status'" (click)="setTab('status')">Status</button>
+            <button [class.active]="activeTab === 'help'" (click)="setTab('help')">Help & Support</button>
+        </div>
+    </nav>
+
+    <!-- Landing Page -->
+    <div *ngIf="activeTab === 'landing'" class="landing-section animate-fade">
+        <div class="hero-content">
+            <h1>Spot a problem in your area?</h1>
+            <p>Report it in seconds and track the resolution in real-time.</p>
+            <button class="btn-report-now" (click)="setTab('report')">Report Now</button>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-bolt"></i>
+                <h3>Quick Reporting</h3>
+                <p>Easy 2-step process to report issues.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Geo-Location</h3>
+                <p>Pinpoint exactly where the problem is.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-history"></i>
+                <h3>Live Updates</h3>
+                <p>Track your complaint status 24/7.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Issue Report Section -->
+    <div *ngIf="activeTab === 'report'" class="report-section animate-slide">
+        <!-- Step 1: Form -->
+        <div *ngIf="step === 1" class="form-card">
+            <h2>Report an Issue</h2>
+            <div class="form-group">
+                <label>Issue Title</label>
+                <input type="text" [(ngModel)]="formData.title" placeholder="e.g., Street Light Not Working">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea [(ngModel)]="formData.description" placeholder="Describe the problem in detail..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Select Location</label>
+                <select [(ngModel)]="formData.location">
+                    <option value="" disabled>-- Select Area --</option>
+                    <option value="Ward 1 - Central">Ward 1 - Central</option>
+                    <option value="Ward 2 - East">Ward 2 - East</option>
+                    <option value="Ward 3 - West">Ward 3 - West</option>
+                    <option value="Ward 4 - North">Ward 4 - North</option>
+                    <option value="Ward 5 - South">Ward 5 - South</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Upload Media (Optional)</label>
+                <div class="file-upload">
+                    <input type="file" (change)="onFileChange($event)" accept="image/*">
+                    <div *ngIf="formData.mediaUrl" class="preview-thumb">
+                        <img [src]="formData.mediaUrl" alt="Preview">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-next" (click)="nextStep()">Next</button>
+        </div>
+
+        <!-- Step 2: Preview -->
+        <div *ngIf="step === 2" class="preview-card animate-fade">
+            <h2>Preview Your Report</h2>
+            <div class="preview-content">
+                <div class="preview-item">
+                    <strong>Title:</strong> {{ formData.title }}
+                </div>
+                <div class="preview-item">
+                    <strong>Location:</strong> {{ formData.location }}
+                </div>
+                <div class="preview-item">
+                    <strong>Description:</strong>
+                    <p>{{ formData.description }}</p>
+                </div>
+                <div class="preview-item" *ngIf="formData.mediaUrl">
+                    <strong>Attachment:</strong>
+                    <img [src]="formData.mediaUrl" class="preview-image">
+                </div>
+            </div>
+            <div class="preview-actions">
+                <button class="btn-back" (click)="prevStep()">Back</button>
+                <button class="btn-submit" (click)="submitReport()" [disabled]="isLoading">
+                    {{ isLoading ? 'Submitting...' : 'Submit Report' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Section -->
+    <div *ngIf="activeTab === 'status'" class="status-section animate-fade">
+        <h2>My Reported Issues</h2>
+        <div *ngIf="requests.length === 0" class="empty-state">
+            <p>You haven't reported any issues yet.</p>
+        </div>
+        <div class="request-list">
+            <div *ngFor="let req of requests" class="request-card">
+                <div class="request-header">
+                    <span class="status-badge" [style.background-color]="getStatusColor(req.status)">{{ req.status
+                        }}</span>
+                    <span class="date">{{ req.createdAt | date:'mediumDate' }}</span>
+                </div>
+                <h3>{{ req.title }}</h3>
+                <p class="location"><i class="fas fa-map-marker-alt"></i> {{ req.location }}</p>
+                <div class="request-body" *ngIf="req.adminResponse">
+                    <hr>
+                    <strong>Admin Response:</strong>
+                    <p>{{ req.adminResponse }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help & Support -->
+    <div *ngIf="activeTab === 'help'" class="help-section animate-fade">
+        <h2>Help & Support</h2>
+        <div class="help-grid">
+            <div class="help-item">
+                <h3>Contact Helpline</h3>
+                <p>Call us at 1800-WARD-HELP for immediate assistance.</p>
+            </div>
+            <div class="help-item">
+                <h3>FAQs</h3>
+                <p>Find answers to common questions about civic services.</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -48,8 +48,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Public Routes
 app.use('/auth', authRoutes);
@@ -64,6 +64,7 @@ app.use('/api/vehicle', vehicleRoutes);
 app.use('/api/job', jobRoutes);
 app.use('/api/house-messages', houseMessageRoutes);
 app.use('/api/bills', require('./src/routes/bill.routes'));
+app.use('/api/civic-requests', require('./src/routes/civicRequest.routes'));
 
 // Waste Management Routes
 app.use('/api/waste/pickups', wastePickupRoutes);

@@ -76,5 +76,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/utility-bills/payment-history/payment-history.component').then(m => m.PaymentHistoryComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'civic-requests',
+    loadComponent: () => import('./pages/civic-requests/civic-requests.component').then(m => m.CivicRequestsComponent),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: '' }
 ];
