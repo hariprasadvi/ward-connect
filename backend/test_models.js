@@ -1,23 +1,31 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-require('dotenv').config();
+const dotenv = require('dotenv');
+dotenv.config();
 
-async function run() {
+async function listModels() {
+  try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // Iterating common model names to find one that works
-    const models = ["gemini-pro", "gemini-1.5-flash", "gemini-1.5-pro"];
+    // There isn't a direct listModels method on genAI instance in some versions, 
+    // but often available via model manager or fallback to trying a known working one.
+    // Actually, the SDK doesn't expose listModels directly in the high-level class easily in all versions.
+    // Let's try to just run a simple generateContent with a safe model.
+    try {
+        console.log("Testing gemini-1.5-flash...");
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent("Hello");
+        console.log("gemini-1.5-flash worked:", result.response.text());
+    } catch(e) { console.log("gemini-1.5-flash failed:", e.message); }
 
-    for (const modelName of models) {
-        try {
-            console.log(`Testing model: ${modelName}`);
-            const model = genAI.getGenerativeModel({ model: modelName });
-            const result = await model.generateContent("Hello");
-            const response = await result.response;
-            console.log(`SUCCESS with ${modelName}:`, response.text());
-            return; // Exit on success
-        } catch (error) {
-            console.log(`FAILED with ${modelName}:`, error.message);
-        }
-    }
+    try {
+        console.log("Testing gemini-pro...");
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await model.generateContent("Hello");
+        console.log("gemini-pro worked:", result.response.text());
+    } catch(e) { console.log("gemini-pro failed:", e.message); }
+
+  } catch (error) {
+    console.error("Error:", error);
+  }
 }
 
-run();
+listModels();

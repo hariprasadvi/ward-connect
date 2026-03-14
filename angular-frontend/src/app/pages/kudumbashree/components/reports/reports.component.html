@@ -1,0 +1,45 @@
+<div class="reports-container">
+    <div class="header-section">
+        <h1>AI Reports Generator</h1>
+        <p>Generate comprehensive financial and operational reports powered by Gemini AI.</p>
+    </div>
+
+    <mat-card class="control-panel">
+        <div class="panel-content">
+            <mat-form-field appearance="outline" style="width: 300px;">
+                <mat-label>Select Report Type</mat-label>
+                <mat-select [(ngModel)]="reportType">
+                    <mat-option value="Loan">Loan Analysis Details</mat-option>
+                    <mat-option value="Attendance">Attendance Overview</mat-option>
+                    <mat-option value="Financial">Financial Health Summary</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" style="height: 56px; padding: 0 30px;" (click)="generateReport()"
+                [disabled]="isLoading">
+                <mat-icon style="margin-right: 8px;">auto_awesome</mat-icon>
+                Generate AI Report
+            </button>
+
+            <button *ngIf="reportContent" mat-stroked-button color="accent" style="height: 56px; padding: 0 30px;"
+                (click)="downloadPdf()">
+                <mat-icon style="margin-right: 8px;">picture_as_pdf</mat-icon>
+                Download PDF
+            </button>
+        </div>
+    </mat-card>
+
+    <div *ngIf="isLoading" class="loading-spinner">
+        <mat-spinner diameter="50" color="primary"></mat-spinner>
+        <div style="font-size: 1.1rem; font-weight: 500;">AI is analyzing your data...</div>
+    </div>
+
+    <mat-card *ngIf="reportContent" class="report-result">
+        <div class="result-header">
+            <h2><mat-icon>analytics</mat-icon> {{ reportType }} Analysis Result</h2>
+        </div>
+        <div class="report-preview">
+            {{ reportContent }}
+        </div>
+    </mat-card>
+</div>

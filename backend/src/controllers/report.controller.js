@@ -6,6 +6,7 @@ const KudumbashreeProfile = require('../models/KudumbashreeProfile');
 const Notification = require('../models/Notification');
 const { sequelize } = require('../config/database');
 const { Op } = require('sequelize');
+const geminiService = require('../services/geminiService');
 
 exports.getAdminDashboard = async (req, res) => {
     try {
@@ -14,7 +15,7 @@ exports.getAdminDashboard = async (req, res) => {
         const whereUser = groupId ? { groupId, role: 'Kudumbashree Member' } : { role: 'Kudumbashree Member' };
 
         const totalMembers = await User.count({ where: whereUser });
-        const activeMembers = await User.count({ where: { ...whereUser, is_active: true } }); // Assuming is_active exists or use status
+        const activeMembers = await User.count({ where: { ...whereUser, is_approved: true } }); 
 
         const totalMeetings = await Meeting.count({ where: whereGroup });
         const upcomingMeetings = await Meeting.count({ 
@@ -28,13 +29,10 @@ exports.getAdminDashboard = async (req, res) => {
         const totalLoans = await Loan.count({ where: whereGroup });
         const pendingLoans = await Loan.count({ where: { ...whereGroup, status: 'Pending' } });
         
-        // Sums need handling of null
         const totalLoanAmount = await Loan.sum('amount', { where: { ...whereGroup, status: { [Op.ne]: 'Rejected' } } }) || 0;
         const recoveredAmount = await Loan.sum('repaid_amount', { where: whereGroup }) || 0;
         const pendingAmount = totalLoanAmount - recoveredAmount;
 
-        // Attendance Rate (simplified: total present / total expected)
-        // Total Expected = (Meetings * Members) - simplified estimation
         const totalAttendance = await Attendance.count({ where: { status: 'Present' } });
         const attendanceRate = totalMeetings > 0 && totalMembers > 0 
             ? Math.round((totalAttendance / (totalMeetings * totalMembers)) * 100) 
@@ -59,17 +57,15 @@ exports.getAdminDashboard = async (req, res) => {
 
 exports.getMemberDashboard = async (req, res) => {
     try {
-        const userId = req.user.id; // From auth middleware
+        const userId = req.user.id; 
         const user = await User.findByPk(userId);
         
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // Fetch Kudumbashree Profile to get proper Group ID
         const profile = await KudumbashreeProfile.findOne({ where: { userId } });
         const groupId = profile ? profile.groupId : null;
 
         const whereUser = { userId };
-
         const meetingsAttended = await Attendance.count({ where: { userId, status: 'Present' } });
         
         // Total meetings for user's group
@@ -94,45 +90,27 @@ exports.getMemberDashboard = async (req, res) => {
         const loansTaken = await Loan.count({ where: whereUser });
         const activeLoans = await Loan.count({ where: { ...whereUser, status: 'Active' } });
         
-        // Calculate Totals using iteration to handle overdue correctly if needed, or DB sum
-        // Pending Amount = (Total Principal - Repaid) + Total Overdue
-        // Note: 'amount' in Loan model is Principal. 'repaid_amount' is what they paid back.
-        // 'overdue_amount' is penalty added on top.
-        
         const loans = await Loan.findAll({ where: whereUser });
         const totalLoanAmount = loans.reduce((sum, loan) => sum + parseFloat(loan.amount), 0);
         const repaidAmount = loans.reduce((sum, loan) => sum + parseFloat(loan.repaid_amount), 0);
-        const totalOverdue = loans.reduce((sum, loan) => sum + parseFloat(loan.overdue_amount || 0), 0);
-        
-        // Correct Pending Amount: (Principal - Repaid) + Overdue. 
-        // Note: repaid_amount might cover principal + interest + overdue. 
-        // Simplest: Outstanding = (Amount + Overdue) - Repaid
-        // But wait, in our repay logic:
-        // if pay overdue, overdue decreases. 
-        // So actually 'overdue_amount' is remaining overdue.
-        // And (amount - repaid) is remaining principal (roughly).
-        // So Total Pending = (amount - repaid) + overdue_amount
         
         let pendingAmount = 0;
         loans.forEach(loan => {
              const principalOutstanding = parseFloat(loan.amount) - parseFloat(loan.repaid_amount);
              const overdue = parseFloat(loan.overdue_amount || 0);
-             // Ensure we don't count negative if repaid > amount (unlikely but safe)
              pendingAmount += (principalOutstanding > 0 ? principalOutstanding : 0) + overdue;
         });
 
-        // Fetch attended meeting IDs
         const attendedMeetings = await Attendance.findAll({
             where: { userId, status: 'Present' },
             attributes: ['meetingId']
         });
         const attendedMeetingIds = attendedMeetings.map(a => a.meetingId);
 
-        // Recent Activities (Mock/Aggregated from tables)
-        const recentActivities = []; // Implement aggregation if needed
+        const recentActivities = []; 
         
         res.status(200).json({
-            user: user, // Sends full user object as interface expects
+            user: user, 
             stats: {
                 meetingsAttended,
                 totalMeetings,
@@ -144,11 +122,8 @@ exports.getMemberDashboard = async (req, res) => {
                 pendingAmount,
                 nextMeeting,
                 recentActivities,
-                attendedMeetingIds, // Add this
-                notifications: await Notification.findAll({
-                    where: { userId, isRead: false },
-                    order: [['createdAt', 'DESC']]
-                })
+                attendedMeetingIds,
+                notifications: await getValidNotifications(userId)
             }
         });
 
@@ -156,3 +131,86 @@ exports.getMemberDashboard = async (req, res) => {
          res.status(500).json({ message: 'Error generating member dashboard', error: error.message });
     }
 };
+
+exports.generateAiReport = async (req, res) => {
+    try {
+        const { type, groupId } = req.body; 
+        const whereGroup = groupId ? { groupId } : {};
+
+        let data = {};
+
+        if (type === 'Loan') {
+            data.loans = await Loan.findAll({
+                 where: whereGroup,
+                 include: [{ model: User, attributes: ['full_name'] }]
+            });
+            data.summary = {
+                totalLoans: await Loan.count({ where: whereGroup }),
+                totalAmount: await Loan.sum('amount', { where: whereGroup }) || 0
+            };
+        } else if (type === 'Attendance') {
+             data.attendance = await Attendance.findAll({
+                 where: { ...whereGroup }, 
+                 include: [{ model: User, attributes: ['full_name'] }],
+                 limit: 50, 
+                 order: [['createdAt', 'DESC']]
+             });
+        } else if (type === 'Financial') {
+            const FinancialTransaction = require('../models/FinancialTransaction');
+             data.transactions = await FinancialTransaction.findAll({
+                 where: whereGroup,
+                 limit: 50,
+                 order: [['date', 'DESC']]
+             });
+             data.loans = await Loan.findAll({ attributes: ['amount', 'repaid_amount', 'overdue_amount'], where: whereGroup });
+        } else {
+             return res.status(400).json({ message: 'Invalid report type' });
+        }
+
+        const reportMarkdown = await geminiService.generateReport(data, type);
+        res.json({ report: reportMarkdown });
+
+    } catch (error) {
+        console.error("AI Report Error:", error);
+        res.status(500).json({ message: 'Error generating report', error: error.message });
+    }
+};
+
+// Helper to filter stale notifications
+async function getValidNotifications(userId) {
+    try {
+        const notifications = await Notification.findAll({
+            where: { userId, isRead: false },
+            order: [['createdAt', 'DESC']]
+        });
+
+        const validNotifications = [];
+        const staleNotificationIds = [];
+
+        for (const notif of notifications) {
+            if (notif.type === 'payment_reminder') {
+                const match = notif.message.match(/Loan #(\d+)/);
+                if (match && match[1]) {
+                    const loanId = match[1];
+                    const loan = await Loan.findByPk(loanId);
+                    if (!loan || loan.status === 'Closed' || loan.status === 'Rejected' || (parseFloat(loan.overdue_amount) <= 0 && parseFloat(loan.repaid_amount) >= parseFloat(loan.amount))) {
+                        staleNotificationIds.push(notif.id);
+                        continue; 
+                    }
+                }
+            }
+            validNotifications.push(notif);
+        }
+
+        if (staleNotificationIds.length > 0) {
+            await Notification.update({ isRead: true }, {
+                where: { id: { [Op.in]: staleNotificationIds } }
+            });
+        }
+
+        return validNotifications;
+    } catch (e) {
+        console.error("Error filtering notifications:", e);
+        return [];
+    }
+}

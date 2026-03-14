@@ -144,6 +144,18 @@ export class MemberManagementComponent implements OnInit {
     }
   }
 
+  deleteMember(member: Member) {
+      if(confirm(`Are you sure you want to DELETE ${member.name}? This action cannot be undone.`)) {
+          this.dashboardService.deleteMember(member.id).subscribe({
+              next: () => {
+                  alert('Member deleted successfully');
+                  this.loadMembers(); // Refresh list
+              },
+              error: (err) => alert('Failed to delete member: ' + (err.error?.message || err.message))
+          });
+      }
+  }
+
   viewMemberDetails(member: Member) {
     // Implement view details dialog
     console.log('View details for:', member.name);

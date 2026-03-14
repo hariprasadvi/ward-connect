@@ -44,7 +44,15 @@ export class DashboardService {
     return this.http.post(`${this.apiUrl}/kudumbashree/member/approve/${userId}`, {});
   }
 
+  deleteMember(userId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/kudumbashree/member/reject/${userId}`, {});
+  }
+
   getAllMembers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/kudumbashree/member/members`);
+  }
+
+  generateAiReport(type: string): Observable<{ report: string }> {
+    return this.http.post<{ report: string }>(`${this.apiUrl}/kudumbashree/report/ai-report`, { type });
   }
 }

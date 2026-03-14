@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -14,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../services/api.service';
 import { TranslationService } from '../../services/translation.service';
 import { KudumbashreeMeeting } from '../../models/meeting';
+import { io, Socket } from 'socket.io-client';
 
 @Component({
   selector: 'app-meeting-minutes',
@@ -45,15 +46,55 @@ export class MeetingMinutesComponent implements OnInit {
   selectedMeetingDetails: KudumbashreeMeeting | null = null;
   meetings: KudumbashreeMeeting[] = [];
   transcript = '';
+  interimTranscript = '';
   summary = '';
   recordingTime = 0;
   private recordingInterval: any;
+  private socket!: Socket;
 
-  // Sample meetings for demo - Removed to avoid type issues and unused code
-  // private sampleMeetings: KudumbashreeMeeting[] = [];
+  constructor(private ngZone: NgZone) {} // Inject NgZone
 
   ngOnInit() {
     this.loadMeetings();
+    this.initSocket();
+  }
+
+  ngOnDestroy() {
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+    this.stopRecording();
+  }
+
+  initSocket() {
+    this.socket = io('http://localhost:5000');
+
+    this.socket.on('interimTranscript', (data: any) => {
+      this.ngZone.run(() => {
+        // We receive the chunk translation, append to final transcript
+        this.transcript += (this.transcript ? ' ' : '') + data.transcript;
+        this.interimTranscript = ''; // clear interim once a chunk is finalized
+      });
+    });
+
+    this.socket.on('processingStatus', (data: any) => {
+      this.ngZone.run(() => {
+        this.summary = data.message;
+      });
+    });
+
+    this.socket.on('finalTranscription', (data: any) => {
+      this.ngZone.run(() => {
+        this.transcript = data.transcript;
+        this.summary = data.summary;
+      });
+    });
+
+    this.socket.on('transcriptionError', (data: any) => {
+      this.ngZone.run(() => {
+        this.summary = data.message;
+      });
+    });
   }
 
   loadMeetings() {
@@ -76,18 +117,13 @@ export class MeetingMinutesComponent implements OnInit {
   }
 
   mediaRecorder: MediaRecorder | null = null;
+  recognition: any = null;
   audioChunks: any[] = [];
-  recognition: any;
-
-  interimTranscript = '';
-
-  constructor(private ngZone: NgZone) {} // Inject NgZone
 
   async startRecording() {
     if (!this.selectedMeeting) return;
     
     try {
-      // 1. Start Voice Recording (for backend upload)
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.mediaRecorder = new MediaRecorder(stream);
       this.audioChunks = [];
@@ -95,51 +131,49 @@ export class MeetingMinutesComponent implements OnInit {
       this.mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           this.audioChunks.push(event.data);
+          // Send chunk to backend via WebSocket
+          this.socket.emit('audioChunk', {
+            audio: event.data,
+            mimeType: this.mediaRecorder?.mimeType || 'audio/webm'
+          });
         }
       };
 
       this.mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-        this.uploadAudio(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
 
-      this.mediaRecorder.start();
+      // Emit start to backend
+      this.socket.emit('startRecording', { meetingId: this.selectedMeeting });
 
-      // 2. Start Live Speech Recognition (for UI display)
+      // Start browser realtime speech recognition for immediate interim feedback "while speaking"
       if ('webkitSpeechRecognition' in window) {
-        // @ts-ignore
-        this.recognition = new window.webkitSpeechRecognition();
+        this.recognition = new (window as any).webkitSpeechRecognition();
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
-        this.recognition.lang = 'ml-IN'; // Malayalam
+        this.recognition.lang = 'ml-IN';
 
         this.recognition.onresult = (event: any) => {
-          this.ngZone.run(() => { // proper angular tracking
+          this.ngZone.run(() => {
             let interim = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-              if (event.results[i].isFinal) {
-                this.transcript += event.results[i][0].transcript + ' ';
-              } else {
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              if (!event.results[i].isFinal) {
                 interim += event.results[i][0].transcript;
               }
             }
             this.interimTranscript = interim;
           });
         };
-
-        this.recognition.onerror = (event: any) => {
-          console.error('Speech recognition error', event.error);
-        };
-
         this.recognition.start();
-      } else {
-        console.warn('Web Speech API not supported in this browser.');
-        this.transcript = "Live transcription not supported in this browser. Backend processing will still work.";
       }
+
+      // Start recording, emit chunks every 15 seconds (15000ms) to respect free-tier max of 5 Req/Min
+      this.mediaRecorder.start(15000);
 
       this.isRecording = true;
       this.recordingTime = 0;
+      this.transcript = 'Listening...';
+      this.summary = '';
       
       this.recordingInterval = setInterval(() => {
         this.recordingTime++;
@@ -155,64 +189,17 @@ export class MeetingMinutesComponent implements OnInit {
     if (this.mediaRecorder && this.isRecording) {
       this.mediaRecorder.stop();
       this.isRecording = false;
+      this.socket.emit('stopRecording');
     }
 
     if (this.recognition) {
       this.recognition.stop();
     }
-    
-    this.interimTranscript = ''; // Clear interim text
 
     if (this.recordingInterval) {
       clearInterval(this.recordingInterval);
       this.recordingInterval = null;
     }
-  }
-
-  uploadAudio(blob: Blob) {
-    if (!this.selectedMeeting) return;
-    
-    this.transcript = 'Uploading...';
-    this.summary = 'Waiting for upload...';
-    
-    this.apiService.recordMeetingAudio(this.selectedMeeting, blob).subscribe({
-      next: (response) => {
-        console.log('Upload successful', response);
-        this.pollStatus(this.selectedMeeting);
-      },
-      error: (error) => {
-        console.error('Upload failed:', error);
-        this.transcript = 'Upload failed. ' + (error.error?.message || error.message);
-        this.summary = 'Upload failed.';
-      }
-    });
-  }
-
-  pollStatus(meetingId: string) {
-    this.transcript = 'Processing... (Please wait)';
-    this.summary = 'Processing...';
-
-    const pollInterval = setInterval(() => {
-        this.apiService.getProcessingStatus(meetingId).subscribe({
-            next: (status) => {
-                console.log('Processing Status:', status.processingStatus);
-                if (status.processingStatus === 'COMPLETED') {
-                    clearInterval(pollInterval);
-                    this.transcript = status.transcript;
-                    this.summary = status.summary;
-                } else if (status.processingStatus === 'FAILED') {
-                    clearInterval(pollInterval);
-                    this.transcript = 'Processing Failed.';
-                    this.summary = 'Processing Failed.';
-                }
-            },
-            error: (err) => {
-                console.error('Polling error:', err);
-                clearInterval(pollInterval);
-                this.transcript = 'Polling Error.';
-            }
-        });
-    }, 5000);
   }
 
   generateSummary() {
@@ -233,9 +220,13 @@ export class MeetingMinutesComponent implements OnInit {
     this.selectedMeeting = '';
     this.selectedMeetingDetails = null;
     this.transcript = '';
+    this.interimTranscript = '';
     this.summary = '';
     if (this.isRecording) {
       this.stopRecording();
+    }
+    if (this.recognition) {
+      this.recognition.stop();
     }
   }
 

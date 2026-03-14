@@ -229,19 +229,23 @@ exports.repayLoan = async (req, res) => {
             transaction_id: `REPAY-${loan.id}-${Date.now()}`
         }, { transaction: t });
 
-         // Clear Payment Reminders
+         // Clear Payment Reminders for THIS specific loan
          const Notification = require('../models/Notification');
-         await Notification.update(
-            { isRead: true },
-            { 
-                where: { 
-                    userId: loan.userId, 
-                    type: 'payment_reminder', 
-                    isRead: false 
-                },
-                transaction: t 
-            }
-         );
+         const { Op } = require('sequelize'); // Import Op here or at top
+
+         console.log(`[DEBUG] Attempting to delete notifications for Loan #${loan.id} User ${loan.userId}`);
+         const criteria = { 
+            userId: loan.userId, 
+            type: 'payment_reminder',
+            message: { [Op.like]: `%Loan #${loan.id}%` } // Target specific loan msg
+        };
+        console.log('[DEBUG] Criteria:', JSON.stringify(criteria));
+
+         const destroyed = await Notification.destroy({ // CHANGED: Destroy to remove alert completely
+            where: criteria,
+            transaction: t 
+         });
+         console.log(`[DEBUG] Destroyed ${destroyed} notifications.`);
 
         await t.commit();
         res.status(200).json({ message: 'Loan repayment successful', loan });

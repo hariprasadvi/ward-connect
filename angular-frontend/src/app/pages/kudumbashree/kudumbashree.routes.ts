@@ -92,7 +92,7 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
-    loadComponent: () => import('./components/reports-analytics/reports-analytics.component').then(m => m.ReportsAnalyticsComponent),
+    loadComponent: () => import('./components/reports/reports.component').then(m => m.ReportsComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { role: 'admin' }
   }

@@ -35,9 +35,10 @@ OrderItem.belongsTo(Product, { foreignKey: 'productId' });
 
 // --- Notification Associations ---
 const Notification = require('./Notification');
-User.hasMany(Notification, { foreignKey: 'userId' });
-Notification.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Notification, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Notification.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
 
+<<<<<<< Updated upstream
 // --- Bill Associations ---
 const Bill = require('./Bill');
 User.hasMany(Bill, { foreignKey: 'userId' });
@@ -63,3 +64,44 @@ MedicineReminder.belongsTo(User, { foreignKey: 'userId' });
 
 User.hasMany(HealthRecord, { foreignKey: 'userId' });
 HealthRecord.belongsTo(User, { foreignKey: 'userId' });
+=======
+// --- Kudumbashree Associations ---
+const KudumbashreeProfile = require('./KudumbashreeProfile');
+const KudumbashreeGroup = require('./KudumbashreeGroup');
+
+User.hasOne(KudumbashreeProfile, { foreignKey: 'userId', onDelete: 'CASCADE' });
+KudumbashreeProfile.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
+KudumbashreeGroup.hasMany(KudumbashreeProfile, { foreignKey: 'groupId' });
+KudumbashreeProfile.belongsTo(KudumbashreeGroup, { foreignKey: 'groupId' });
+
+const Loan = require('./Loan');
+User.hasMany(Loan, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Loan.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
+const Attendance = require('./Attendance');
+User.hasMany(Attendance, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Attendance.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
+const FinancialTransaction = require('./FinancialTransaction');
+User.hasMany(FinancialTransaction, { foreignKey: 'userId', onDelete: 'CASCADE' });
+FinancialTransaction.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
+// --- Booking & Vehicle Associations ---
+const Booking = require('./booking.model');
+User.hasMany(Booking, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Booking.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
+// --- Waste Management Associations ---
+const WasteComplaint = require('./WasteComplaint');
+const WastePickup = require('./WastePickup');
+
+// Manual define if not in their files
+User.hasMany(WasteComplaint, { foreignKey: 'userId', onDelete: 'CASCADE' });
+WasteComplaint.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
+User.hasMany(WastePickup, { foreignKey: 'userId', onDelete: 'CASCADE' });
+WastePickup.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+
+console.log("All Shop, Kudumbashree, Booking & Waste associations loaded.");
+>>>>>>> Stashed changes

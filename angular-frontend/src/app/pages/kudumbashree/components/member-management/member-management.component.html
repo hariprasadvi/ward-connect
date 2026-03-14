@@ -182,6 +182,10 @@
                       (click)="approveMember(member)">
                 <mat-icon>check_circle</mat-icon>
               </button>
+
+              <button mat-icon-button color="warn" [matTooltip]="'Delete ' + member.name" (click)="deleteMember(member)">
+                <mat-icon>delete</mat-icon>
+              </button>
             </div>
           </td>
         </ng-container>
