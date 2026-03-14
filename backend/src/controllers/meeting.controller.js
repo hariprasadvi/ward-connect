@@ -21,8 +21,8 @@ exports.scheduleMeeting = async (req, res) => {
         // Simulated notification logic
         console.log(`Notification sent to all members of Group ${groupId} regarding meeting "${title}" on ${date}`);
 
-        res.status(201).json({ 
-            message: 'Meeting scheduled successfully and members notified.', 
+        res.status(201).json({
+            message: 'Meeting scheduled successfully and members notified.',
             meeting,
             notificationsSent: true
         });
@@ -34,7 +34,7 @@ exports.scheduleMeeting = async (req, res) => {
 exports.getMeetings = async (req, res) => {
     try {
         const { groupId, type } = req.query; // type: 'active' or 'history'
-        
+
         let where = {};
         if (groupId) where.groupId = groupId;
 
@@ -46,18 +46,18 @@ exports.getMeetings = async (req, res) => {
                 ...where,
                 [Op.or]: [
                     { status: 'Scheduled' },
-                    { 
+                    {
                         date: { [Op.gte]: now }  // Future meetings
                     }
                 ]
             };
         } else if (type === 'history') {
-             where = {
+            where = {
                 ...where,
                 [Op.or]: [
                     { status: 'Completed' },
                     { status: 'Cancelled' },
-                    { 
+                    {
                         date: { [Op.lt]: now } // Past meetings
                     }
                 ]
@@ -78,24 +78,43 @@ exports.getMeetings = async (req, res) => {
 exports.recordMeetingAudio = async (req, res) => {
     try {
         const { meetingId } = req.body;
-        
+
         if (!req.file) {
             return res.status(400).json({ message: 'No audio file uploaded.' });
         }
 
         // Save audio buffer to Database (BLOB)
-        await Meeting.update({ 
+        await Meeting.update({
             audioData: req.file.buffer, // Buffer from memory storage
             processingStatus: 'UPLOADING', // Technically uploaded to DB now
-            status: 'Completed' 
+            status: 'Completed'
         }, { where: { id: meetingId } });
 
-        // Add to Queue
-        const minutesQueue = require('../queues/minutesQueue');
-        minutesQueue.add({ meetingId });
-        
-        res.status(200).json({ 
-            message: 'Audio uploaded successfully. AI processing started.', 
+        // Process directly in background instead of Bull Queue to avoid Redis dependency locally
+        const geminiService = require('../services/geminiService');
+        (async () => {
+            try {
+                await Meeting.update({ processingStatus: 'PROCESSING' }, { where: { id: meetingId } });
+                console.log(`Sending audio to Gemini directly for Meeting ${meetingId}...`);
+
+                const result = await geminiService.processMeetingAudio(req.file.buffer, req.file.mimetype || 'audio/webm');
+                console.log('Gemini processing complete.');
+
+                await Meeting.update({
+                    processingStatus: 'COMPLETED',
+                    transcript: result.transcript,
+                    summary: result.summary,
+                }, { where: { id: meetingId } });
+
+                console.log(`Job completed for Meeting ${meetingId}`);
+            } catch (err) {
+                console.error(`Job failed for Meeting ${meetingId}:`, err);
+                await Meeting.update({ processingStatus: 'FAILED' }, { where: { id: meetingId } });
+            }
+        })();
+
+        res.status(200).json({
+            message: 'Audio uploaded successfully. AI processing started.',
             processingStatus: 'PENDING'
         });
     } catch (error) {
@@ -108,7 +127,7 @@ exports.getProcessingStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const meeting = await Meeting.findByPk(id, { attributes: ['processingStatus', 'transcript', 'summary'] });
-        
+
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
         }
@@ -126,7 +145,7 @@ exports.getMeetingTranscript = async (req, res) => {
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
         }
-        res.status(200).json({ 
+        res.status(200).json({
             transcript: meeting.transcript || 'Transcript not available yet.',
             summary: meeting.summary || 'Summary not available yet.'
         });
@@ -142,7 +161,7 @@ exports.deleteMeeting = async (req, res) => {
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
         }
-        
+
         // Manual Cascade: Delete associated attendance records first
         await Attendance.destroy({ where: { meetingId: id } });
 

@@ -2,7 +2,11 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ShopService, Product } from '../shop.service';
+import { UserService } from '../../../services/user.service';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+
+declare var Razorpay: any;
 
 @Component({
    selector: 'app-product-detail',
@@ -84,7 +88,7 @@ import { FormsModule } from '@angular/forms';
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     Add to Cart
                  </button>
-                 <button class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-blue-200 transition-all transform hover:-translate-y-1">
+                 <button (click)="buyNow()" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-blue-200 transition-all transform hover:-translate-y-1">
                     Buy Now
                  </button>
               </div>
@@ -180,6 +184,66 @@ export class ProductDetailComponent implements OnInit {
       } else {
          this.availabilityStatus = 'Available';
          this.availabilityMessage = `Delivery available at ${this.pincode}`;
+      }
+   }
+
+   private userService = inject(UserService);
+
+   async buyNow() {
+      const p = this.product();
+      if (!p) return;
+
+      try {
+         // Profile check
+         const profile = await firstValueFrom(this.userService.getProfile());
+         if (profile.completion < 100) {
+            alert(`Your profile is only ${profile.completion}% complete. Please update your profile to 100% to proceed with purchasing.`);
+            return;
+         }
+
+         const amount = Number(p.price);
+         const orderData = await this.shopService.createRazorpayOrder(amount);
+
+         const options = {
+            key: 'rzp_test_S3iNfkYOx5zNOb',
+            amount: orderData.amount,
+            currency: 'INR',
+            name: 'Ward Connect Shop',
+            description: p.title,
+            image: p.image || 'https://via.placeholder.com/150',
+            order_id: orderData.id,
+            handler: async (response: any) => {
+               try {
+                  await this.shopService.addToCart(p);
+                  const deliveryAddress = profile.address && profile.address.trim() !== '' ? profile.address : 'Default Address';
+                  await this.shopService.checkout(deliveryAddress, 'Prepaid - Razorpay');
+
+                  alert('Payment successful & Order placed! Payment ID: ' + response.razorpay_payment_id);
+               } catch (err: any) {
+                  console.error('Order saving failed', err);
+                  alert('Payment was successful but internal order creation failed.');
+               }
+            },
+            prefill: {
+               name: profile.full_name || 'Customer User',
+               email: profile.email || 'customer@example.com',
+               contact: profile.mobile_number || '9000090000'
+            },
+            theme: {
+               color: '#4f46e5'
+            }
+         };
+
+         const rzp = new Razorpay(options);
+         rzp.on('payment.failed', function (response: any) {
+            alert('Payment failed: ' + response.error.description);
+         });
+         rzp.open();
+
+      } catch (err: any) {
+         console.error('Buy Now Error:', err);
+         const errorMsg = err?.error?.message || 'Failed to initiate payment. Ensure your details are complete and you are logged in.';
+         alert(errorMsg);
       }
    }
 }

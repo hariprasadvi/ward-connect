@@ -279,6 +279,16 @@ export class ShopService {
       throw e;
     }
   }
+  async createRazorpayOrder(amount: number) {
+    try {
+      const response = await firstValueFrom(this.http.post<any>(`${this.apiUrl}/create-razorpay-order`, { amount }));
+      return response;
+    } catch (e) {
+      console.error('Failed to create Razorpay order', e);
+      throw e;
+    }
+  }
+
   async checkout(shippingAddress: string, paymentMethod: string) {
     try {
       const payload = { shippingAddress, paymentMethod };

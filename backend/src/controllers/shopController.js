@@ -6,7 +6,30 @@ const OrderItem = require('../models/OrderItem');
 const { sequelize } = require('../config/database');
 const User = require('../models/User');
 
+const Razorpay = require('razorpay');
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_w3XfK1M5w8a9lG',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_test_secret_for_now'
+});
+
 const shopController = {
+    // --- Razorpay API ---
+    createRazorpayOrder: async (req, res) => {
+        try {
+            const { amount } = req.body;
+            const options = {
+                amount: amount * 100, // Amount in paise
+                currency: 'INR',
+                receipt: 'receipt_order_' + Date.now()
+            };
+            const order = await razorpay.orders.create(options);
+            res.json(order);
+        } catch (error) {
+            console.error('Razorpay API Error:', error);
+            res.status(500).json({ message: 'Razorpay API Error: Please verify your RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in the .env file.' });
+        }
+    },
+
     // --- Product Management (Seller Hub) ---
     createProduct: async (req, res) => {
         try {
@@ -219,6 +242,14 @@ const shopController = {
 
     // --- Order Operations ---
     checkout: async (req, res) => {
+        const { calculateCompletion } = require('./user.controller');
+        const user = await User.findByPk(req.user.id);
+        const completion = calculateCompletion(user);
+
+        if (completion < 100) {
+            return res.status(403).json({ message: `Your profile is only ${completion}% complete. Please complete your profile to 100% before placing an order.` });
+        }
+
         const t = await sequelize.transaction();
         try {
             // 1. Get Cart Items

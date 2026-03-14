@@ -49,3 +49,17 @@ User.hasMany(CivicRequest, { foreignKey: 'userId' });
 CivicRequest.belongsTo(User, { foreignKey: 'userId' });
 
 console.log("All Shop associations loaded.");
+
+// --- Health Service Associations ---
+const DonationRequest = require('./DonationRequest');
+const MedicineReminder = require('./MedicineReminder');
+const HealthRecord = require('./HealthRecord');
+
+User.hasMany(DonationRequest, { foreignKey: 'userId' });
+DonationRequest.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasMany(MedicineReminder, { foreignKey: 'userId' });
+MedicineReminder.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasMany(HealthRecord, { foreignKey: 'userId' });
+HealthRecord.belongsTo(User, { foreignKey: 'userId' });
