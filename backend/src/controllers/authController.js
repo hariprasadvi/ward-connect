@@ -2,6 +2,7 @@ const User = require('../models/User');
 const OtpVerification = require('../models/Otp');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const { calculateCompletion } = require('./user.controller');
 
 const generateToken = (user) => {
@@ -12,12 +13,94 @@ const generateToken = (user) => {
     );
 };
 
+// --- OTP Helper ---
+const verifyOtp = async (mobile_number, otp) => {
+    const record = await OtpVerification.findOne({
+        where: { mobile_number },
+        order: [['createdAt', 'DESC']]
+    });
+    if (!record) return { valid: false, message: 'OTP not found. Please request a new one.' };
+    if (new Date() > new Date(record.expires_at)) return { valid: false, message: 'OTP has expired. Please request a new one.' };
+    if (String(record.otp) !== String(otp)) return { valid: false, message: 'Invalid OTP. Please try again.' };
+    // Clean up used OTP
+    await record.destroy();
+    return { valid: true };
+};
+
+exports.sendOtp = async (req, res) => {
+    try {
+        const { mobile_number } = req.body;
+        if (!mobile_number) return res.status(400).json({ message: 'Mobile number is required.' });
+
+        // Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires_at = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+        // Delete any previous OTPs for this number
+        await OtpVerification.destroy({ where: { mobile_number } });
+
+        // Save the new OTP
+        await OtpVerification.create({ mobile_number, otp, expires_at });
+
+        const apiKey = process.env.FAST2SMS_API_KEY;
+
+        // Always log the OTP in terminal (for debugging/dev)
+        console.log(`\n========================================`);
+        console.log(`📱 OTP for ${mobile_number}: ${otp}`);
+        console.log(`========================================\n`);
+
+        if (apiKey) {
+            // Try to send via Fast2SMS
+            try {
+                const response = await axios.post(
+                    'https://www.fast2sms.com/dev/bulkV2',
+                    {
+                        route: 'q',
+                        message: `Your WardConnect OTP is: ${otp}. Valid for 10 minutes. Do not share with anyone.`,
+                        numbers: mobile_number,
+                        flash: '0',
+                    },
+                    {
+                        headers: {
+                            authorization: apiKey,
+                            'Content-Type': 'application/json',
+                        }
+                    }
+                );
+                console.log('Fast2SMS response:', JSON.stringify(response.data));
+                if (response.data.return) {
+                    return res.json({ message: `OTP sent via SMS to ${mobile_number}` });
+                }
+                // SMS failed but we still have OTP in terminal - return it in response for dev
+                console.warn('Fast2SMS failed:', response.data);
+            } catch (smsError) {
+                console.error('Fast2SMS Error:', smsError.response?.data || smsError.message);
+            }
+        }
+
+        // Fallback: return success with dev_otp so frontend can still work
+        res.json({
+            message: `OTP generated. Check backend terminal for the code.`,
+            dev_otp: process.env.NODE_ENV === 'production' ? undefined : otp
+        });
+    } catch (error) {
+        console.error("Send OTP Error:", error.response?.data || error.message);
+        res.status(500).json({ message: 'Error sending OTP', error: error.message });
+    }
+};
+
 exports.signup = async (req, res) => {
     try {
         const {
-            full_name, mobile_number, email, password, role,
+            full_name, mobile_number, email, password, role, otp,
             ward_number, panchayat_name, address, aadhaar_number, house_number, profile_image
         } = req.body;
+
+        // Verify OTP before creating the user
+        const otpCheck = await verifyOtp(mobile_number, otp);
+        if (!otpCheck.valid) {
+            return res.status(400).json({ message: otpCheck.message });
+        }
 
         // Check if user exists
         const existingUser = await User.findOne({ where: { mobile_number } });
@@ -26,30 +109,13 @@ exports.signup = async (req, res) => {
         }
 
         const password_hash = await bcrypt.hash(password, 10);
-
-        // Auto-approve citizens, but NOT Kudumbashree roles basically (unless you want random citizens approved)
-        // Modified: Kudumbashree Member/Admin will NOT be auto-approved.
         const is_approved = ['Citizen'].includes(role);
 
         const newUser = await User.create({
-            full_name,
-            mobile_number,
-            email,
-            password_hash,
-            role,
-            house_number,
-            ward_number,
-            panchayat_name,
-            address,
-            aadhaar_number,
-            is_approved,
-            aadhaar_number,
-            is_approved,
-            is_verified: true,
-            profile_image
+            full_name, mobile_number, email, password_hash, role,
+            house_number, ward_number, panchayat_name, address,
+            aadhaar_number, is_approved, is_verified: true, profile_image
         });
-
-        // ... (Kudumbashree logic remains)
 
         res.status(201).json({
             message: 'User registered successfully',
@@ -67,7 +133,13 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        const { mobile_number, password, role } = req.body;
+        const { mobile_number, password, role, otp } = req.body;
+
+        // Verify OTP before logging in
+        const otpCheck = await verifyOtp(mobile_number, otp);
+        if (!otpCheck.valid) {
+            return res.status(400).json({ message: otpCheck.message });
+        }
 
         const user = await User.findOne({ where: { mobile_number } });
         if (!user) {
@@ -83,9 +155,6 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        // REMOVED: Block login if not approved. 
-        // We now allow login so frontend can show "Pending Approval" page.
-
         const token = generateToken(user);
 
         res.json({
@@ -94,11 +163,12 @@ exports.login = async (req, res) => {
             user: {
                 id: user.id,
                 full_name: user.full_name,
+                email: user.email,
                 role: user.role,
                 house_number: user.house_number,
                 ward_number: user.ward_number,
                 is_approved: user.is_approved,
-                profile_image: user.profile_image, // Sending profile image for face verification
+                profile_image: user.profile_image,
                 completion: calculateCompletion(user)
             }
         });
@@ -108,41 +178,3 @@ exports.login = async (req, res) => {
     }
 };
 
-exports.sendOtp = async (req, res) => {
-    // Logic to integrate with SMS provider (e.g., Twilio)
-    // For demo purposes, we'll just return the OTP
-    const { mobile_number } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
-
-    // Save to DB
-    // First clear old OTPs for this number
-    await OtpVerification.destroy({ where: { mobile_number } });
-    await OtpVerification.create({
-        mobile_number,
-        otp,
-        expires_at: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
-    });
-
-    console.log(`OTP for ${mobile_number}: ${otp}`);
-    res.json({ message: 'OTP sent successfully', otp_debug: otp });
-};
-
-exports.verifyOtp = async (req, res) => {
-    const { mobile_number, otp } = req.body;
-    const verification = await OtpVerification.findOne({ where: { mobile_number, otp } });
-
-    if (!verification) {
-        return res.status(400).json({ message: 'Invalid OTP' });
-    }
-
-    if (new Date() > verification.expires_at) {
-        return res.status(400).json({ message: 'OTP expired' });
-    }
-
-    // Mark verified logic here if this was a standalone verification step
-
-    // Clean up
-    await verification.destroy();
-
-    res.json({ message: 'OTP verified successfully' });
-};

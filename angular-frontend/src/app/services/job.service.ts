@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
     providedIn: 'root'
 })
 export class JobService {
-    private apiUrl = 'http://localhost:5000/api/job';
+    private apiUrl = 'http://localhost:5000/public/job';
 
     constructor(private http: HttpClient) { }
 
@@ -24,5 +24,9 @@ export class JobService {
 
     applyJob(applicationData: any): Observable<any> {
         return this.http.post(`${this.apiUrl}/apply`, applicationData);
+    }
+
+    getMyApplications(email: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/my-applications`, { params: { email } });
     }
 }

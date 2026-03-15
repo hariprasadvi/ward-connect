@@ -81,11 +81,11 @@ export class MeetingMinutesComponent implements OnInit {
 
   interimTranscript = '';
 
-  constructor(private ngZone: NgZone) {} // Inject NgZone
+  constructor(private ngZone: NgZone) { } // Inject NgZone
 
   async startRecording() {
     if (!this.selectedMeeting) return;
-    
+
     try {
       // 1. Start Voice Recording (for backend upload)
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -140,7 +140,7 @@ export class MeetingMinutesComponent implements OnInit {
 
       this.isRecording = true;
       this.recordingTime = 0;
-      
+
       this.recordingInterval = setInterval(() => {
         this.recordingTime++;
       }, 1000);
@@ -160,7 +160,7 @@ export class MeetingMinutesComponent implements OnInit {
     if (this.recognition) {
       this.recognition.stop();
     }
-    
+
     this.interimTranscript = ''; // Clear interim text
 
     if (this.recordingInterval) {
@@ -171,14 +171,21 @@ export class MeetingMinutesComponent implements OnInit {
 
   uploadAudio(blob: Blob) {
     if (!this.selectedMeeting) return;
-    
+
     this.transcript = 'Uploading...';
     this.summary = 'Waiting for upload...';
-    
+
     this.apiService.recordMeetingAudio(this.selectedMeeting, blob).subscribe({
       next: (response) => {
-        console.log('Upload successful', response);
-        this.pollStatus(this.selectedMeeting);
+        console.log('Upload response', response);
+
+        if (response.warning) {
+          this.transcript = 'Audio saved. ' + response.message;
+          this.summary = 'AI Service Unavailable (Redis down).';
+          alert(response.message);
+        } else {
+          this.pollStatus(this.selectedMeeting);
+        }
       },
       error: (error) => {
         console.error('Upload failed:', error);
@@ -193,31 +200,31 @@ export class MeetingMinutesComponent implements OnInit {
     this.summary = 'Processing...';
 
     const pollInterval = setInterval(() => {
-        this.apiService.getProcessingStatus(meetingId).subscribe({
-            next: (status) => {
-                console.log('Processing Status:', status.processingStatus);
-                if (status.processingStatus === 'COMPLETED') {
-                    clearInterval(pollInterval);
-                    this.transcript = status.transcript;
-                    this.summary = status.summary;
-                } else if (status.processingStatus === 'FAILED') {
-                    clearInterval(pollInterval);
-                    this.transcript = 'Processing Failed.';
-                    this.summary = 'Processing Failed.';
-                }
-            },
-            error: (err) => {
-                console.error('Polling error:', err);
-                clearInterval(pollInterval);
-                this.transcript = 'Polling Error.';
-            }
-        });
+      this.apiService.getProcessingStatus(meetingId).subscribe({
+        next: (status) => {
+          console.log('Processing Status:', status.processingStatus);
+          if (status.processingStatus === 'COMPLETED') {
+            clearInterval(pollInterval);
+            this.transcript = status.transcript;
+            this.summary = status.summary;
+          } else if (status.processingStatus === 'FAILED') {
+            clearInterval(pollInterval);
+            this.transcript = 'Processing Failed.';
+            this.summary = 'Processing Failed.';
+          }
+        },
+        error: (err) => {
+          console.error('Polling error:', err);
+          clearInterval(pollInterval);
+          this.transcript = 'Polling Error.';
+        }
+      });
     }, 5000);
   }
 
   generateSummary() {
     if (!this.selectedMeeting) return;
-    
+
     this.apiService.getMeetingTranscript(this.selectedMeeting).subscribe({
       next: (response) => {
         this.transcript = response.transcript || this.transcript;

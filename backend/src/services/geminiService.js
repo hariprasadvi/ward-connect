@@ -18,7 +18,7 @@ exports.processMeetingAudio = async (audioBuffer, mimeType) => {
             console.warn("Gemini API Key missing. Returning mock data.");
             return { transcript: "Mock Transcript: API Key Missing", summary: "Mock Summary: API Key Missing" };
         }
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         // Convert buffer to base64
         const audioBase64 = audioBuffer.toString('base64');

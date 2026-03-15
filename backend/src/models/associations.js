@@ -4,6 +4,8 @@ const CartItem = require('./CartItem');
 const WishlistItem = require('./WishlistItem');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
+const JobAlert = require('./JobAlert'); // Add JobAlert
+const Application = require('./Application'); // Add Application
 
 // --- Product Associations ---
 User.hasMany(Product, { foreignKey: 'sellerId' });
@@ -63,3 +65,8 @@ MedicineReminder.belongsTo(User, { foreignKey: 'userId' });
 
 User.hasMany(HealthRecord, { foreignKey: 'userId' });
 HealthRecord.belongsTo(User, { foreignKey: 'userId' });
+
+// --- Job Alerts Associations ---
+JobAlert.hasMany(Application, { foreignKey: 'jobId' });
+Application.belongsTo(JobAlert, { foreignKey: 'jobId' });
+

@@ -11,7 +11,16 @@ export class AuthService {
     private userSubject = new BehaviorSubject<any>(JSON.parse(localStorage.getItem('user') || 'null'));
     user$ = this.userSubject.asObservable();
 
-    constructor(private http: HttpClient, private router: Router) { }
+    constructor(
+        private http: HttpClient, 
+        private router: Router
+    ) { }
+
+    sendOtp(phoneNumber: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/send-otp`, { mobile_number: phoneNumber });
+    }
+
+    // --- Backend API Methods ---
 
     signup(data: any): Observable<any> {
         return this.http.post(`${this.apiUrl}/signup`, data);

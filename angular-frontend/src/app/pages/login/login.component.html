@@ -36,7 +36,7 @@
                 {{ errorMessage }}
             </div>
 
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+            <form *ngIf="step === 1" [formGroup]="loginForm" (ngSubmit)="sendOtp()" class="space-y-6">
                 <!-- Role Selector -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">I am a</label>
@@ -94,9 +94,9 @@
                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                             </path>
                         </svg>
-                        Signing in...
+                        Sending Request...
                     </span>
-                    <span *ngIf="!loading">Sign in</span>
+                    <span *ngIf="!loading">Send OTP</span>
                 </button>
 
                 <!-- Signup Link -->
@@ -108,6 +108,43 @@
                             Create free account
                         </a>
                     </p>
+                </div>
+            </form>
+
+            <form *ngIf="step === 2" (ngSubmit)="verifyOtpAndLogin()" class="space-y-6">
+                <!-- OTP Input -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Verification Code (OTP)</label>
+                    <div class="relative flex items-center">
+                        <mat-icon class="absolute left-4 text-gray-400 z-10">message</mat-icon>
+                        <input [(ngModel)]="otpCode" name="otpCode" type="text"
+                            class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
+                            placeholder="123456" maxlength="6">
+                    </div>
+                </div>
+
+                <button type="submit" [disabled]="loading || otpCode.length < 6"
+                    class="w-full flex justify-center py-3.5 px-6 border border-transparent rounded-xl shadow-lg shadow-indigo-500/30 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span *ngIf="loading" class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        Verifying...
+                    </span>
+                    <span *ngIf="!loading">Verify & Sign In</span>
+                </button>
+                
+                <div class="text-center mt-6 flex justify-center gap-4">
+                    <button type="button" (click)="step = 1; otpCode = ''" class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+                        ← Back
+                    </button>
+                    <button type="button" (click)="sendOtp()" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+                        Resend OTP
+                    </button>
                 </div>
             </form>
         </div>
