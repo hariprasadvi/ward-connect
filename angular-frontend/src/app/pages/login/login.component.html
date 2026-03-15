@@ -1,115 +1,239 @@
-<div class="min-h-screen flex bg-gray-50 font-sans">
-    <!-- Left Side - Visual (Simpler, more elegant) -->
-    <div
-        class="hidden lg:flex w-5/12 bg-white relative overflow-hidden items-center justify-center border-r border-gray-100">
-        <div class="absolute inset-0 bg-indigo-50/50"></div>
-        <!-- Decorative subtle pattern -->
-        <div class="absolute top-0 left-0 w-full h-full opacity-30"
-            style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 32px 32px;"></div>
+<div class="min-h-screen flex flex-col justify-center items-center bg-gray-50 font-sans relative">
+    <!-- Full screen background image -->
+    <div class="absolute inset-0 z-0">
+        <img src="/assets/images/login-bg.png" alt="City ward infrastructure"
+            class="w-full h-full object-cover blur-[2px] scale-105">
+        <!-- Slight dark/violet overlay to make the form pop -->
+        <div class="absolute inset-0 bg-violet-900/40 mix-blend-multiply"></div>
+    </div> <!-- Decorative subtle pattern for background -->
+    <div class="absolute inset-0 z-0 opacity-40 pointer-events-none mt-20"
+        style="background-image: radial-gradient(#8b5cf6 1px, transparent 1px); background-size: 40px 40px;"></div>
 
-        <div class="relative z-10 p-12 max-w-lg text-center">
-            <div class="mb-8 inline-block p-4 rounded-3xl bg-white shadow-xl shadow-indigo-100">
-                <span class="text-4xl">🏙️</span>
-            </div>
-            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">WardConnect</h1>
-            <p class="text-lg text-gray-500 leading-relaxed">
-                Your direct link to community services. <br> Efficient, transparent, and built for you.
-            </p>
-        </div>
-    </div>
-
-    <!-- Right Side - Form (Minimalist) -->
-    <div class="w-full lg:w-7/12 flex items-center justify-center p-8 bg-white">
-        <div class="max-w-md w-full">
-            <div class="text-center lg:text-left mb-10">
-                <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
-                <p class="mt-2 text-gray-500">Please enter your details to sign in.</p>
-            </div>
+    <!-- Centered Form -->
+    <div class="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
+        <div
+            class="w-full max-w-md bg-white py-10 px-6 sm:px-10 shadow-2xl shadow-violet-900/5 sm:rounded-3xl border border-gray-100 relative overflow-hidden backdrop-blur-sm">
+            <!-- Top accent line -->
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-400"></div>
 
             <div *ngIf="errorMessage"
-                class="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center">
-                <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd" />
-                </svg>
+                class="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center animate-fade-in shadow-sm">
+                <mat-icon class="mr-2">error_outline</mat-icon>
                 {{ errorMessage }}
             </div>
 
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-                <!-- Role Selector -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">I am a</label>
-                    <div class="relative flex items-center">
-                        <mat-icon class="absolute left-4 text-gray-400 z-10">supervised_user_circle</mat-icon>
-                        <select formControlName="role"
-                            class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 appearance-none cursor-pointer font-medium text-gray-700">
-                            <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
-                        </select>
-                        <div
-                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                            <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                <path
-                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
+            <div *ngIf="successMessage"
+                class="mb-6 p-4 bg-green-50 text-green-700 rounded-xl text-sm border border-green-100 flex items-center animate-fade-in shadow-sm">
+                <mat-icon class="mr-2">check_circle_outline</mat-icon>
+                {{ successMessage }}
+            </div>
 
-                <!-- Mobile Input -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Mobile Number</label>
-                    <div class="relative flex items-center">
-                        <mat-icon class="absolute left-4 text-gray-400 z-10">phone_iphone</mat-icon>
-                        <input formControlName="mobile_number" type="text"
-                            class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                            placeholder="e.g. 9876543210">
-                    </div>
-                </div>
-
-                <!-- Password Input -->
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-sm font-semibold text-gray-700">Password</label>
-                        <a href="#"
-                            class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Forgot
-                            password?</a>
-                    </div>
-                    <div class="relative flex items-center">
-                        <mat-icon class="absolute left-4 text-gray-400 z-10">lock</mat-icon>
-                        <input formControlName="password" type="password"
-                            class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                            placeholder="••••••••">
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" [disabled]="loading || loginForm.invalid"
-                    class="w-full flex justify-center py-3.5 px-6 border border-transparent rounded-xl shadow-lg shadow-indigo-500/30 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span *ngIf="loading" class="flex items-center">
-                        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                            </circle>
-                            <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
-                        </svg>
-                        Signing in...
-                    </span>
-                    <span *ngIf="!loading">Sign in</span>
-                </button>
-
-                <!-- Signup Link -->
-                <div class="text-center mt-6">
-                    <p class="text-gray-500 text-sm">
-                        Don't have an account?
-                        <a routerLink="/signup"
-                            class="font-bold text-indigo-600 hover:text-indigo-500 hover:underline transition-all">
-                            Create free account
-                        </a>
+            <!-- LOGIN MODE -->
+            <div *ngIf="mode === 'login'">
+                <div class="text-center mb-10 mt-2">
+                    <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+                        {{ step === 1 ? 'Sign In' : 'Verify Identity' }}
+                    </h2>
+                    <p class="mt-3 text-base text-gray-500 font-medium">
+                        {{ step === 1 ? 'Access your community dashboard' : 'Enter the OTP sent to your phone' }}
                     </p>
                 </div>
-            </form>
+
+                <!-- Step 1: Credentials -->
+                <form *ngIf="step === 1" [formGroup]="loginForm" (ngSubmit)="sendOtp()" class="space-y-6">
+                    <div class="group">
+                        <label
+                            class="block text-sm font-bold text-gray-700 mb-2 transition-colors group-hover:text-violet-600">I
+                            am a</label>
+                        <div
+                            class="relative flex items-center shadow-sm rounded-xl transition-all duration-300 hover:shadow-md">
+                            <mat-icon
+                                class="absolute left-4 text-violet-400 z-10 transition-transform group-focus-within:scale-110">supervised_user_circle</mat-icon>
+                            <select formControlName="role"
+                                class="w-full pl-12 pr-10 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all duration-300 appearance-none cursor-pointer font-medium text-gray-800">
+                                <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+                            </select>
+                            <div
+                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-violet-500">
+                                <mat-icon>expand_more</mat-icon>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <label
+                            class="block text-sm font-bold text-gray-700 mb-2 transition-colors group-hover:text-violet-600">Mobile
+                            Number</label>
+                        <div
+                            class="relative flex items-center shadow-sm rounded-xl transition-all duration-300 hover:shadow-md">
+                            <mat-icon
+                                class="absolute left-4 text-violet-400 z-10 transition-transform group-focus-within:scale-110">phone_iphone</mat-icon>
+                            <input formControlName="mobile_number" type="text"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all duration-300 font-medium text-gray-900">
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <div class="flex items-center justify-between mb-2">
+                            <label
+                                class="block text-sm font-bold text-gray-700 transition-colors group-hover:text-violet-600">Password</label>
+                            <a href="javascript:void(0)" (click)="setMode('forgot_step_1')"
+                                class="text-sm font-bold text-fuchsia-600 hover:text-fuchsia-700 hover:underline transition-all cursor-pointer">Forgot
+                                password?</a>
+                        </div>
+                        <div
+                            class="relative flex items-center shadow-sm rounded-xl transition-all duration-300 hover:shadow-md">
+                            <mat-icon
+                                class="absolute left-4 text-violet-400 z-10 transition-transform group-focus-within:scale-110">lock</mat-icon>
+                            <input formControlName="password" type="password"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all duration-300 font-medium text-gray-900">
+                        </div>
+                    </div>
+
+                    <button type="submit" [disabled]="loading || loginForm.invalid"
+                        class="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-xl shadow-xl shadow-violet-500/20 text-lg font-bold text-white bg-gradient-to-r from-violet-600 to-fuchsia-500 hover:from-violet-500 hover:to-fuchsia-400 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-60 disabled:cursor-not-allowed group">
+                        <span *ngIf="loading" class="flex items-center">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            Processing...
+                        </span>
+                        <span *ngIf="!loading" class="flex items-center gap-2">
+                            Send OTP <mat-icon
+                                class="text-sm transition-transform group-hover:translate-x-1">arrow_forward</mat-icon>
+                        </span>
+                    </button>
+
+                    <div class="text-center mt-8 pb-2">
+                        <p class="text-gray-500 text-sm font-medium">
+                            New to WardConnect?
+                            <a routerLink="/signup"
+                                class="font-extrabold text-fuchsia-600 hover:text-fuchsia-700 hover:underline transition-all ml-1">Create
+                                free account</a>
+                        </p>
+                    </div>
+                </form>
+
+                <!-- Step 2: OTP for Login -->
+                <form *ngIf="step === 2" (ngSubmit)="verifyOtpAndLogin()" class="space-y-6">
+                    <div class="group">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Enter OTP</label>
+                        <div class="relative flex items-center shadow-sm rounded-xl">
+                            <mat-icon class="absolute left-4 text-violet-400 z-10">lock_clock</mat-icon>
+                            <input [(ngModel)]="otpCode" name="otpCode" type="text" maxlength="6"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none text-center tracking-widest font-bold text-2xl text-gray-900">
+                        </div>
+                    </div>
+
+                    <button type="submit" [disabled]="loading || otpCode.length < 6"
+                        class="w-full flex justify-center items-center py-4 px-6 rounded-xl shadow-xl text-lg font-bold text-white bg-gradient-to-r from-violet-600 to-fuchsia-500 hover:from-violet-500 hover:to-fuchsia-400 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-60 disabled:cursor-not-allowed">
+                        <span *ngIf="loading">Verifying...</span>
+                        <span *ngIf="!loading">Verify OTP</span>
+                    </button>
+
+                    <div class="flex justify-between items-center text-sm font-bold">
+                        <a (click)="step = 1" class="text-violet-600 hover:underline cursor-pointer">Back to Login</a>
+                        <a (click)="sendOtp()" class="text-fuchsia-600 hover:underline cursor-pointer">Resend OTP</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- FORGOT PASSWORD FLOW -->
+            <div *ngIf="mode === 'forgot_step_1'">
+                <div class="text-center mb-10 mt-2">
+                    <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Reset Password</h2>
+                    <p class="mt-3 text-base text-gray-500 font-medium">Enter your mobile number to receive an OTP</p>
+                </div>
+                <form [formGroup]="resetForm" (ngSubmit)="onRequestOtp()" class="space-y-6">
+                    <div class="group">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Role</label>
+                        <div class="relative flex items-center shadow-sm rounded-xl">
+                            <mat-icon class="absolute left-4 text-violet-400 z-10">supervised_user_circle</mat-icon>
+                            <select formControlName="role"
+                                class="w-full pl-12 pr-10 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none appearance-none cursor-pointer font-medium">
+                                <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Mobile Number</label>
+                        <div class="relative flex items-center shadow-sm rounded-xl">
+                            <mat-icon class="absolute left-4 text-violet-400 z-10">phone_iphone</mat-icon>
+                            <input formControlName="mobile_number" type="text" maxlength="10"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white font-medium">
+                        </div>
+                    </div>
+                    <button type="submit" [disabled]="loading || resetForm.invalid"
+                        class="w-full flex justify-center items-center py-4 px-6 rounded-xl shadow-xl text-lg font-bold text-white bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all transform hover:-translate-y-1 disabled:opacity-60">
+                        <span *ngIf="loading">Processing...</span>
+                        <span *ngIf="!loading">Send OTP</span>
+                    </button>
+                    <div class="text-center">
+                        <a (click)="setMode('login')"
+                            class="font-bold text-violet-600 hover:underline cursor-pointer">Back to Sign In</a>
+                    </div>
+                </form>
+            </div>
+
+            <div *ngIf="mode === 'forgot_step_2'">
+                <div class="text-center mb-10 mt-2">
+                    <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Verify Identity</h2>
+                    <p class="mt-3 text-base text-gray-500 font-medium">Enter the 6-digit OTP sent to your phone</p>
+                </div>
+                <form [formGroup]="otpForm" (ngSubmit)="onVerifyOtp()" class="space-y-6">
+                    <div class="group">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Enter OTP</label>
+                        <div class="relative flex items-center shadow-sm rounded-xl">
+                            <mat-icon class="absolute left-4 text-violet-400 z-10">lock_clock</mat-icon>
+                            <input formControlName="otp" type="text" maxlength="6"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white text-center tracking-widest font-bold text-2xl">
+                        </div>
+                    </div>
+                    <button type="submit" [disabled]="loading || otpForm.invalid"
+                        class="w-full flex justify-center items-center py-4 px-6 rounded-xl shadow-xl text-lg font-bold text-white bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all transform hover:-translate-y-1 disabled:opacity-60">
+                        <span *ngIf="loading">Verifying...</span>
+                        <span *ngIf="!loading">Verify OTP</span>
+                    </button>
+                    <div class="text-center">
+                        <a (click)="setMode('forgot_step_1')"
+                            class="font-bold text-violet-600 hover:underline cursor-pointer">Go Back</a>
+                    </div>
+                </form>
+            </div>
+
+            <div *ngIf="mode === 'forgot_step_3'">
+                <div class="text-center mb-10 mt-2">
+                    <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">New Password</h2>
+                    <p class="mt-3 text-base text-gray-500 font-medium">Identity verified. Create your new password.</p>
+                </div>
+                <form [formGroup]="newPasswordForm" (ngSubmit)="onResetSubmit()" class="space-y-6">
+                    <div class="group">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">New Password</label>
+                        <div class="relative flex items-center shadow-sm rounded-xl">
+                            <mat-icon class="absolute left-4 text-violet-400 z-10">lock</mat-icon>
+                            <input formControlName="new_password" type="password"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white font-medium">
+                        </div>
+                    </div>
+                    <div class="group">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Confirm New Password</label>
+                        <div class="relative flex items-center shadow-sm rounded-xl">
+                            <mat-icon class="absolute left-4 text-violet-400 z-10">lock_reset</mat-icon>
+                            <input formControlName="confirm_password" type="password"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white font-medium">
+                        </div>
+                    </div>
+                    <button type="submit" [disabled]="loading || newPasswordForm.invalid"
+                        class="w-full flex justify-center items-center py-4 px-6 rounded-xl shadow-xl text-lg font-bold text-white bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all transform hover:-translate-y-1 disabled:opacity-60">
+                        <span *ngIf="loading">Processing...</span>
+                        <span *ngIf="!loading">Reset Password</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

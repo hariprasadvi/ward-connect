@@ -9,6 +9,7 @@ import { JobDashboardComponent } from './pages/job-dashboard/job-dashboard.compo
 import { ChatbotComponent } from './components/chatbot/chatbot.component';
 import { CvGeneratorComponent } from './components/cv-generator/cv-generator.component';
 import { JobAlertsComponent } from './components/job-alerts/job-alerts.component';
+import { ApplicationHistoryComponent } from './pages/application-history/application-history.component';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },
@@ -48,7 +49,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'alerts', pathMatch: 'full' },
       { path: 'chat', component: ChatbotComponent },
       { path: 'cv', component: CvGeneratorComponent },
-      { path: 'alerts', component: JobAlertsComponent }
+      { path: 'alerts', component: JobAlertsComponent },
+      { path: 'history', component: ApplicationHistoryComponent }
     ]
   },
   {

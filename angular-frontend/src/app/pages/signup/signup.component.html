@@ -1,229 +1,188 @@
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
-        <a routerLink="/login"
-            class="inline-flex items-center justify-center p-3 rounded-2xl bg-white shadow-lg shadow-indigo-100 mb-6 cursor-pointer hover:shadow-xl transition-shadow">
-            <span class="text-3xl">🏙️</span>
-        </a>
-        <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Create your account</h2>
-        <p class="mt-2 text-sm text-gray-500">
-            Join WardConnect and manage your community life.
-        </p>
+<div class="min-h-screen flex flex-col justify-center items-center font-sans relative pb-12 w-full pt-10">
+    <!-- Full screen background image -->
+    <div class="fixed inset-0 z-0">
+        <img src="/assets/images/login-bg.png" alt="City ward infrastructure"
+            class="w-full h-full object-cover blur-[2px] scale-105">
+        <!-- Slight dark/violet overlay to make the form pop -->
+        <div class="absolute inset-0 bg-violet-900/60 mix-blend-multiply backdrop-blur-[2px]"></div>
     </div>
 
+
     <!-- Form Card -->
-    <div class="sm:mx-auto sm:w-full sm:max-w-3xl">
+    <div class="sm:mx-auto sm:w-full sm:max-w-3xl relative z-10">
         <div
-            class="bg-white py-8 px-4 shadow-xl shadow-gray-200/50 sm:rounded-3xl sm:px-10 border border-gray-100 relative overflow-hidden">
+            class="bg-white py-10 px-4 shadow-2xl shadow-violet-900/5 sm:rounded-3xl sm:px-10 border border-gray-100 relative overflow-hidden backdrop-blur-sm">
             <!-- Top accent line -->
-            <div class="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-400"></div>
 
             <div *ngIf="errorMessage"
-                class="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center">
-                <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd" />
-                </svg>
+                class="mb-8 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center animate-fade-in shadow-sm">
+                <mat-icon class="mr-2">error_outline</mat-icon>
                 {{ errorMessage }}
             </div>
 
-            <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-8">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    {{ step === 1 ? 'Create Account' : 'Verify Identity' }}
+                </h2>
+                <p class="mt-3 text-base text-gray-500 font-medium">
+                    {{ step === 1 ? 'Join WardConnect and empower your community' : 'Enter the OTP sent to your phone'
+                    }}
+                </p>
+            </div>
+
+            <!-- STEP 1: Details -->
+            <form *ngIf="step === 1" [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-10">
 
                 <!-- Section 1: Basic Info -->
-                <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-900 flex items-center mb-4">
+                <div
+                    class="bg-violet-50/20 p-8 rounded-2xl border border-violet-100/50 hover:border-violet-200 transition-colors duration-300">
+                    <h3 class="text-lg font-extrabold text-gray-900 flex items-center mb-6">
                         <span
-                            class="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold mr-2">1</span>
+                            class="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100 text-violet-600 text-sm font-bold mr-3 shadow-sm border border-violet-200">1</span>
                         Personal Details
                     </h3>
-                    <div class="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-2">
-                        <div class="col-span-1">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">person</mat-icon>
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-8 sm:grid-cols-2">
+                        <div class="col-span-1 group">
+                            <label
+                                class="block text-sm font-bold text-gray-700 mb-2 transition-colors group-hover:text-violet-600">Full
+                                Name</label>
+                            <div
+                                class="relative flex items-center shadow-sm rounded-xl transition-all duration-300 hover:shadow-md">
+                                <mat-icon
+                                    class="absolute left-4 text-violet-400 z-10 transition-transform group-focus-within:scale-110">person</mat-icon>
                                 <input formControlName="full_name" type="text"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="e.g. John Doe">
+                                    class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all duration-300 placeholder-gray-400 font-medium">
                             </div>
                         </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Role</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">supervised_user_circle</mat-icon>
+                        <div class="col-span-1 group">
+                            <label
+                                class="block text-sm font-bold text-gray-700 mb-2 transition-colors group-hover:text-violet-600">Role</label>
+                            <div
+                                class="relative flex items-center shadow-sm rounded-xl transition-all duration-300 hover:shadow-md">
+                                <mat-icon
+                                    class="absolute left-4 text-violet-400 z-10 transition-transform group-focus-within:scale-110">supervised_user_circle</mat-icon>
                                 <select formControlName="role"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 appearance-none cursor-pointer">
+                                    class="w-full pl-12 pr-10 py-3.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition-all duration-300 appearance-none cursor-pointer font-medium text-gray-800">
                                     <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
                                 </select>
-                                <div
-                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                                    <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                        <path
-                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                                    </svg>
-                                </div>
                             </div>
                         </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Mobile Number</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">phone_iphone</mat-icon>
-                                <input formControlName="mobile_number" type="text"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="e.g. 9876543210">
+                        <div class="col-span-1 group">
+                            <label
+                                class="block text-sm font-bold text-gray-700 mb-2 transition-colors group-hover:text-violet-600">Mobile
+                                Number</label>
+                            <div
+                                class="relative flex items-center shadow-sm rounded-xl transition-all duration-300 hover:shadow-md">
+                                <mat-icon
+                                    class="absolute left-4 text-violet-400 z-10 transition-transform group-focus-within:scale-110">phone_iphone</mat-icon>
+                                <input formControlName="mobile_number" type="text" maxlength="10"
+                                    class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white placeholder-gray-400 font-medium">
                             </div>
                         </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Email <span
-                                    class="text-gray-400 font-normal">(Optional)</span></label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">mail</mat-icon>
+                        <div class="col-span-1 group">
+                            <label
+                                class="block text-sm font-bold text-gray-700 mb-2 transition-colors group-hover:text-violet-600">Email
+                                <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
+                            <div
+                                class="relative flex items-center shadow-sm rounded-xl transition-all duration-300 hover:shadow-md">
+                                <mat-icon
+                                    class="absolute left-4 text-violet-400 z-10 transition-transform group-focus-within:scale-110">mail</mat-icon>
                                 <input formControlName="email" type="email"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="e.g. you@example.com">
+                                    class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white placeholder-gray-400 font-medium">
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Section: Profile Image -->
-                <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 mb-8">
-                    <h3 class="text-lg font-bold text-gray-900 flex items-center mb-4">
-                        <mat-icon class="mr-2 text-indigo-600">camera_alt</mat-icon>
+                <div class="bg-violet-50/20 p-8 rounded-2xl border border-violet-100/50">
+                    <h3 class="text-lg font-extrabold text-gray-900 flex items-center mb-2">
+                        <mat-icon class="mr-2 text-violet-500">camera_alt</mat-icon>
                         Profile Photo
                     </h3>
-                    <p class="text-sm text-gray-500 mb-4">Upload a clear photo of your face. This will be used for
-                        attendance verification.</p>
-
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-6 p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
                         <div
-                            class="flex-shrink-0 h-16 w-16 rounded-full overflow-hidden bg-gray-200 border-2 border-dashed border-gray-400 flex items-center justify-center">
+                            class="flex-shrink-0 h-20 w-20 rounded-full overflow-hidden bg-gray-50 border-2 border-dashed border-violet-300 flex items-center justify-center shadow-inner">
                             <img *ngIf="signupForm.get('profile_image')?.value"
                                 [src]="signupForm.get('profile_image')?.value" class="h-full w-full object-cover">
                             <mat-icon *ngIf="!signupForm.get('profile_image')?.value"
-                                class="text-gray-400">person</mat-icon>
+                                class="text-violet-300 text-3xl">person</mat-icon>
                         </div>
-                        <div class="flex-1">
-                            <input type="file" (change)="onFileSelected($event)" accept="image/*" class="block w-full text-sm text-gray-500
-                              file:mr-4 file:py-2 file:px-4
-                              file:rounded-full file:border-0
-                              file:text-sm file:font-semibold
-                              file:bg-indigo-50 file:text-indigo-700
-                              hover:file:bg-indigo-100
-                            " />
-                        </div>
+                        <input type="file" (change)="onFileSelected($event)" accept="image/*"
+                            class="block w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100" />
                     </div>
                 </div>
 
                 <!-- Section 2: Location -->
-                <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-900 flex items-center mb-4">
+                <div class="bg-violet-50/20 p-8 rounded-2xl border border-violet-100/50">
+                    <h3 class="text-lg font-extrabold text-gray-900 flex items-center mb-6">
                         <span
-                            class="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold mr-2">2</span>
+                            class="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100 text-violet-600 text-sm font-bold mr-3">2</span>
                         Location & Address
                     </h3>
-                    <div class="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-2">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Ward Number</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">domain</mat-icon>
-                                <input formControlName="ward_number" type="text"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="e.g. 12">
-                            </div>
-                        </div>
-                        <div class="col-span-1">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">House Number</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">home</mat-icon>
-                                <input formControlName="house_number" type="text"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="e.g. H-101">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Panchayat Name</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">location_city</mat-icon>
-                                <input formControlName="panchayat_name" type="text"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="e.g. Alappuzha">
-                            </div>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Address</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 top-3 text-gray-400 z-10">home</mat-icon>
-                                <textarea formControlName="address"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400 min-h-[80px]"
-                                    placeholder="Full residential address" rows="2"></textarea>
-                            </div>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Aadhaar Number <span
-                                    class="text-gray-400 font-normal">(Optional)</span></label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">badge</mat-icon>
-                                <input formControlName="aadhaar_number" type="text"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="12-digit Aadhaar number">
-                            </div>
-                        </div>
+                    <div class="grid grid-rows-1 gap-6 sm:grid-cols-2">
+                        <input formControlName="ward_number" placeholder="Ward Number"
+                            class="w-full p-3.5 rounded-xl border border-gray-200">
+                        <input formControlName="house_number" placeholder="House Number"
+                            class="w-full p-3.5 rounded-xl border border-gray-200">
+                        <input formControlName="panchayat_name" placeholder="Panchayat Name"
+                            class="w-full p-3.5 rounded-xl border border-gray-200">
+                        <input formControlName="aadhaar_number" placeholder="Aadhaar Number"
+                            class="w-full p-3.5 rounded-xl border border-gray-200 sm:col-span-1">
+                        <textarea formControlName="address" placeholder="Residential Address"
+                            class="w-full p-3.5 rounded-xl border border-gray-200 sm:col-span-2" rows="3"></textarea>
                     </div>
                 </div>
 
                 <!-- Section 3: Password -->
-                <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-900 flex items-center mb-4">
+                <div class="bg-violet-50/20 p-8 rounded-2xl border border-violet-100/50">
+                    <h3 class="text-lg font-extrabold text-gray-900 flex items-center mb-6">
                         <span
-                            class="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold mr-2">3</span>
+                            class="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100 text-violet-600 text-sm font-bold mr-3">3</span>
                         Security
                     </h3>
-                    <div class="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-2">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">lock</mat-icon>
-                                <input formControlName="password" type="password"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="••••••••">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Confirm Password</label>
-                            <div class="relative flex items-center">
-                                <mat-icon class="absolute left-4 text-gray-400 z-10">lock_reset</mat-icon>
-                                <input formControlName="confirm_password" type="password"
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder-gray-400"
-                                    placeholder="••••••••">
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <input formControlName="password" type="password" placeholder="Password"
+                            class="w-full p-3.5 rounded-xl border border-gray-200">
+                        <input formControlName="confirm_password" type="password" placeholder="Confirm Password"
+                            class="w-full p-3.5 rounded-xl border border-gray-200">
                     </div>
                 </div>
 
-                <div class="pt-4">
+                <div class="pt-6">
                     <button type="submit" [disabled]="loading || signupForm.invalid"
-                        class="w-full flex justify-center py-4 px-6 border border-transparent rounded-xl shadow-lg shadow-indigo-500/30 text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span *ngIf="loading" class="flex items-center">
-                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                            Creating your account...
-                        </span>
+                        class="w-full flex items-center justify-center py-4.5 px-6 rounded-xl shadow-xl text-lg font-bold text-white bg-gradient-to-r from-violet-600 to-fuchsia-500 hover:from-violet-500 hover:to-fuchsia-400 transition-all transform hover:-translate-y-1">
+                        <span *ngIf="loading">Processing...</span>
                         <span *ngIf="!loading">Create Account</span>
                     </button>
                 </div>
 
-                <div class="text-center text-sm">
-                    <span class="text-gray-500">Already have an account? </span>
-                    <a routerLink="/login"
-                        class="font-bold text-indigo-600 hover:text-indigo-500 hover:underline transition-all cursor-pointer">
-                        Sign in
-                    </a>
+                <div class="text-center">
+                    <a routerLink="/login" class="font-extrabold text-fuchsia-600 hover:underline">Sign in instead</a>
+                </div>
+            </form>
+
+            <!-- STEP 2: OTP Verification -->
+            <form *ngIf="step === 2" (ngSubmit)="verifyOtpAndSignup()" class="space-y-6">
+                <div class="group">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Enter OTP</label>
+                    <div class="relative flex items-center shadow-sm rounded-xl">
+                        <mat-icon class="absolute left-4 text-violet-400 z-10">lock_clock</mat-icon>
+                        <input [(ngModel)]="otpCode" name="otpCode" type="text" maxlength="6"
+                            class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white text-center tracking-widest font-bold text-2xl text-gray-900">
+                    </div>
+                </div>
+
+                <button type="submit" [disabled]="loading || otpCode.length < 6"
+                    class="w-full flex justify-center items-center py-4 px-6 rounded-xl shadow-xl text-lg font-bold text-white bg-gradient-to-r from-violet-600 to-fuchsia-500 hover:from-violet-500 hover:to-fuchsia-400 transition-all transform hover:-translate-y-1 disabled:opacity-60">
+                    <span *ngIf="loading">Verifying...</span>
+                    <span *ngIf="!loading">Verify & Sign Up</span>
+                </button>
+
+                <div class="flex justify-between items-center text-sm font-bold">
+                    <a (click)="step = 1" class="text-violet-600 hover:underline cursor-pointer">Back to Details</a>
+                    <a (click)="sendOtp()" class="text-fuchsia-600 hover:underline cursor-pointer">Resend OTP</a>
                 </div>
             </form>
         </div>

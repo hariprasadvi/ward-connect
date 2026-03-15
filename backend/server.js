@@ -41,6 +41,9 @@ const userRoutes = require('./src/routes/userRoutes');
 const vehicleRoutes = require('./src/routes/vehicleRoutes');
 const { authenticate } = require('./src/middleware/auth');
 
+const cron = require('node-cron');
+const { scrapeJobs } = require('./src/services/jobScraper.service');
+
 dotenv.config();
 
 const app = express();
@@ -56,14 +59,12 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-<<<<<<< HEAD
-=======
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
->>>>>>> 7e0d98fc5894e4e8bda9b80c81601772edb0bda2
 
 // Public Routes
 app.use('/auth', authRoutes);
 app.use('/api/shop', require('./src/routes/shopRoutes')); // Shop Routes (Handling its own auth)
+app.use('/public/job', jobRoutes); // Expose job alerts for unauthenticated users
 
 // Protected Routes
 app.use('/api', authenticate); // Protect all OTHER API routes
@@ -71,7 +72,6 @@ app.use('/api', authenticate); // Protect all OTHER API routes
 // Core Routes
 app.use('/api/users', userRoutes);
 app.use('/api/vehicle', vehicleRoutes);
-app.use('/api/job', jobRoutes);
 app.use('/api/house-messages', houseMessageRoutes);
 app.use('/api/bills', require('./src/routes/bill.routes'));
 app.use('/api/civic-requests', require('./src/routes/civicRequest.routes'));

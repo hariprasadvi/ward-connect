@@ -21,16 +21,30 @@ const generateCV = async (req, res) => {
 };
 
 const Application = require('../models/Application');
+const JobAlert = require('../models/JobAlert');
+const { scrapeJobs } = require('../services/jobScraper.service');
 
-const getJobAlerts = (req, res) => {
-    // Mock Data for now - in real app, fetch from DB
-    const jobs = [
-        { id: 1, title: 'Web Developer', company: 'Tech Corp', location: 'Remote', type: 'Full-time' },
-        { id: 2, title: 'Data Analyst', company: 'Data Inc', location: 'New York', type: 'Part-time' },
-        { id: 3, title: 'UX Designer', company: 'Design Studio', location: 'London', type: 'Contract' },
-        { id: 4, title: 'Junior Angular Dev', company: 'StartupHub', location: 'Remote', type: 'Internship' },
-    ];
-    res.json(jobs);
+const getJobAlerts = async (req, res) => {
+    try {
+        const jobs = await JobAlert.findAll({
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(jobs);
+    } catch (error) {
+        console.error("Error fetching job alerts:", error);
+        res.status(500).json({ error: "Failed to fetch job alerts." });
+    }
+};
+
+const triggerScrape = async (req, res) => {
+    try {
+        // Run scraper in the background without making the user wait
+        scrapeJobs();
+        res.json({ message: "Job scraping triggered successfully. New jobs will appear shortly." });
+    } catch (error) {
+        console.error("Error triggering scrape:", error);
+        res.status(500).json({ error: "Failed to trigger scrape." });
+    }
 };
 
 const applyForJob = async (req, res) => {
@@ -56,9 +70,27 @@ const applyForJob = async (req, res) => {
     }
 };
 
+const getMyApplications = async (req, res) => {
+    try {
+        const { email } = req.query;
+        if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+        const applications = await Application.findAll({
+            where: { applicantEmail: email },
+            order: [['appliedAt', 'DESC']]
+        });
+        res.json(applications);
+    } catch (error) {
+        console.error('Error fetching applications:', error);
+        res.status(500).json({ error: 'Failed to fetch applications.' });
+    }
+};
+
 module.exports = {
     chat,
     generateCV,
     getJobAlerts,
-    applyForJob
+    applyForJob,
+    triggerScrape,
+    getMyApplications
 };

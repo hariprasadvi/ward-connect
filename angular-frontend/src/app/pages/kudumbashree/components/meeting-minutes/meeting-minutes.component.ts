@@ -14,7 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../services/api.service';
 import { TranslationService } from '../../services/translation.service';
 import { KudumbashreeMeeting } from '../../models/meeting';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 @Component({
   selector: 'app-meeting-minutes',
@@ -50,7 +50,7 @@ export class MeetingMinutesComponent implements OnInit {
   summary = '';
   recordingTime = 0;
   private recordingInterval: any;
-  private socket!: Socket;
+  private socket: any;
 
   constructor(private ngZone: NgZone) {} // Inject NgZone
 
@@ -122,7 +122,7 @@ export class MeetingMinutesComponent implements OnInit {
 
   async startRecording() {
     if (!this.selectedMeeting) return;
-    
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.mediaRecorder = new MediaRecorder(stream);
@@ -196,15 +196,70 @@ export class MeetingMinutesComponent implements OnInit {
       this.recognition.stop();
     }
 
+    this.interimTranscript = ''; // Clear interim text
+
     if (this.recordingInterval) {
       clearInterval(this.recordingInterval);
       this.recordingInterval = null;
     }
   }
 
+  uploadAudio(blob: Blob) {
+    if (!this.selectedMeeting) return;
+
+    this.transcript = 'Uploading...';
+    this.summary = 'Waiting for upload...';
+
+    this.apiService.recordMeetingAudio(this.selectedMeeting, blob).subscribe({
+      next: (response) => {
+        console.log('Upload response', response);
+
+        if (response.warning) {
+          this.transcript = 'Audio saved. ' + response.message;
+          this.summary = 'AI Service Unavailable (Redis down).';
+          alert(response.message);
+        } else {
+          this.pollStatus(this.selectedMeeting);
+        }
+      },
+      error: (error) => {
+        console.error('Upload failed:', error);
+        this.transcript = 'Upload failed. ' + (error.error?.message || error.message);
+        this.summary = 'Upload failed.';
+      }
+    });
+  }
+
+  pollStatus(meetingId: string) {
+    this.transcript = 'Processing... (Please wait)';
+    this.summary = 'Processing...';
+
+    const pollInterval = setInterval(() => {
+      this.apiService.getProcessingStatus(meetingId).subscribe({
+        next: (status) => {
+          console.log('Processing Status:', status.processingStatus);
+          if (status.processingStatus === 'COMPLETED') {
+            clearInterval(pollInterval);
+            this.transcript = status.transcript;
+            this.summary = status.summary;
+          } else if (status.processingStatus === 'FAILED') {
+            clearInterval(pollInterval);
+            this.transcript = 'Processing Failed.';
+            this.summary = 'Processing Failed.';
+          }
+        },
+        error: (err) => {
+          console.error('Polling error:', err);
+          clearInterval(pollInterval);
+          this.transcript = 'Polling Error.';
+        }
+      });
+    }, 5000);
+  }
+
   generateSummary() {
     if (!this.selectedMeeting) return;
-    
+
     this.apiService.getMeetingTranscript(this.selectedMeeting).subscribe({
       next: (response) => {
         this.transcript = response.transcript || this.transcript;

@@ -3,24 +3,39 @@ const KudumbashreeGroup = require('../models/KudumbashreeGroup');
 const Attendance = require('../models/Attendance');
 const geminiService = require('../services/geminiService');
 
-async function processMeetingAudioAsync(meetingId, audioBuffer, mimeType) {
+// Helper: Process in background (No Redis)
+const processMeetingBackground = async (meetingId) => {
+    console.log(`[Background] Starting processing for Meeting ${meetingId}...`);
     try {
-        console.log(`Starting async processing for Meeting ${meetingId}...`);
+        // 1. Fetch Meeting with Audio Data
+        const meeting = await Meeting.findByPk(meetingId);
+        if (!meeting || !meeting.audioData) {
+            console.error(`[Background] Meeting or Audio Data not found for ${meetingId}`);
+            return;
+        }
+
+        // 2. Update Status: PROCESSING
         await Meeting.update({ processingStatus: 'PROCESSING' }, { where: { id: meetingId } });
-        
-        const result = await geminiService.processMeetingAudio(audioBuffer, mimeType);
-        
-        await Meeting.update({ 
+
+        // 3. Process with Gemini
+        console.log('[Background] Sending audio to Gemini...');
+        const result = await geminiService.processMeetingAudio(meeting.audioData, 'audio/webm');
+        console.log('[Background] Gemini processing complete.');
+
+        // 4. Update DB
+        await Meeting.update({
             processingStatus: 'COMPLETED',
             transcript: result.transcript,
             summary: result.summary,
         }, { where: { id: meetingId } });
-        console.log(`Async processing completed for Meeting ${meetingId}`);
+
+        console.log(`[Background] Job completed for Meeting ${meetingId}`);
+
     } catch (error) {
-        console.error(`Async processing failed for Meeting ${meetingId}:`, error);
+        console.error(`[Background] Job failed for Meeting ${meetingId}:`, error);
         await Meeting.update({ processingStatus: 'FAILED' }, { where: { id: meetingId } });
     }
-}
+};
 
 exports.scheduleMeeting = async (req, res) => {
     try {
@@ -110,39 +125,11 @@ exports.recordMeetingAudio = async (req, res) => {
             status: 'Completed'
         }, { where: { id: meetingId } });
 
-<<<<<<< Updated upstream
-        // Process directly in background instead of Bull Queue to avoid Redis dependency locally
-        const geminiService = require('../services/geminiService');
-        (async () => {
-            try {
-                await Meeting.update({ processingStatus: 'PROCESSING' }, { where: { id: meetingId } });
-                console.log(`Sending audio to Gemini directly for Meeting ${meetingId}...`);
-
-                const result = await geminiService.processMeetingAudio(req.file.buffer, req.file.mimetype || 'audio/webm');
-                console.log('Gemini processing complete.');
-
-                await Meeting.update({
-                    processingStatus: 'COMPLETED',
-                    transcript: result.transcript,
-                    summary: result.summary,
-                }, { where: { id: meetingId } });
-
-                console.log(`Job completed for Meeting ${meetingId}`);
-            } catch (err) {
-                console.error(`Job failed for Meeting ${meetingId}:`, err);
-                await Meeting.update({ processingStatus: 'FAILED' }, { where: { id: meetingId } });
-            }
-        })();
+        // Start Background Processing (Fire & Forget)
+        processMeetingBackground(meetingId);
 
         res.status(200).json({
             message: 'Audio uploaded successfully. AI processing started.',
-=======
-        // Add to Queue -> Changed to Direct Async Execution due to missing Redis
-        processMeetingAudioAsync(meetingId, req.file.buffer, req.file.mimetype);
-        
-        res.status(200).json({ 
-            message: 'Audio uploaded successfully. AI processing started.', 
->>>>>>> Stashed changes
             processingStatus: 'PENDING'
         });
     } catch (error) {

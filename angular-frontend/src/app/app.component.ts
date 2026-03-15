@@ -17,8 +17,8 @@ export class AppComponent {
 
   constructor(private router: Router) {
     this.router.events.subscribe(() => {
-      // Hide navbar only on the exact landing page route '/'
-      this.showNavbar = this.router.url !== '/';
+      // Hide navbar on landing, login, and signup pages
+      this.showNavbar = !['/', '/login', '/signup'].includes(this.router.url);
     });
   }
 }

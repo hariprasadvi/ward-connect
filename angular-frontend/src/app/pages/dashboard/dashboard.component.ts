@@ -1,13 +1,14 @@
 import { Component } from '@angular/core';
 import { Router, RouterModule, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { PickupService } from '../waste/core/services/pickup.service';
 
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, RouterLink, RouterModule],
+    imports: [CommonModule, RouterLink, RouterModule, MatIconModule],
     templateUrl: './dashboard.component.html',
     styles: []
 })
