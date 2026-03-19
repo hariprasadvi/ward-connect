@@ -2,6 +2,7 @@ const DonationRequest = require('../models/DonationRequest');
 const MedicineReminder = require('../models/MedicineReminder');
 const HealthRecord = require('../models/HealthRecord');
 const User = require('../models/User');
+const OpBooking = require('../models/OpBooking');
 
 exports.createDonationRequest = async (req, res) => {
     try {
@@ -131,5 +132,87 @@ exports.getHealthRecords = async (req, res) => {
         res.json(records);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching health records' });
+    }
+};
+
+// --- OP Ticket Bookings ---
+
+exports.createOpBooking = async (req, res) => {
+    try {
+        const { hospital, department, date, timeSlot, patientDetails } = req.body;
+        const booking = await OpBooking.create({
+            userId: req.user.id,
+            hospital,
+            department,
+            date,
+            timeSlot,
+            patientDetails
+        });
+        res.status(201).json(booking);
+    } catch (error) {
+        console.error('Error creating OP booking:', error);
+        res.status(500).json({ message: 'Error creating OP booking', error: error.message });
+    }
+};
+
+exports.getUserOpBookings = async (req, res) => {
+    try {
+        const bookings = await OpBooking.findAll({
+            where: { userId: req.user.id },
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(bookings);
+    } catch (error) {
+        console.error('Error fetching OP bookings:', error);
+        res.status(500).json({ message: 'Error fetching OP bookings', error: error.message });
+    }
+};
+
+exports.cancelOpBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const booking = await OpBooking.findOne({ where: { id, userId: req.user.id } });
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+        await booking.destroy();
+        res.json({ message: 'OP booking cancelled successfully' });
+    } catch (error) {
+        console.error('Error cancelling OP booking:', error);
+        res.status(500).json({ message: 'Error cancelling OP booking', error: error.message });
+    }
+};
+
+exports.getAllOpBookings = async (req, res) => {
+    try {
+        const bookings = await OpBooking.findAll({
+            include: [{ model: User, attributes: ['name', 'email', 'phone'] }],
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(bookings);
+    } catch (error) {
+        console.error('Error fetching all OP bookings:', error);
+        res.status(500).json({ message: 'Error fetching all OP bookings', error: error.message });
+    }
+};
+
+exports.updateOpBookingStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, tokenNumber, rejectionReason, timeSlot } = req.body;
+
+        const booking = await OpBooking.findByPk(id);
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+        booking.status = status || booking.status;
+        booking.tokenNumber = tokenNumber || booking.tokenNumber;
+        booking.rejectionReason = rejectionReason || booking.rejectionReason;
+        if (timeSlot) booking.timeSlot = timeSlot;
+        booking.healthWorkerId = req.user.id;
+
+        await booking.save();
+        res.json(booking);
+    } catch (error) {
+        console.error('Error updating OP booking status:', error);
+        res.status(500).json({ message: 'Error updating status', error: error.message });
     }
 };

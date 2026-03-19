@@ -20,4 +20,11 @@ router.delete('/medicines/:id', healthController.deleteMedicineReminder);
 router.post('/records', healthController.addHealthRecord);
 router.get('/records', healthController.getHealthRecords);
 
+// OP Booking Routes
+router.post('/op-bookings', healthController.createOpBooking);
+router.get('/op-bookings/user', healthController.getUserOpBookings);
+router.delete('/op-bookings/:id', healthController.cancelOpBooking);
+router.get('/op-bookings/all', healthController.getAllOpBookings);
+router.put('/op-bookings/:id/status', healthController.updateOpBookingStatus);
+
 module.exports = router;

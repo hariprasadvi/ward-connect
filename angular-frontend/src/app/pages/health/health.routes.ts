@@ -5,6 +5,7 @@ import { DonationMatchingComponent } from './features/donation-matching.componen
 import { HealthRecordVaultComponent } from './features/health-record-vault.component';
 import { CommunityDashboardComponent } from './features/community-dashboard.component';
 import { InsuranceCheckerComponent } from './features/insurance-checker.component';
+import { OpBookingComponent } from './features/op-booking.component';
 
 export const HEALTH_ROUTES: Routes = [
     {
@@ -30,5 +31,9 @@ export const HEALTH_ROUTES: Routes = [
     {
         path: 'insurance',
         component: InsuranceCheckerComponent
+    },
+    {
+        path: 'op-bookings',
+        component: OpBookingComponent
     }
 ];

@@ -24,6 +24,7 @@ export class HealthComponent {
                 { to: '/health/dashboard', title: 'Community Statistics', desc: 'Update real-time health data and alerts.', icon: 'analytics', color: '#f59e0b' },
                 { to: '/health/donation', title: 'Blood Donation Requests', desc: 'Manage and approve blood donation requests.', icon: 'thumb_up', color: '#ec4899' },
                 { to: '/health/insurance', title: 'Scheme Management', desc: 'Add new government and private health schemes.', icon: 'admin_panel_settings', color: '#8b5cf6' },
+                { to: '/health/op-bookings', title: 'OP Bookings Management', desc: 'Manage out-patient booking requests.', icon: 'local_hospital', color: '#10b981' },
             ];
         } else {
             return [
@@ -32,6 +33,7 @@ export class HealthComponent {
                 { to: '/health/dashboard', title: 'Community Dashboard', desc: 'View local health trends and alerts.', icon: 'groups', color: '#f59e0b' },
                 { to: '/health/donation', title: 'Blood Donation', desc: 'Life-saving matching system.', icon: 'favorite', color: '#ec4899' },
                 { to: '/health/insurance', title: 'Insurance Checker', desc: 'Check eligibility for health schemes.', icon: 'description', color: '#8b5cf6' },
+                { to: '/health/op-bookings', title: 'OP Ticket Booking', desc: 'Book Out-Patient hospital appointments.', icon: 'local_hospital', color: '#10b981' },
             ];
         }
     }

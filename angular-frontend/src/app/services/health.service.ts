@@ -43,4 +43,25 @@ export class HealthService {
     addHealthRecord(data: any): Observable<any> {
         return this.http.post(`${this.apiUrl}/records`, data);
     }
+
+    // --- OP Bookings ---
+    createOpBooking(data: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/op-bookings`, data);
+    }
+
+    getMyOpBookings(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/op-bookings/user`);
+    }
+
+    cancelOpBooking(id: string | number): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/op-bookings/${id}`);
+    }
+
+    getAllOpBookings(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/op-bookings/all`);
+    }
+
+    updateOpBookingStatus(id: string | number, data: any): Observable<any> {
+        return this.http.put(`${this.apiUrl}/op-bookings/${id}/status`, data);
+    }
 }

@@ -8,7 +8,7 @@ const authenticate = async (req, res, next) => {
             return res.status(401).json({ message: 'Authentication required. No token provided.' });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
         const user = await User.findByPk(decoded.id);
 
         if (!user) {

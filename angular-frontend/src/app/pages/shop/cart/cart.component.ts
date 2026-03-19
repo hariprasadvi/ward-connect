@@ -136,8 +136,8 @@ export class CartComponent {
          // Fetch profile to verify completion status
          const profile = await firstValueFrom(this.userService.getProfile());
 
-         if (profile.completion < 100) {
-            alert(`Your profile is only ${profile.completion}% complete. Please update your profile to 100% to proceed with checkout.`);
+         if (profile.completion < 50) {
+            alert(`Your profile is only ${profile.completion}% complete. Please update your profile to at least 50% to proceed with checkout.`);
             return;
          }
 

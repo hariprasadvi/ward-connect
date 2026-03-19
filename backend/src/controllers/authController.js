@@ -8,7 +8,7 @@ const { calculateCompletion } = require('./user.controller');
 const generateToken = (user) => {
     return jwt.sign(
         { id: user.id, role: user.role, mobile_number: user.mobile_number, house_number: user.house_number },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'secret',
         { expiresIn: '7d' }
     );
 };
@@ -178,24 +178,7 @@ exports.login = async (req, res) => {
     }
 };
 
-exports.sendOtp = async (req, res) => {
-    // Logic to integrate with SMS provider (e.g., Twilio)
-    // For demo purposes, we'll just return the OTP
-    const { mobile_number } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
 
-    // Save to DB
-    // First clear old OTPs for this number
-    await OtpVerification.destroy({ where: { mobile_number } });
-    await OtpVerification.create({
-        mobile_number,
-        otp,
-        expires_at: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
-    });
-
-    console.log(`OTP for ${mobile_number}: ${otp}`);
-    res.json({ message: 'OTP sent successfully', otp_debug: otp });
-};
 
 exports.verifyOtp = async (req, res) => {
     const { mobile_number, otp } = req.body;

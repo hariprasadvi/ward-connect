@@ -2,8 +2,9 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const { Server } = require('socket.io');
+const dotenv = require('dotenv');
+dotenv.config();
 const { sequelize } = require('./src/config/database');
 
 // Import Models for Association
@@ -43,8 +44,6 @@ const { authenticate } = require('./src/middleware/auth');
 
 const cron = require('node-cron');
 const { scrapeJobs } = require('./src/services/jobScraper.service');
-
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app);

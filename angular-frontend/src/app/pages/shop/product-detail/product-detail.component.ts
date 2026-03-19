@@ -196,8 +196,8 @@ export class ProductDetailComponent implements OnInit {
       try {
          // Profile check
          const profile = await firstValueFrom(this.userService.getProfile());
-         if (profile.completion < 100) {
-            alert(`Your profile is only ${profile.completion}% complete. Please update your profile to 100% to proceed with purchasing.`);
+         if (profile.completion < 50) {
+            alert(`Your profile is only ${profile.completion}% complete. Please update your profile to at least 50% to proceed with purchasing.`);
             return;
          }
 

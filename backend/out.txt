@@ -1,0 +1,25 @@
+All Shop associations loaded.
+CRITICAL ERROR: GEMINI_API_KEY is missing in .env
+User controller: {
+  updateProfile: [AsyncFunction: updateProfile],
+  getProfile: [AsyncFunction: getProfile],
+  getAllHouseNumbers: [AsyncFunction: getAllHouseNumbers],
+  calculateCompletion: [Function: calculateCompletion]
+}
+C:\Users\joelj\Desktop\ward neww\ward-connect\backend\node_modules\razorpay\dist\razorpay.js:34
+      throw new Error('`key_id` or `oauthToken` is mandatory');
+      ^
+
+Error: `key_id` or `oauthToken` is mandatory
+    at new Razorpay (C:\Users\joelj\Desktop\ward neww\ward-connect\backend\node_modules\razorpay\dist\razorpay.js:34:13)
+    at Object.<anonymous> (C:\Users\joelj\Desktop\ward neww\ward-connect\backend\src\controllers\bill.controller.js:140:18)
+    at Module._compile (node:internal/modules/cjs/loader:1738:14)
+    at Object..js (node:internal/modules/cjs/loader:1871:10)
+    at Module.load (node:internal/modules/cjs/loader:1470:32)
+    at Module._load (node:internal/modules/cjs/loader:1290:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:238:24)
+    at Module.require (node:internal/modules/cjs/loader:1493:12)
+    at require (node:internal/modules/helpers:152:16)
+
+Node.js v24.7.0

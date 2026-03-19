@@ -66,6 +66,10 @@ MedicineReminder.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(HealthRecord, { foreignKey: 'userId' });
 HealthRecord.belongsTo(User, { foreignKey: 'userId' });
 
+const OpBooking = require('./OpBooking');
+User.hasMany(OpBooking, { foreignKey: 'userId' });
+OpBooking.belongsTo(User, { foreignKey: 'userId' });
+
 // --- Job Alerts Associations ---
 JobAlert.hasMany(Application, { foreignKey: 'jobId' });
 Application.belongsTo(JobAlert, { foreignKey: 'jobId' });

@@ -7,10 +7,15 @@ const { sequelize } = require('../config/database');
 const User = require('../models/User');
 
 const Razorpay = require('razorpay');
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_w3XfK1M5w8a9lG',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_test_secret_for_now'
-});
+let razorpay;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET
+    });
+} else {
+    // console.warn("RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing in shopController.");
+}
 
 const shopController = {
     // --- Razorpay API ---
@@ -22,6 +27,9 @@ const shopController = {
                 currency: 'INR',
                 receipt: 'receipt_order_' + Date.now()
             };
+            if (!razorpay) {
+                return res.status(400).json({ message: 'Razorpay API keys are missing. Please configure them in the .env file.' });
+            }
             const order = await razorpay.orders.create(options);
             res.json(order);
         } catch (error) {
@@ -246,8 +254,8 @@ const shopController = {
         const user = await User.findByPk(req.user.id);
         const completion = calculateCompletion(user);
 
-        if (completion < 100) {
-            return res.status(403).json({ message: `Your profile is only ${completion}% complete. Please complete your profile to 100% before placing an order.` });
+        if (completion < 50) {
+            return res.status(403).json({ message: `Your profile is only ${completion}% complete. Please complete your profile to at least 50% before placing an order.` });
         }
 
         const t = await sequelize.transaction();
