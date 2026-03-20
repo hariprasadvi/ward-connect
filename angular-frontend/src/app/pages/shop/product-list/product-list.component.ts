@@ -23,8 +23,8 @@ import { FormsModule } from '@angular/forms';
                <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">WardShop</span>
             </div>
 
-            <!-- Search Bar -->
-            <div class="flex-1 max-w-2xl mx-4 lg:mx-8">
+            <!-- Search Bar with Autocomplete -->
+            <div class="flex-1 max-w-2xl mx-4 lg:mx-8 relative">
               <div class="relative group">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -34,9 +34,27 @@ import { FormsModule } from '@angular/forms';
                 <input 
                   type="text" 
                   [(ngModel)]="searchQuery"
-                  (ngModelChange)="onSearch()"
+                  (ngModelChange)="onSearchInput()"
+                  (blur)="hideSuggestions()"
                   class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300 sm:text-sm"
-                  placeholder="Search for products, brands and more...">
+                  placeholder="Search for local products...">
+              </div>
+
+              <!-- Autocomplete Dropdown -->
+              <div *ngIf="showSuggestions && suggestions().length > 0" 
+                   class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-fade-in">
+                <div *ngFor="let suggestion of suggestions()" 
+                     (mousedown)="selectSuggestion(suggestion)"
+                     class="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3 transition-colors border-b border-gray-50 last:border-0">
+                  <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100">
+                    <img [src]="suggestion.image" class="w-full h-full object-cover">
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-sm font-bold text-gray-900">{{ suggestion.title }}</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider">{{ suggestion.category }}</p>
+                  </div>
+                  <div class="text-blue-600 font-bold text-sm">₹{{ suggestion.price }}</div>
+                </div>
               </div>
             </div>
 
@@ -97,18 +115,8 @@ import { FormsModule } from '@angular/forms';
             </div>
         </div>
 
-        <!-- Filters & Sort (Simple Version) -->
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-800">Featured Products</h2>
-            <div class="flex gap-2">
-               <span class="text-sm text-gray-500 self-center">Sort by:</span>
-               <select class="text-sm border-none bg-transparent font-medium text-gray-700 focus:ring-0 cursor-pointer hover:text-blue-600">
-                  <option>Popularity</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Newest First</option>
-               </select>
-            </div>
         </div>
 
         <!-- Product Grid -->
@@ -206,6 +214,35 @@ export class ProductListComponent implements OnInit {
       const name = this.currentUser()?.full_name || 'User';
       return name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
    }
+
+   onSearchInput() {
+      this.showSuggestions = true;
+      // We don't call shopService.setSearchQuery here to prevent filtering the list while typing
+   }
+
+   selectSuggestion(product: Product) {
+      this.searchQuery = product.title;
+      this.showSuggestions = false;
+      this.shopService.setSearchQuery(product.title);
+      this.router.navigate(['/shop/product', product.id]);
+   }
+
+   hideSuggestions() {
+      // Small timeout to allow (mousedown) to fire on suggestions
+      setTimeout(() => this.showSuggestions = false, 200);
+   }
+
+   suggestions = computed(() => {
+      const q = this.searchQuery.toLowerCase();
+      const allProducts = this.products();
+      if (!q || q.length < 1) return [];
+      return allProducts.filter(p => 
+         p.title.toLowerCase().includes(q) || 
+         p.category.toLowerCase().includes(q)
+      ).slice(0, 5); // Limit to top 5 suggestions
+   });
+
+   showSuggestions = false;
 
    onSearch() {
       this.shopService.setSearchQuery(this.searchQuery);
