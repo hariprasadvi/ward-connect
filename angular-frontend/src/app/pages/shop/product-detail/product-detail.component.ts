@@ -93,24 +93,7 @@ declare var Razorpay: any;
                  </button>
               </div>
 
-              <!-- Check Pincode -->
-              <div class="mt-8 pt-8 border-t border-gray-100">
-                 <div class="flex items-center gap-2 mb-2">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span class="font-medium text-gray-700">Check Pincode</span>
-                 </div>
-                 <div class="flex gap-2">
-                    <input type="text" [(ngModel)]="pincode" placeholder="Enter Pincode" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 w-40">
-                    <button (click)="checkPincode()" class="text-blue-600 font-bold text-sm bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">Check</button>
-                 </div>
-                 
-                 <!-- Availability Notification -->
-                 <div *ngIf="availabilityStatus" class="mt-3 flex items-center gap-2 text-sm font-medium animate-fade-in-up" [class.text-green-600]="availabilityStatus === 'Available'" [class.text-red-500]="availabilityStatus !== 'Available'">
-                    <svg *ngIf="availabilityStatus === 'Available'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    <svg *ngIf="availabilityStatus !== 'Available'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    <span>{{ availabilityMessage }}</span>
-                 </div>
-              </div>
+
 
            </div>
         </div>
@@ -132,9 +115,7 @@ export class ProductDetailComponent implements OnInit {
 
    cartCount = this.shopService.cartCount;
 
-   pincode = '';
-   availabilityStatus: 'Available' | 'Unavailable' | null = null;
-   availabilityMessage = '';
+
 
    isLiked = computed(() => {
       const p = this.product();
@@ -163,29 +144,6 @@ export class ProductDetailComponent implements OnInit {
       }
    }
 
-   checkPincode() {
-      if (!this.pincode) return;
-
-      const p = this.product();
-      if (!p) return;
-
-      if (!p.unavailablePincodes) {
-         // If no restriction is set, assume available everywhere (or implement specific whitelist logic if needed)
-         this.availabilityStatus = 'Available';
-         this.availabilityMessage = `Delivery available at ${this.pincode}`;
-         return;
-      }
-
-      const blockedPincodes = p.unavailablePincodes.split(',').map((code: string) => code.trim());
-
-      if (blockedPincodes.includes(this.pincode)) {
-         this.availabilityStatus = 'Unavailable';
-         this.availabilityMessage = `Not available at ${this.pincode}`;
-      } else {
-         this.availabilityStatus = 'Available';
-         this.availabilityMessage = `Delivery available at ${this.pincode}`;
-      }
-   }
 
    private userService = inject(UserService);
 
