@@ -34,6 +34,10 @@ const Booking = sequelize.define('Booking', {
     bookingTime: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
+    },
+    amount: {
+        type: DataTypes.FLOAT,
+        allowNull: true
     }
 });
 

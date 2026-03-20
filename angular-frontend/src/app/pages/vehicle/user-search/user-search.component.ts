@@ -308,7 +308,8 @@ export class UserSearchComponent implements OnInit, AfterViewInit {
       vehicleId: this.selectedVehicle.id,
       source: this.bookingData.source,
       destination: `${this.bookingData.destination} (at ${this.bookingData.bookingTime.replace('T', ' ')})`,
-      bookingType: 'Regular'
+      bookingType: 'Regular',
+      amount: this.bookingData.estimatedPrice // Send the estimated price to the owner
     }).subscribe({
       next: (res: any) => {
         this.toastService.show('Request Sent! Waiting for owner to accept...', 'info');
@@ -329,48 +330,65 @@ export class UserSearchComponent implements OnInit, AfterViewInit {
 
   // Geocoding & Debounce
   private searchTimeout: any;
+  locationSuggestions: any[] = [];
+  showSuggestions = false;
 
   onDestinationChange() {
     clearTimeout(this.searchTimeout);
+    this.locationSuggestions = [];
+    this.showSuggestions = false;
+
     if (!this.bookingData.destination || this.bookingData.destination.length < 3) return;
 
     this.searchTimeout = setTimeout(() => {
       this.geocodeAddress(this.bookingData.destination);
-    }, 1000);
+    }, 700);
   }
 
   geocodeAddress(query: string) {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-
-    // Using fetch directly to avoid adding HttpClient to constructor if not already there (it is in service, but component needs it or use fetch)
-    // Actually, cleaner to use fetch for this simple external call or inject HttpClient. 
-    // Let's use fetch for simplicity and to avoid constructor signature changes if possible, 
-    // BUT we already have constructor. Let's check imports.
-    // Ideally use HttpClient. But let's use fetch to be safe with existing imports.
+    // Restrict to India (countrycodes=in) and add viewbox for Kerala region for priority
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&limit=5&addressdetails=1`;
 
     fetch(url)
       .then(response => response.json())
       .then(data => {
         if (data && data.length > 0) {
-          const destLat = parseFloat(data[0].lat);
-          const destLng = parseFloat(data[0].lon);
-
-          this.updateRouteAndPrice(destLat, destLng);
+          this.locationSuggestions = data;
+          this.showSuggestions = true;
+        } else {
+          this.locationSuggestions = [];
+          this.showSuggestions = false;
         }
       })
       .catch(err => console.error('Geocoding error:', err));
   }
 
+  selectSuggestion(suggestion: any) {
+    const destLat = parseFloat(suggestion.lat);
+    const destLng = parseFloat(suggestion.lon);
+    // Use a shorter display name
+    this.bookingData.destination = suggestion.display_name.split(',').slice(0, 3).join(', ');
+    this.locationSuggestions = [];
+    this.showSuggestions = false;
+    this.updateRouteAndPrice(destLat, destLng);
+  }
+
   updateRouteAndPrice(destLat: number, destLng: number) {
     if (this.userLat && this.userLng && this.selectedVehicle) {
-      // 1. Calculate distance: User -> Destination
-      const dist = this.vehicleService.calculateDistance(this.userLat, this.userLng, destLat, destLng);
-      this.bookingData.distanceKm = dist;
+      // 1. Calculate distance: Vehicle -> User
+      const distVehicleToUser = this.vehicleService.calculateDistance(this.selectedVehicle.latitude, this.selectedVehicle.longitude, this.userLat, this.userLng);
 
-      // 2. Estimate Price based on Trip Distance
-      this.bookingData.estimatedPrice = this.vehicleService.estimatePrice(dist, this.selectedVehicle.type);
+      // 2. Calculate distance: User -> Destination
+      const distUserToDest = this.vehicleService.calculateDistance(this.userLat, this.userLng, destLat, destLng);
 
-      // 3. Draw Route: User -> Destination
+      // 3. Total Distance
+      const totalDistance = distVehicleToUser + distUserToDest;
+      this.bookingData.distanceKm = parseFloat(totalDistance.toFixed(2));
+
+      // 4. Estimate Price based on Total Distance
+      this.bookingData.estimatedPrice = this.vehicleService.estimatePrice(totalDistance, this.selectedVehicle.type);
+
+      // 5. Draw Route: User -> Destination
       this.drawRoute(this.userLat, this.userLng, destLat, destLng);
     }
   }
@@ -381,7 +399,8 @@ export class UserSearchComponent implements OnInit, AfterViewInit {
         next: (booking) => {
           if (booking.status === 'Confirmed') {
             clearInterval(interval);
-            this.toastService.show(`Ride Confirmed! Amount: ₹${booking.amount}`, 'success');
+            const driverInfo = booking.Vehicle ? `. Driver: ${booking.Vehicle.driverName} (${booking.Vehicle.contactNumber})` : '';
+            this.toastService.show(`Ride Confirmed! Amount: ₹${booking.amount}${driverInfo}`, 'success');
             this.loadVehicles(); // Refresh availability
           } else if (booking.status === 'Cancelled') {
             clearInterval(interval);

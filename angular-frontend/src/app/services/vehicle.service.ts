@@ -94,32 +94,50 @@ export class VehicleService {
     }
 
     estimatePrice(distanceKm: number, vehicleType: string): number {
-        let baseRate = 0;
-        let perKmRate = 0;
-
         switch (vehicleType.toLowerCase()) {
-            case 'auto':
-                baseRate = 25;
-                perKmRate = 15;
-                break;
-            case 'taxi':
-                baseRate = 50;
-                perKmRate = 20;
-                break;
-            case 'ambulance':
-                baseRate = 500;
-                perKmRate = 30;
-                break;
-            case 'jeep':
-                baseRate = 60;
-                perKmRate = 18;
-                break;
-            default: // Bus or others
-                baseRate = 10; // Min ticket (simulated)
-                perKmRate = 5;
+            case 'auto': {
+                // Min charge ₹30 for 1.5 km, then ₹15 per km extra
+                const minCharge = 30;
+                const minKm = 1.5;
+                const perKmRate = 15;
+                if (distanceKm <= minKm) return minCharge;
+                return Math.ceil(minCharge + (distanceKm - minKm) * perKmRate);
+            }
+            case 'jeep': {
+                // Min charge ₹100 for 4 km, then ₹20 per km extra
+                const minCharge = 100;
+                const minKm = 4;
+                const perKmRate = 20;
+                if (distanceKm <= minKm) return minCharge;
+                return Math.ceil(minCharge + (distanceKm - minKm) * perKmRate);
+            }
+            case 'taxi': {
+                // Min ₹300 for 5 km, then ₹20 per km extra
+                const minCharge = 300;
+                const minKm = 5;
+                const perKmRate = 20;
+                if (distanceKm <= minKm) return minCharge;
+                return Math.ceil(minCharge + (distanceKm - minKm) * perKmRate);
+            }
+            case 'ambulance': {
+                // Min ₹400 for 20 km, then ₹30 per km extra
+                const minCharge = 400;
+                const minKm = 20;
+                const perKmRate = 30;
+                if (distanceKm <= minKm) return minCharge;
+                return Math.ceil(minCharge + (distanceKm - minKm) * perKmRate);
+            }
+            case 'bus': {
+                // Min booking above 20 km required, ₹5 per km (min ₹100 for 20 km)
+                const minKm = 20;
+                const perKmRate = 5;
+                const minCharge = minKm * perKmRate; // ₹100
+                if (distanceKm < minKm) return minCharge; // Show min even if less
+                return Math.ceil(distanceKm * perKmRate);
+            }
+            default: {
+                return Math.ceil(distanceKm * 10);
+            }
         }
-
-        const totalor = baseRate + (distanceKm * perKmRate);
-        return Math.ceil(totalor);
     }
 }

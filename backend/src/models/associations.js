@@ -6,6 +6,7 @@ const Order = require('./Order');
 const OrderItem = require('./OrderItem');
 const JobAlert = require('./JobAlert'); // Add JobAlert
 const Application = require('./Application'); // Add Application
+const Booking = require('./booking.model'); // Vehicle Booking
 
 // --- Product Associations ---
 User.hasMany(Product, { foreignKey: 'sellerId' });
@@ -73,4 +74,12 @@ OpBooking.belongsTo(User, { foreignKey: 'userId' });
 // --- Job Alerts Associations ---
 JobAlert.hasMany(Application, { foreignKey: 'jobId' });
 Application.belongsTo(JobAlert, { foreignKey: 'jobId' });
+
+// --- Vehicle Booking Associations ---
+User.hasMany(Booking, { foreignKey: 'userId' });
+Booking.belongsTo(User, { foreignKey: 'userId' });
+
+const Vehicle = require('./vehicle.model');
+Vehicle.hasMany(Booking, { foreignKey: 'vehicleId' });
+Booking.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
 

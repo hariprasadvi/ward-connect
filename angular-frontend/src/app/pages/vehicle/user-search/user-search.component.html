@@ -86,13 +86,18 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 text-lg leading-tight">{{ vehicle.type }}</h3>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="text-xs font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{{
-                                    vehicle.registrationNumber }}</span>
-                                <span *ngIf="vehicle.averageRating"
-                                    class="flex items-center text-xs font-bold text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded">
-                                    {{ vehicle.averageRating | number:'1.1-1' }} ★
-                                </span>
+                            <div class="flex flex-col gap-1 mt-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{{
+                                        vehicle.registrationNumber }}</span>
+                                    <span *ngIf="vehicle.averageRating"
+                                        class="flex items-center text-xs font-bold text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded">
+                                        {{ vehicle.averageRating | number:'1.1-1' }} ★
+                                    </span>
+                                </div>
+                                <div *ngIf="vehicle.distanceKm !== undefined" class="text-xs font-medium text-gray-500 flex items-center gap-1">
+                                    <span class="text-[10px]">📍</span> {{ vehicle.distanceKm | number:'1.1-1' }} km away
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -182,7 +187,7 @@
                         </div>
                     </div>
 
-                    <div class="group">
+                    <div class="group relative">
                         <label
                             class="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">To</label>
                         <div class="flex items-center gap-3">
@@ -190,8 +195,19 @@
                                 class="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center text-sm shadow-md ring-2 ring-black/20">
                                 🏁</div>
                             <input type="text" [(ngModel)]="bookingData.destination" (input)="onDestinationChange()"
-                                placeholder="Where to?"
+                                placeholder="Where to? (type to search)"
+                                autocomplete="off"
                                 class="flex-1 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 px-4 py-3 focus:ring-2 focus:ring-black focus:border-transparent placeholder:font-medium placeholder:text-gray-400 transition-all shadow-sm">
+                        </div>
+                        <!-- Location Suggestions Dropdown -->
+                        <div *ngIf="showSuggestions && locationSuggestions.length > 0"
+                            class="absolute left-12 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                            <div *ngFor="let suggestion of locationSuggestions"
+                                (click)="selectSuggestion(suggestion)"
+                                class="px-4 py-3 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer border-b border-gray-50 last:border-0 transition-colors">
+                                <span class="font-semibold block truncate">{{ suggestion.display_name.split(',')[0] }}</span>
+                                <span class="text-gray-400 block truncate text-[10px]">{{ suggestion.display_name.split(',').slice(1, 4).join(',') }}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -208,7 +224,6 @@
                     </div>
                 </div>
 
-                <!-- Price Quote -->
                 <div
                     class="bg-gray-900 rounded-2xl p-5 flex justify-between items-center shadow-lg transform transition hover:scale-[1.02] duration-300 relative overflow-hidden group">
                     <!-- Shine effect -->
@@ -224,9 +239,16 @@
                     <div class="text-right">
                         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Total Distance
                         </p>
-                        <p class="text-indigo-400 font-bold text-lg">{{bookingData.distanceKm}} km</p>
+                        <p class="text-indigo-400 font-bold text-lg">{{bookingData.distanceKm | number:'1.2-2'}} km</p>
                     </div>
                 </div>
+
+                <!-- Bus minimum booking warning -->
+                <div *ngIf="selectedVehicle?.type?.toLowerCase() === 'bus' && bookingData.distanceKm < 20 && bookingData.distanceKm > 0"
+                    class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 font-semibold flex items-center gap-2">
+                    ⚠️ Bus requires a minimum distance of <b>20 km</b>. Short trips may not be served.
+                </div>
+
 
                 <!-- Action Button -->
                 <button (click)="confirmBooking()"

@@ -54,7 +54,7 @@ router.get('/search', async (req, res) => {
 // --- User API: Book Vehicle ---
 router.post('/book', async (req, res) => {
     try {
-        const { userId, vehicleId, source, destination, bookingType } = req.body;
+        const { userId, vehicleId, source, destination, bookingType, amount } = req.body;
 
         // Check vehicle availability
         const vehicle = await Vehicle.findByPk(vehicleId);
@@ -68,6 +68,7 @@ router.post('/book', async (req, res) => {
             source,
             destination,
             bookingType,
+            amount, // Predicted amount
             status: 'Pending' // Start as Pending waiting for owner approval
         });
 
@@ -220,7 +221,12 @@ router.put('/update-location/:vehicleId', async (req, res) => {
 router.get('/booking/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const booking = await Booking.findByPk(id);
+        const booking = await Booking.findByPk(id, {
+            include: [{
+                model: Vehicle,
+                attributes: ['driverName', 'contactNumber', 'registrationNumber', 'type']
+            }]
+        });
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
