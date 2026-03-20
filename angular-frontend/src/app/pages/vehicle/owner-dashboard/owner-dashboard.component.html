@@ -1,111 +1,156 @@
-<div class="container mx-auto p-4 md:p-6 bg-gray-50 min-h-screen">
-    <!-- Header & Stats -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div class="container mx-auto p-4 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen relative overflow-hidden">
+    <!-- Decorative Orbs -->
+    <div class="absolute top-[-10%] left-[-5%] w-96 h-96 bg-indigo-200/40 rounded-full mix-blend-multiply filter blur-3xl pointer-events-none"></div>
+    <div class="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-purple-200/40 rounded-full mix-blend-multiply filter blur-3xl pointer-events-none"></div>
+
+    <!-- Header & Actions -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 relative z-10">
         <div>
-            <h2 class="text-3xl font-bold text-gray-800">Owner Dashboard</h2>
-            <p class="text-gray-500 text-sm">Manage your fleet and bookings</p>
+            <h2 class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-indigo-900 tracking-tight pb-1">Owner Dashboard</h2>
+            <p class="text-indigo-600 font-bold bg-indigo-50 inline-block px-3 py-1 rounded-lg text-sm mt-1 shadow-inner">Manage your fleet and bookings</p>
         </div>
         <div class="flex gap-3">
             <button (click)="toggleAddVehicle()"
-                class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2 shadow-sm">
-                <span>➕</span> Add Vehicle
+                class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2.5 rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all font-bold flex items-center gap-2 shadow-lg shadow-indigo-200 active:scale-95 transform">
+                <span class="text-lg">+</span> Register Vehicle
             </button>
             <a routerLink="/vehicle/history"
-                class="bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg hover:bg-indigo-50 transition font-medium flex items-center gap-2 shadow-sm">
+                class="bg-white/80 backdrop-blur-md text-indigo-700 border border-indigo-100 px-5 py-2.5 rounded-xl hover:bg-white transition-all font-bold flex items-center gap-2 shadow-sm hover:shadow-md">
                 <span>📜</span> History
             </a>
         </div>
     </div>
 
     <!-- Stats Row -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 relative z-10">
+        <div class="bg-white/70 backdrop-blur-xl p-6 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-white flex items-center justify-between group hover:-translate-y-1 transition-all">
             <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Active Rides</p>
-                <p class="text-2xl font-bold text-green-600">{{ activeRidesCount }}</p>
+                <p class="text-gray-400 text-xs font-black uppercase tracking-widest">Active Rides</p>
+                <p class="text-4xl font-black text-green-500 mt-1">{{ activeRidesCount }}</p>
             </div>
-            <div class="bg-green-50 p-2 rounded-lg text-2xl">🟢</div>
+            <div class="bg-green-100 w-16 h-16 flex items-center justify-center rounded-2xl text-3xl shadow-inner group-hover:scale-110 transition-transform">🟢</div>
         </div>
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div class="bg-white/70 backdrop-blur-xl p-6 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-white flex items-center justify-between group hover:-translate-y-1 transition-all">
             <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Pending Requests</p>
-                <p class="text-2xl font-bold text-yellow-600">{{ pendingRequestsCount }}</p>
+                <p class="text-gray-400 text-xs font-black uppercase tracking-widest">Pending Requests</p>
+                <p class="text-4xl font-black text-yellow-500 mt-1">{{ pendingRequestsCount }}</p>
             </div>
-            <div class="bg-yellow-50 p-2 rounded-lg text-2xl">⏳</div>
+            <div class="bg-yellow-100 w-16 h-16 flex items-center justify-center rounded-2xl text-3xl shadow-inner group-hover:scale-110 transition-transform relative">
+                <span *ngIf="pendingRequestsCount > 0" class="animate-ping absolute inset-0 rounded-2xl bg-yellow-400 opacity-20"></span>
+                ⏳
+            </div>
         </div>
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div class="bg-white/70 backdrop-blur-xl p-6 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-white flex items-center justify-between group hover:-translate-y-1 transition-all">
             <div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Fleet Size</p>
-                <p class="text-2xl font-bold text-blue-600">{{ myVehicles.length }}</p>
+                <p class="text-gray-400 text-xs font-black uppercase tracking-widest">Fleet Size</p>
+                <p class="text-4xl font-black text-indigo-600 mt-1">{{ myVehicles.length }}</p>
             </div>
-            <div class="bg-blue-50 p-2 rounded-lg text-2xl">🚕</div>
+            <div class="bg-indigo-100 w-16 h-16 flex items-center justify-center rounded-2xl text-3xl shadow-inner group-hover:scale-110 transition-transform">🚕</div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Main Column (Map & Requests) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
+        <!-- Main Column (Map & Notifications) -->
         <div class="lg:col-span-2 space-y-8">
 
-            <!-- Map Section -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 class="font-bold text-gray-700">📍 Live Fleet Map</h3>
-                    <span class="text-xs text-gray-500">Drag markers to update location</span>
+            <!-- Live Map Panel -->
+            <div class="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-xl shadow-gray-200/50 border border-white overflow-hidden p-2">
+                <div class="p-4 flex justify-between items-center px-6 pt-5 pb-3">
+                    <h3 class="font-extrabold text-gray-800 text-xl tracking-tight flex items-center gap-2">
+                        <span class="text-2xl">🌍</span> Live Fleet Map
+                    </h3>
+                    <span class="bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-green-100">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        GPS Active
+                    </span>
                 </div>
-                <div id="dashboard-map" class="h-80 w-full bg-gray-100 relative">
-                    <!-- Map placeholder -->
+                <!-- Interactive Map Container -->
+                <div class="rounded-[1.5rem] overflow-hidden border-2 border-gray-50/50 ring-1 ring-black/5 shadow-inner">
+                    <div id="dashboard-map" class="h-96 w-full bg-gray-100 relative">
+                        <!-- Map placeholder handled by JS -->
+                    </div>
                 </div>
             </div>
 
-            <!-- Booking Requests -->
-            <div *ngIf="bookingRequests.length > 0">
-                <h3 class="font-bold text-gray-800 mb-4 text-lg">New Requests</h3>
-                <div class="space-y-4">
+            <!-- Notifications Feed (Booking Requests) -->
+            <div>
+                <div class="flex items-center justify-between mb-5 px-1 pt-2">
+                    <h3 class="font-extrabold text-gray-800 text-2xl tracking-tight flex items-center gap-3">
+                        <div class="relative flex items-center justify-center">
+                            <span *ngIf="bookingRequests.length > 0" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-60"></span>
+                            <div class="relative bg-gradient-to-br from-red-500 to-rose-600 w-10 h-10 rounded-xl shadow-lg flex items-center justify-center shadow-red-200">
+                                <span class="text-white text-lg">🔔</span>
+                            </div>
+                        </div>
+                        Live Notifications
+                    </h3>
+                    <div *ngIf="bookingRequests.length > 0" class="bg-red-50 border border-red-100 text-red-600 px-4 py-1.5 rounded-xl text-sm font-black shadow-sm">
+                        {{ bookingRequests.length }} Alerts
+                    </div>
+                </div>
+
+                <div *ngIf="bookingRequests.length > 0" class="space-y-4">
                     <div *ngFor="let request of bookingRequests"
-                        class="bg-white p-5 rounded-xl shadow-sm border border-indigo-100 transition hover:shadow-md">
-                        <div class="flex flex-col md:flex-row justify-between gap-4">
-                            <div>
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xs font-bold px-2 py-0.5 rounded"
-                                        [ngClass]="{'bg-yellow-100 text-yellow-800': request.status === 'Pending', 'bg-green-100 text-green-800': request.status === 'Confirmed'}">
-                                        {{ request.status | uppercase }}
+                        class="relative bg-white/90 backdrop-blur-xl p-6 rounded-[2rem] border border-white shadow-xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden"
+                        [ngClass]="{'shadow-yellow-100/60': request.status === 'Pending', 'shadow-green-100/60': request.status === 'Confirmed'}">
+                        
+                        <!-- Glowing Status Indicator Line -->
+                        <div class="absolute left-0 top-0 bottom-0 w-2"
+                             [ngClass]="{'bg-gradient-to-b from-yellow-300 to-yellow-500': request.status === 'Pending', 'bg-gradient-to-b from-green-400 to-emerald-500': request.status === 'Confirmed'}">
+                        </div>
+
+                        <!-- Shimmer animation on hover -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] opacity-50 pointer-events-none"></div>
+
+                        <div class="flex flex-col md:flex-row justify-between gap-6 pl-3">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-lg border shadow-sm"
+                                        [ngClass]="{'bg-yellow-50 border-yellow-200 text-yellow-700': request.status === 'Pending', 'bg-green-50 border-green-200 text-green-700': request.status === 'Confirmed'}">
+                                        {{ request.status }}
                                     </span>
-                                    <span class="text-xs text-gray-400">{{ request.createdAt | date:'shortTime'
-                                        }}</span>
+                                    <span class="text-xs font-bold text-gray-400 flex items-center gap-1">
+                                        🕒 {{ request.createdAt | date:'shortTime' }}
+                                    </span>
                                 </div>
-                                <h4 class="font-bold text-gray-900">{{ request.User?.full_name || 'Guest User' }}</h4>
-                                <p class="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                                    <span>📞</span> {{ request.User?.mobile_number || 'N/A' }}
+                                <h4 class="font-extrabold text-xl text-gray-900">{{ request.User?.full_name || 'Guest Passenger' }}</h4>
+                                <p class="text-sm font-medium text-gray-500 flex items-center gap-2 mt-1">
+                                    <span class="bg-gray-100 p-1 rounded-md text-xs">📞</span> {{ request.User?.mobile_number || 'No contact provided' }}
                                 </p>
-                                <div class="mt-3 flex items-center text-sm text-gray-700 bg-gray-50 p-2 rounded">
-                                    <span>📍 {{ request.source }}</span>
-                                    <span class="mx-2 text-gray-400">➜</span>
-                                    <span>🏁 {{ request.destination }}</span>
+                                
+                                <div class="mt-4 inline-flex items-center text-sm font-bold text-gray-700 bg-gray-50 border border-gray-100 p-2.5 rounded-xl shadow-sm w-full md:w-auto overflow-hidden">
+                                    <span class="truncate max-w-[150px]" title="{{ request.source }}">📍 {{ request.source }}</span>
+                                    <span class="mx-3 text-indigo-300">➜</span>
+                                    <span class="truncate max-w-[150px]" title="{{ request.destination }}">🏁 {{ request.destination }}</span>
                                 </div>
                             </div>
 
-                            <div class="flex flex-col justify-end items-end gap-2">
-                                <!-- Pending Actions -->
+                            <div class="flex flex-col justify-end items-end gap-3 min-w-[200px]">
+                                <!-- Action Panel for Pending -->
                                 <ng-container *ngIf="request.status === 'Pending'">
-                                    <div class="flex items-center gap-2 bg-indigo-50 p-1 rounded-lg">
-                                        <span class="text-gray-500 pl-2">₹</span>
-                                        <input #amountInput type="number" placeholder="Enter Fare"
+                                    <div class="flex items-center gap-2 bg-indigo-50/80 border border-indigo-100 p-2 rounded-xl w-full">
+                                        <div class="bg-white w-8 h-8 rounded-lg flex items-center justify-center text-indigo-500 font-bold shadow-sm">₹</div>
+                                        <input #amountInput type="number" placeholder="Set Fare"
                                             [value]="request.amount"
-                                            class="w-24 bg-transparent border-none focus:ring-0 text-sm font-bold text-indigo-900 placeholder-indigo-300">
+                                            class="w-full bg-transparent border-none focus:ring-0 text-lg font-black text-indigo-900 placeholder-indigo-300 px-1">
                                     </div>
-                                    <div class="flex gap-2 w-full md:w-auto">
+                                    <div class="flex gap-2 w-full">
                                         <button (click)="declineBooking(request)"
-                                            class="flex-1 px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium">Decline</button>
+                                            class="flex-1 px-4 py-2.5 border-2 border-red-100 text-red-600 rounded-xl hover:bg-red-50 text-sm font-bold transition-colors">Reject</button>
                                         <button (click)="acceptBooking(request, amountInput.value)"
-                                            class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium shadow-sm">Accept</button>
+                                            class="flex-[2] px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-500 hover:to-purple-500 text-sm font-bold shadow-lg shadow-indigo-200 transform active:scale-95 transition-all">Accept</button>
                                     </div>
                                 </ng-container>
 
-                                <!-- Confirmed Actions -->
+                                <!-- Action Panel for Confirmed -->
                                 <ng-container *ngIf="request.status === 'Confirmed'">
-                                    <p class="text-2xl font-bold text-green-600">₹{{ request.amount }}</p>
+                                    <div class="bg-gray-900 text-white px-6 py-3 rounded-2xl w-full text-center shadow-lg relative overflow-hidden group-hover:shadow-xl transition-all">
+                                        <div class="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent"></div>
+                                        <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-0.5">Final Fare</p>
+                                        <p class="text-3xl font-black">₹{{ request.amount }}</p>
+                                    </div>
                                     <button (click)="completeRide(request)"
-                                        class="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-black transition flex items-center gap-2 shadow-lg">
+                                        class="w-full mt-1 px-5 py-3.5 bg-green-500 text-white rounded-xl hover:bg-green-400 transition-all font-bold flex items-center justify-center gap-2 shadow-lg shadow-green-200 transform active:scale-95">
                                         ✅ Complete Ride
                                     </button>
                                 </ng-container>
@@ -113,33 +158,41 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div *ngIf="bookingRequests.length === 0"
-                class="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-                <p class="text-gray-400">No active or pending requests</p>
+
+                <div *ngIf="bookingRequests.length === 0"
+                    class="flex flex-col items-center justify-center py-16 bg-white/40 backdrop-blur-md rounded-[2.5rem] border-2 border-dashed border-gray-300 shadow-inner text-center px-4">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm filter grayscale opacity-50">😴</div>
+                    <h4 class="text-xl font-bold text-gray-600">All caught up!</h4>
+                    <p class="text-gray-400 font-medium mt-1">No new notifications. Wait for new ride requests.</p>
+                </div>
             </div>
         </div>
 
-        <!-- Right Column (Fleet) -->
+        <!-- Right Column (Fleet Management) -->
         <div class="space-y-6">
 
-            <!-- Add Vehicle Form (Collapsible) -->
+            <!-- Add Vehicle Form Modal/Dropdown -->
             <div *ngIf="showAddVehicleForm"
-                class="bg-white rounded-xl shadow-lg border border-indigo-100 p-5 animate-fade-in relative">
+                class="bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-2xl shadow-indigo-200/50 border border-indigo-50 p-6 animate-fade-in relative z-20">
                 <button (click)="toggleAddVehicle()"
-                    class="absolute top-3 right-3 text-gray-300 hover:text-gray-500">✕</button>
-                <h3 class="font-bold text-gray-800 mb-4">Register New Vehicle</h3>
+                    class="absolute top-5 right-5 w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition font-bold">✕</button>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-xl shadow-inner">📝</div>
+                    <h3 class="font-extrabold text-gray-900 text-xl">New Vehicle</h3>
+                </div>
+
                 <form (ngSubmit)="addVehicle()" #vehicleForm="ngForm" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Reg Number</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Reg Number</label>
                             <input type="text" [(ngModel)]="newVehicle.registrationNumber" name="regNum" required
-                                class="w-full border rounded p-2 text-sm">
+                                placeholder="KL-XX-YYYY"
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                         </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Type</label>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Type</label>
                             <select [(ngModel)]="newVehicle.type" name="type" required
-                                class="w-full border rounded p-2 text-sm bg-white">
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                                 <option value="Auto">Auto</option>
                                 <option value="Taxi">Taxi</option>
                                 <option value="Ambulance">Ambulance</option>
@@ -148,72 +201,77 @@
                             </select>
                         </div>
                     </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Driver Name</label>
-                        <input type="text" [(ngModel)]="newVehicle.driverName" name="driverName" required
-                            class="w-full border rounded p-2 text-sm">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Driver Name</label>
+                        <input type="text" [(ngModel)]="newVehicle.driverName" name="driverName" required placeholder="John Doe"
+                            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-indigo-500 transition-all">
                     </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Contact</label>
-                        <input type="text" [(ngModel)]="newVehicle.contactNumber" name="contact" required
-                            class="w-full border rounded p-2 text-sm">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Contact</label>
+                        <input type="text" [(ngModel)]="newVehicle.contactNumber" name="contact" required placeholder="+91 XXXXX XXXXX"
+                            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-indigo-500 transition-all">
                     </div>
 
-                    <div class="p-3 bg-gray-50 rounded text-xs text-gray-500">
-                        📍 Initial location will be set to map center or your current location.
+                    <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl text-xs font-medium text-indigo-700 mt-2 flex gap-2 items-start">
+                        <span class="text-sm">📍</span>
+                        <span>Location defaults to map center. Drag marker on map or use the button below.</span>
                     </div>
 
                     <button type="button" (click)="getCurrentLocation(newVehicle)"
-                        class="text-indigo-600 text-xs font-bold hover:underline">
-                        Use My Current Location
+                        class="w-full py-2 bg-gray-50 text-indigo-600 border border-gray-200 rounded-xl text-xs font-black hover:bg-gray-100 transition-colors uppercase tracking-widest shadow-sm">
+                        Use Immediate Location
                     </button>
 
                     <button type="submit" [disabled]="!vehicleForm.form.valid"
-                        class="w-full bg-black text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition">
-                        Add Vehicle
+                        class="w-full bg-gray-900 text-white py-3.5 mt-2 rounded-xl font-black hover:bg-black shadow-lg hover:shadow-xl transform active:scale-95 transition-all text-sm uppercase tracking-wider relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                        Register Vehicle
                     </button>
                 </form>
             </div>
 
-            <!-- Fleet List -->
-            <div>
-                <h3 class="font-bold text-gray-800 mb-4 flex justify-between items-center">
-                    <span>My Fleet</span>
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ myVehicles.length
-                        }}</span>
+            <!-- Enhanced Fleet List -->
+            <div class="bg-white/60 backdrop-blur-md rounded-[2rem] p-6 border border-white shadow-xl shadow-gray-200/30">
+                <h3 class="font-extrabold text-gray-900 mb-5 flex justify-between items-center text-xl">
+                    <span class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm">📋</div> Your Fleet</span>
                 </h3>
-                <div class="space-y-3">
+                
+                <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     <div *ngFor="let vehicle of myVehicles"
-                        class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group"
+                        class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer group transform hover:-translate-y-0.5"
                         (click)="focusMapOnVehicle(vehicle)">
                         <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="font-bold text-gray-800">{{ vehicle.type }}</h4>
-                                <p
-                                    class="text-xs text-indigo-600 font-mono bg-indigo-50 inline-block px-1 rounded mt-1">
-                                    {{ vehicle.registrationNumber }}</p>
+                            <div class="flex gap-3 items-center">
+                                <div class="w-12 h-12 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center text-xl shadow-inner group-hover:bg-indigo-50 transition-colors">
+                                    {{ vehicle.type === 'Auto' ? '🛺' : vehicle.type === 'Taxi' ? '🚕' : vehicle.type === 'Ambulance' ? '🚑' : vehicle.type === 'Bus' ? '🚌' : '🚙' }}
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-gray-900 text-lg leading-tight">{{ vehicle.type }}</h4>
+                                    <p class="text-[11px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-md mt-1 border border-indigo-100 inline-block shadow-sm">
+                                        {{ vehicle.registrationNumber }}
+                                    </p>
+                                </div>
                             </div>
                             <div class="text-right">
-                                <span
-                                    class="block text-xs font-bold cursor-pointer select-none px-2 py-1 rounded-full transition"
-                                    [ngClass]="vehicle.isAvailable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                                <span class="block text-[10px] font-black uppercase tracking-widest cursor-pointer select-none px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all border"
+                                    [ngClass]="vehicle.isAvailable ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'"
                                     (click)="$event.stopPropagation(); toggleAvailability(vehicle)">
-                                    {{ vehicle.isAvailable ? 'Online' : 'Busy' }}
+                                    <span class="inline-block w-1.5 h-1.5 rounded-full mr-1" [ngClass]="vehicle.isAvailable ? 'bg-green-500' : 'bg-red-500'"></span>
+                                    {{ vehicle.isAvailable ? 'Online' : 'Offline' }}
                                 </span>
-                                <div class="text-xs font-bold text-yellow-500 mt-1" *ngIf="vehicle.averageRating">
-                                    {{ vehicle.averageRating | number:'1.1-1' }} ⭐
+                                <div class="text-xs font-black text-amber-500 mt-2 bg-amber-50 inline-block px-2 py-0.5 rounded border border-amber-100" *ngIf="vehicle.averageRating">
+                                    ★ {{ vehicle.averageRating | number:'1.1-1' }}
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3 pt-3 border-t border-gray-50 flex justify-between items-center">
-                            <p class="text-xs text-gray-500">Driver: {{ vehicle.driverName }}</p>
+                        <div class="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center bg-gray-50/50 -mx-5 -mb-5 p-4 rounded-b-2xl">
+                            <p class="text-xs font-bold text-gray-500 flex items-center gap-1.5">
+                                <span class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px]">👤</span>
+                                {{ vehicle.driverName }}
+                            </p>
                             <button (click)="$event.stopPropagation(); deleteVehicle(vehicle)"
-                                class="text-gray-300 hover:text-red-500 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                         </div>
                     </div>

@@ -45,6 +45,12 @@ const { authenticate } = require('./src/middleware/auth');
 const cron = require('node-cron');
 const { scrapeJobs } = require('./src/services/jobScraper.service');
 
+// Schedule job scraping to run every 12 hours (e.g., at midnight and noon)
+cron.schedule('0 0,12 * * *', () => {
+    console.log('Running scheduled job scraping...');
+    scrapeJobs();
+});
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
