@@ -93,28 +93,28 @@ export class AdminDashboardComponent implements OnInit {
             title: this.translations().TOTAL_MEMBERS,
             value: data.totalMembers,
             icon: 'people',
-            color: '#1976d2',
+            color: '#d81b60',
             change: '+0%'
           },
           {
             title: this.translations().ACTIVE_LOANS,
             value: this.getFormattedAmount(data.totalLoanAmount),
             icon: 'account_balance',
-            color: '#388e3c',
+            color: '#e91e63',
             change: '+0%'
           },
           {
             title: this.translations().TOTAL_LOAN_AMOUNT,
             value: this.getFormattedAmount(data.totalLoanAmount),
             icon: 'payments',
-            color: '#f57c00',
+            color: '#c2185b',
             change: '+0%'
           },
           {
             title: this.translations().PENDING_APPROVAL,
             value: data.pendingLoans || 0,
             icon: 'pending_actions',
-            color: '#d32f2f',
+            color: '#880e4f',
             change: '0%'
           }
         ];
@@ -198,42 +198,42 @@ export class AdminDashboardComponent implements OnInit {
         description: 'View and manage all community members',
         icon: 'group',
         route: '/kudumbashree/admin/members',
-        color: '#1976d2'
+        color: '#d81b60'
       },
       {
         title: 'Loan Management',
         description: 'Approve and manage loan applications',
         icon: 'account_balance',
         route: '/kudumbashree/admin/loans',
-        color: '#388e3c'
+        color: '#c2185b'
       },
       {
         title: 'Schedule Meeting',
         description: 'Create and schedule new meetings',
         icon: 'event',
         route: '/kudumbashree/meetings',
-        color: '#7b1fa2'
+        color: '#ad1457'
       },
       {
         title: 'Generate Reports',
         description: 'Create financial and activity reports',
         icon: 'analytics',
         route: '/kudumbashree/reports',
-        color: '#f57c00'
+        color: '#e91e63'
       },
       {
         title: 'Meeting Minutes',
         description: 'Record and manage meeting minutes',
         icon: 'record_voice_over',
         route: '/kudumbashree/meeting-minutes',
-        color: '#d32f2f'
+        color: '#880e4f'
       },
       {
-        title: 'System Settings',
-        description: 'Configure system preferences',
-        icon: 'settings',
+        title: 'Attendance Manager',
+        description: 'Manage member attendance and history',
+        icon: 'how_to_reg',
         route: '/kudumbashree/admin/settings',
-        color: '#424242'
+        color: '#700c3b'
       }
     ];
   }

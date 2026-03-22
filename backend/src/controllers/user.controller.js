@@ -13,29 +13,27 @@ const updateProfile = async (req, res) => {
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    user.full_name = full_name || user.full_name;
-    user.email = email || user.email;
-    user.ward_number = ward_number || user.ward_number;
-    user.panchayat_name = panchayat_name || user.panchayat_name;
-    user.address = address || user.address;
-    user.aadhaar_number = aadhaar_number || user.aadhaar_number;
-    user.house_number = house_number || user.house_number;
-    user.profile_image = profile_image || user.profile_image;
+    if (full_name !== undefined) user.full_name = full_name;
+    if (email !== undefined) user.email = email;
+    if (ward_number !== undefined) user.ward_number = ward_number;
+    if (panchayat_name !== undefined) user.panchayat_name = panchayat_name;
+    if (address !== undefined) user.address = address;
+    if (aadhaar_number !== undefined) user.aadhaar_number = aadhaar_number;
+    if (house_number !== undefined) user.house_number = house_number;
+    if (profile_image !== undefined) user.profile_image = profile_image;
 
     await user.save();
 
     // Recalculate completion
     const completion = calculateCompletion(user);
 
+    const userResponse = user.toJSON();
+    delete userResponse.password_hash; // Security
+    userResponse.completion = completion;
+
     res.json({
       message: 'Profile updated successfully',
-      user: {
-        id: user.id,
-        full_name: user.full_name,
-        role: user.role,
-        house_number: user.house_number,
-        completion
-      }
+      user: userResponse
     });
   } catch (error) {
     console.error(error);
@@ -78,11 +76,13 @@ const getAllHouseNumbers = async (req, res) => {
 const calculateCompletion = (user) => {
   const fields = [
     'full_name', 'email', 'house_number', 'ward_number', 
-    'panchayat_name', 'address', 'aadhaar_number', 'mobile_number'
+    'panchayat_name', 'address', 'aadhaar_number', 'mobile_number',
+    'profile_image'
   ];
   let filled = 0;
   fields.forEach(f => {
-    if (user[f] && user[f].toString().trim() !== '') {
+    // Check for non-null, non-undefined, and non-empty string values
+    if (user[f] !== null && user[f] !== undefined && user[f].toString().trim() !== '') {
       filled++;
     }
   });

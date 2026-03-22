@@ -89,24 +89,24 @@ export class MemberDashboardComponent implements OnInit {
 
         this.stats = [
           {
-            title: this.translations().ACTIVE_LOANS || 'Active Loans', // Fallback if translation missing
+            title: this.translations().ACTIVE_LOANS || 'Active Loans',
             value: statsData.activeLoans || 0,
             icon: 'credit_score',
-            color: '#1976d2',
+            color: '#d81b60',
             route: '/kudumbashree/loans'
           },
           {
             title: this.translations().PENDING,
             value: '₹' + (statsData.pendingAmount || 0),
             icon: 'pending_actions',
-            color: '#f57c00',
+            color: '#c2185b',
             route: '/kudumbashree/payments'
           },
           {
             title: 'Pay Loan',
             value: 'Pay Now',
             icon: 'payment',
-            color: '#d32f2f',
+            color: '#880e4f',
             route: '/kudumbashree/loans'
           }
         ];
@@ -148,41 +148,35 @@ export class MemberDashboardComponent implements OnInit {
 
   getQuickActions() {
     return [
-      {
-        title: 'Meeting Minutes',
-        description: 'Auto-convert meeting speech to text',
-        icon: 'record_voice_over',
-        route: '/kudumbashree/meeting-minutes',
-        color: '#d32f2f'
-      },
+
       {
         title: 'Mark Attendance',
         description: 'Mark your attendance for current meeting',
         icon: 'fingerprint',
         route: '/kudumbashree/attendance',
-        color: '#1976d2'
+        color: '#d81b60'
       },
       {
         title: 'Apply for Loan',
         description: 'Apply for a new community loan',
         icon: 'account_balance',
-        route: '/kudumbashree/loans', // Changed from action to route
-        queryParams: { tab: 'new' }, // Pass query param to open new application tab
-        color: '#388e3c'
+        route: '/kudumbashree/loans',
+        queryParams: { tab: 'new' },
+        color: '#c2185b'
       },
       {
         title: 'My Profile',
         description: 'View and update your profile',
         icon: 'person',
         route: '/kudumbashree/profile',
-        color: '#7b1fa2'
+        color: '#ad1457'
       },
       {
         title: 'Payment History',
         description: 'View your payment records',
         icon: 'receipt',
         route: '/kudumbashree/payments',
-        color: '#f57c00'
+        color: '#ec407a'
       }
     ];
   }

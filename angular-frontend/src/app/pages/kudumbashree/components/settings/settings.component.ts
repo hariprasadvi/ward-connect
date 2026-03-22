@@ -27,7 +27,7 @@ import { TranslationService } from '../../services/translation.service';
     MatProgressSpinnerModule
   ],
   templateUrl: './settings.component.html',
-  styleUrl: './settings.component.css'
+  styleUrl: './settings.component.scss'
 })
 export class SettingsComponent implements OnInit {
   private apiService = inject(ApiService);

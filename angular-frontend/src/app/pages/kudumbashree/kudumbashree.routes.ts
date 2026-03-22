@@ -82,7 +82,8 @@ export const routes: Routes = [
   {
     path: 'meeting-minutes',
     loadComponent: () => import('./components/meeting-minutes/meeting-minutes.component').then(m => m.MeetingMinutesComponent),
-    canActivate: [AuthGuard] // removed RoleGuard to allow members
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'admin' }
   },
   {
     path: 'meetings',

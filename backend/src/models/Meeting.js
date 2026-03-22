@@ -75,6 +75,6 @@ const Meeting = sequelize.define('Meeting', {
     timestamps: true,
 });
 
-Meeting.belongsTo(KudumbashreeGroup, { foreignKey: 'groupId' });
+// Associations handled in src/models/associations.js
 
 module.exports = Meeting;

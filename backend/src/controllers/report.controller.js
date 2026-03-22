@@ -140,31 +140,151 @@ exports.generateAiReport = async (req, res) => {
         let data = {};
 
         if (type === 'Loan') {
-            data.loans = await Loan.findAll({
+            const loans = await Loan.findAll({
                  where: whereGroup,
                  include: [{ model: User, attributes: ['full_name'] }]
             });
-            data.summary = {
-                totalLoans: await Loan.count({ where: whereGroup }),
-                totalAmount: await Loan.sum('amount', { where: whereGroup }) || 0
+
+            const totalLoans = loans.length;
+            const totalAmount = loans.reduce((s, l) => s + parseFloat(l.amount || 0), 0);
+            const totalRepaid = loans.reduce((s, l) => s + parseFloat(l.repaid_amount || 0), 0);
+            const totalOverdue = loans.reduce((s, l) => s + parseFloat(l.overdue_amount || 0), 0);
+            const activeLoans = loans.filter(l => l.status === 'Active').length;
+            const pendingLoans = loans.filter(l => l.status === 'Pending').length;
+            const closedLoans = loans.filter(l => l.status === 'Closed').length;
+            const rejectedLoans = loans.filter(l => l.status === 'Rejected').length;
+
+            data = {
+                loanDetails: loans.map(l => ({
+                    id: l.id,
+                    member: l.User ? l.User.full_name : 'N/A',
+                    amount: parseFloat(l.amount),
+                    repaid: parseFloat(l.repaid_amount),
+                    overdue: parseFloat(l.overdue_amount),
+                    interestRate: parseFloat(l.interest_rate),
+                    tenureMonths: l.tenure_months,
+                    purpose: l.purpose,
+                    status: l.status,
+                    riskScore: l.risk_score ? parseFloat(l.risk_score) : null,
+                    startDate: l.start_date
+                })),
+                summary: {
+                    totalLoans,
+                    totalAmountDisbursed: totalAmount,
+                    totalRepaid,
+                    totalOutstanding: totalAmount - totalRepaid,
+                    totalOverdue,
+                    activeLoans,
+                    pendingLoans,
+                    closedLoans,
+                    rejectedLoans,
+                    recoveryRate: totalAmount > 0 ? Math.round((totalRepaid / totalAmount) * 100) : 0
+                }
             };
+
         } else if (type === 'Attendance') {
-             data.attendance = await Attendance.findAll({
-                 where: { ...whereGroup }, 
-                 include: [{ model: User, attributes: ['full_name'] }],
-                 limit: 50, 
-                 order: [['createdAt', 'DESC']]
-             });
+            // Attendance doesn't have groupId, join through Meeting
+            const meetingWhere = groupId ? { groupId } : {};
+
+            const meetings = await Meeting.findAll({
+                where: meetingWhere,
+                attributes: ['id', 'title', 'date', 'status'],
+                order: [['date', 'DESC']]
+            });
+
+            const attendanceRecords = await Attendance.findAll({
+                where: meetings.length > 0 ? { meetingId: { [Op.in]: meetings.map(m => m.id) } } : {},
+                include: [
+                    { model: User, attributes: ['full_name'] },
+                    { model: Meeting, attributes: ['title', 'date'] }
+                ],
+                order: [['createdAt', 'DESC']],
+                limit: 200
+            });
+
+            const totalMeetings = meetings.length;
+            const totalPresent = attendanceRecords.filter(a => a.status === 'Present').length;
+            const totalAbsent = attendanceRecords.filter(a => a.status === 'Absent').length;
+            const totalRecords = attendanceRecords.length;
+
+            // Per-member stats
+            const memberStats = {};
+            attendanceRecords.forEach(a => {
+                const name = a.User ? a.User.full_name : 'Unknown';
+                if (!memberStats[name]) memberStats[name] = { present: 0, absent: 0, total: 0 };
+                memberStats[name].total++;
+                if (a.status === 'Present') memberStats[name].present++;
+                else memberStats[name].absent++;
+            });
+
+            const memberSummary = Object.entries(memberStats).map(([name, stats]) => ({
+                member: name,
+                present: stats.present,
+                absent: stats.absent,
+                total: stats.total,
+                attendanceRate: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0
+            }));
+
+            data = {
+                summary: {
+                    totalMeetings,
+                    totalAttendanceRecords: totalRecords,
+                    totalPresent,
+                    totalAbsent,
+                    overallAttendanceRate: totalRecords > 0 ? Math.round((totalPresent / totalRecords) * 100) : 0
+                },
+                memberWiseAttendance: memberSummary,
+                recentMeetings: meetings.slice(0, 10).map(m => ({
+                    title: m.title,
+                    date: m.date,
+                    status: m.status
+                }))
+            };
+
         } else if (type === 'Financial') {
-            const FinancialTransaction = require('../models/FinancialTransaction');
-             data.transactions = await FinancialTransaction.findAll({
-                 where: whereGroup,
-                 limit: 50,
-                 order: [['date', 'DESC']]
-             });
-             data.loans = await Loan.findAll({ attributes: ['amount', 'repaid_amount', 'overdue_amount'], where: whereGroup });
+            let transactions = [];
+            try {
+                const FinancialTransaction = require('../models/FinancialTransaction');
+                transactions = await FinancialTransaction.findAll({
+                    where: whereGroup,
+                    limit: 50,
+                    order: [['date', 'DESC']]
+                });
+            } catch (e) {
+                console.warn('FinancialTransaction model not found, skipping transactions.');
+            }
+
+            const loans = await Loan.findAll({
+                where: { ...whereGroup, status: { [Op.ne]: 'Rejected' } },
+                attributes: ['amount', 'repaid_amount', 'overdue_amount', 'status']
+            });
+
+            const totalDisbursed = loans.reduce((s, l) => s + parseFloat(l.amount || 0), 0);
+            const totalRepaid = loans.reduce((s, l) => s + parseFloat(l.repaid_amount || 0), 0);
+            const totalOverdue = loans.reduce((s, l) => s + parseFloat(l.overdue_amount || 0), 0);
+
+            data = {
+                financialSummary: {
+                    totalLoansDisbursed: totalDisbursed,
+                    totalRepayments: totalRepaid,
+                    outstandingBalance: totalDisbursed - totalRepaid,
+                    totalOverdue,
+                    recoveryRate: totalDisbursed > 0 ? Math.round((totalRepaid / totalDisbursed) * 100) : 0
+                },
+                recentTransactions: transactions.map(t => ({
+                    type: t.type,
+                    amount: parseFloat(t.amount),
+                    date: t.date,
+                    description: t.description
+                })),
+                loanBreakdown: {
+                    active: loans.filter(l => l.status === 'Active').length,
+                    closed: loans.filter(l => l.status === 'Closed').length,
+                    pending: loans.filter(l => l.status === 'Pending').length
+                }
+            };
         } else {
-             return res.status(400).json({ message: 'Invalid report type' });
+             return res.status(400).json({ message: 'Invalid report type. Use: Loan, Attendance, or Financial' });
         }
 
         const reportMarkdown = await geminiService.generateReport(data, type);

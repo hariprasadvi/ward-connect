@@ -60,7 +60,6 @@ const Attendance = sequelize.define('Attendance', {
     timestamps: true,
 });
 
-Attendance.belongsTo(Meeting, { foreignKey: 'meetingId' });
-Attendance.belongsTo(User, { foreignKey: 'userId' });
+// Associations handled in src/models/associations.js
 
 module.exports = Attendance;

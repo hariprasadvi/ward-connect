@@ -1,3 +1,16 @@
+@use 'sass:color';
+
+$primary-pink: #d81b60;
+$baby-pink: #f48fb1;
+$secondary-pink: #f06292;
+$light-pink: #fce4ec;
+$soft-pink: #fff1f5;
+$dark-pink: #880e4f;
+$white: #ffffff;
+$light-gray: #fff5f8;
+$text-dark: #4a148c;
+$text-light: #8e24aa;
+
 .member-profile-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -7,19 +20,17 @@
 
 .header-section {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, $primary-pink, $secondary-pink);
+  padding: 3rem;
+  border-radius: 24px;
+  color: $white;
+  box-shadow: 0 10px 40px rgba(216, 27, 96, 0.2);
 
   h1 {
-    color: #1976d2;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-
-  p {
-    color: #666;
-    font-size: 1.1rem;
-    margin: 0;
+    color: $white;
+    font-size: 2.8rem;
+    font-weight: 800;
   }
 }
 
@@ -37,37 +48,30 @@
 .stats-card,
 .financial-card,
 .actions-card {
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(216, 27, 96, 0.1) !important;
+  border: 1px solid $light-pink;
+  background: $white;
+  overflow: hidden;
 }
 
 .profile-card {
   mat-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 1.5rem 0;
+    background: linear-gradient(135deg, $primary-pink, $dark-pink);
+    color: $white;
+    padding: 2rem;
 
     mat-card-title {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: #1976d2;
-      font-size: 1.3rem;
-    }
-
-    .edit-btn, .save-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      border-radius: 25px;
-      padding: 8px 20px;
+      color: $white !important;
+      font-weight: 800;
+      font-size: 1.5rem;
     }
   }
 }
 
 .profile-form {
-  padding: 1rem 0;
+  padding: 1.5rem;
 
   .form-row {
     margin-bottom: 1.5rem;
@@ -76,15 +80,21 @@
   .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
+    gap: 1.5rem;
     margin-top: 2rem;
 
     button {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      border-radius: 25px;
-      padding: 8px 20px;
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    button[type="submit"] {
+      background: linear-gradient(135deg, $baby-pink 0%, $primary-pink 100%) !important;
+      color: $white !important;
+      box-shadow: 0 8px 20px rgba(216, 27, 96, 0.3);
     }
   }
 }
@@ -93,164 +103,143 @@
   width: 100%;
 }
 
-// Statistics Cards
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  padding: 1.5rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .stat-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  transition: transform 0.2s ease;
+  background: $soft-pink;
+  border-radius: 16px;
+  border-left: 6px solid $primary-pink;
+  padding: 2rem;
+  text-align: center;
+  transition: transform 0.3s ease;
 
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-5px);
   }
 
   .stat-icon {
-    font-size: 2rem;
-    width: 2rem;
-    height: 2rem;
-    color: #1976d2;
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    color: $primary-pink;
+    margin-bottom: 1rem;
   }
 
   .stat-details {
     h3 {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #1976d2;
+      color: $primary-pink;
+      font-weight: 800;
+      font-size: 1.8rem;
     }
 
     p {
-      margin: 0.25rem 0 0 0;
-      color: #666;
-      font-size: 0.9rem;
+      color: $text-light;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.8rem;
     }
   }
 }
 
-// Financial Card
 .financial-stats {
-  .financial-item {
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
+  padding: 1.5rem;
 
-    &:last-child {
-      margin-bottom: 0;
+  .financial-item {
+    background: $light-gray;
+    border-radius: 20px;
+    border: 1px solid $light-pink;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+
+    .financial-icon {
+      font-size: 2.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      color: $primary-pink !important;
     }
 
-    .financial-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-
-      .financial-icon {
-        font-size: 2rem;
-        width: 2rem;
-        height: 2rem;
-        color: #1976d2;
-      }
-
-      h4 {
-        margin: 0 0 0.25rem 0;
-        color: #333;
-        font-size: 1rem;
-        font-weight: 600;
-      }
-
-      .amount {
-        margin: 0;
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #388e3c;
-
-        &.pending {
-          color: #f57c00;
-        }
-      }
-
-      .loans-count {
-        margin: 0;
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #1976d2;
-      }
+    .amount {
+      color: #1b5e20 !important;
+      font-weight: 800;
+      font-size: 1.4rem;
     }
   }
 }
 
-// Quick Actions
 .quick-actions {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
+  padding: 1.5rem;
 }
 
 .action-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid $baby-pink;
+  background: $white;
+  color: $text-dark;
+  font-weight: 700;
+  padding: 1rem !important;
+  border-radius: 15px !important;
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #1976d2;
-    background: #e3f2fd;
+    border-color: $primary-pink;
+    background: $soft-pink;
+    color: $primary-pink;
     transform: translateX(5px);
   }
 
   mat-icon {
-    color: #1976d2;
+    color: $primary-pink;
   }
 }
 
-// Responsive Design
-@media (max-width: 768px) {
-  .member-profile-container {
-    padding: 1rem;
-  }
+::ng-deep {
+  .mat-mdc-form-field {
+    --mdc-outlined-text-field-container-shape: 16px;
+    --mdc-outlined-text-field-outline-color: #{$baby-pink};
+    --mdc-outlined-text-field-hover-outline-color: #{$primary-pink};
+    --mdc-outlined-text-field-focus-outline-color: #{$primary-pink};
+    --mdc-outlined-text-field-label-text-color: #{$text-dark};
+    --mdc-outlined-text-field-focus-label-text-color: #{$primary-pink};
 
-  .header-section {
-    h1 {
-      font-size: 2rem;
+    .mdc-text-field--outlined {
+      background-color: $soft-pink !important;
+    }
+
+    .mat-mdc-floating-label {
+      font-weight: 700 !important;
     }
   }
 
-  .profile-card {
-    mat-card-header {
-      flex-direction: column;
-      gap: 1rem;
-      align-items: stretch;
-    }
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .financial-stats .financial-item {
-    padding: 0.75rem;
+  .success-snackbar {
+    background: $primary-pink !important;
+    color: $white !important;
+    font-weight: 800;
+    border-radius: 15px;
   }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
 
-// Snackbar styles
-::ng-deep .success-snackbar {
-  background: #388e3c;
-  color: white;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

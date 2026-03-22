@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -28,30 +29,24 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   ],
   templateUrl: './profile.component.html',
   styles: [`
-    .profile-container {
-      padding: 2rem;
-      max-width: 800px;
-      margin: 0 auto;
+    :host {
+      display: block;
+      background-color: #f9fafb;
+      min-height: 100vh;
     }
-    .completion-section {
-      margin-bottom: 2rem;
-      padding: 1.5rem;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    .hero-gradient {
+      background: linear-gradient(135deg, #7c3aed 0%, #d946ef 50%, #9333ea 100%);
     }
-    .form-card {
-      border-radius: 20px;
+    .glass-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    .grid-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+    .input-group:focus-within label {
+      color: #7c3aed;
     }
-    @media (max-width: 600px) {
-      .grid-container {
-        grid-template-columns: 1fr;
-      }
+    .progress-glow {
+      box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
     }
   `]
 })
@@ -63,6 +58,7 @@ export class ProfileComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private authService: AuthService,
     private snackBar: MatSnackBar
   ) {
     this.profileForm = this.fb.group({
@@ -118,6 +114,7 @@ export class ProfileComponent implements OnInit {
       next: (res) => {
         this.snackBar.open('Profile updated successfully', 'Close', { duration: 3000 });
         this.completionPercentage = res.user.completion;
+        this.authService.updateUser(res.user);
         this.loading = false;
       },
       error: () => {

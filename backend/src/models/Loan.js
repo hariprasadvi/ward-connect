@@ -85,7 +85,6 @@ const Loan = sequelize.define('Loan', {
     timestamps: true,
 });
 
-Loan.belongsTo(User, { foreignKey: 'userId' });
-Loan.belongsTo(KudumbashreeGroup, { foreignKey: 'groupId' });
+// Associations handled in src/models/associations.js
 
 module.exports = Loan;

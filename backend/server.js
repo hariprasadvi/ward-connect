@@ -20,11 +20,7 @@ const Order = require('./src/models/Order');
 const OrderItem = require('./src/models/OrderItem');
 require('./src/models/associations'); // Extra shop associations
 
-// --- Vehicle Associations ---
-Vehicle.hasMany(Booking, { foreignKey: 'vehicleId', onDelete: 'CASCADE' });
-Booking.belongsTo(Vehicle, { foreignKey: 'vehicleId', onDelete: 'CASCADE' });
-
-// User.hasMany(Booking, ...) and Booking.belongsTo(User, ...) moved to associations.js for central management
+// --- Associations handled centrally in src/models/associations.js ---
 
 const authRoutes = require('./src/routes/authRoutes');
 const jobRoutes = require('./src/routes/jobRoutes');

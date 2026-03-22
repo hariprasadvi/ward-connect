@@ -30,10 +30,26 @@
                                     class="text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
                                     {{ user.full_name }}
                                 </span>
-                                <span *ngIf="user.completion < 100"
-                                    class="text-[10px] font-bold text-orange-500 animate-pulse">
-                                    Profile {{ user.completion }}% complete
-                                </span>
+                                <!-- Profile Completion Indicator -->
+                                <div class="flex flex-col mt-0.5">
+                                    <div class="flex items-center gap-1">
+                                        <span *ngIf="user.completion < 100"
+                                            class="text-[10px] font-bold text-orange-500 animate-pulse">
+                                            {{ user.completion }}% Complete
+                                        </span>
+                                        <span *ngIf="user.completion === 100"
+                                            class="flex items-center gap-0.5 text-[10px] font-bold text-green-600">
+                                            <mat-icon class="text-[12px] w-auto h-auto">verified</mat-icon>
+                                            Verified
+                                        </span>
+                                    </div>
+                                    <!-- Mini Progress Bar -->
+                                    <div *ngIf="user.completion < 100"
+                                        class="w-16 bg-gray-100 rounded-full h-1 mt-0.5 overflow-hidden">
+                                        <div class="bg-indigo-500 h-full transition-all duration-500"
+                                            [style.width.%]="user.completion"></div>
+                                    </div>
+                                </div>
                             </div>
                         </a>
 

@@ -53,6 +53,13 @@ export class AuthService {
         this.router.navigate(['/login']);
     }
 
+    updateUser(user: any) {
+        if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+            this.userSubject.next(user);
+        }
+    }
+
     getToken(): string | null {
         return localStorage.getItem('token');
     }

@@ -14,6 +14,7 @@ import { PickupService } from '../waste/core/services/pickup.service';
 })
 export class DashboardComponent {
     user: any;
+    user$;
     wasteNotificationCount = 0;
 
     constructor(
@@ -21,6 +22,7 @@ export class DashboardComponent {
         private pickupService: PickupService,
         private router: Router
     ) {
+        this.user$ = this.authService.user$;
         this.user = this.authService.getCurrentUser();
         this.loadNotifications();
     }

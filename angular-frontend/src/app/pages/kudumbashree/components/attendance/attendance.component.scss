@@ -1,138 +1,110 @@
+@use 'sass:color';
+
+$primary-pink: #d81b60;
+$baby-pink: #f48fb1;
+$secondary-pink: #f06292;
+$light-pink: #fce4ec;
+$soft-pink: #fff1f5;
+$dark-pink: #880e4f;
+$white: #ffffff;
+$light-gray: #fff5f8;
+$text-dark: #4a148c;
+$text-light: #8e24aa;
+
 .attendance-container {
-  padding: 24px;
-  max-width: 800px;
+  padding: 2rem;
+  max-width: 900px;
   margin: 0 auto;
-}
+  animation: fadeIn 0.8s ease-out;
 
-.attendance-tabs {
-  margin-top: 20px;
-}
-
-.tab-content {
-  padding: 20px 0;
-}
-
-.scanning-area {
-  margin-top: 20px;
-  text-align: center;
+  h2 {
+    text-align: center;
+    color: $primary-pink;
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    font-weight: 800;
+  }
 }
 
 .face-scanner-container {
   position: relative;
   width: 100%;
-  max-width: 480px;
-  height: 360px;
+  max-width: 550px;
+  height: 400px;
   background: #000;
   margin: 0 auto;
-  border-radius: 8px;
+  border-radius: 30px;
   overflow: hidden;
-}
-
-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.overlay-text {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  color: white;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 8px;
-  font-size: 16px;
+  border: 6px solid $baby-pink;
+  box-shadow: 0 20px 50px rgba(216, 27, 96, 0.25);
 }
 
 .attendance-controls {
-  margin-top: 30px;
-  text-align: center;
+  margin-top: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .mark-attendance-btn {
-  padding: 12px 32px !important;
-  font-size: 1.1rem !important;
-}
+  padding: 16px 50px !important;
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+  border-radius: 40px !important;
+  background: linear-gradient(135deg, $baby-pink 0%, $primary-pink 100%) !important;
+  color: $white !important;
+  box-shadow: 0 10px 30px rgba(216, 27, 96, 0.3) !important;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 
-.fee-info {
-  color: #666;
-  text-align: center;
+  &:hover:not(:disabled) {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(216, 27, 96, 0.4) !important;
+  }
 }
 
 .status-message {
-  margin-top: 20px;
-  padding: 16px;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: 500;
+  margin-top: 30px;
+  padding: 20px;
+  border-radius: 20px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+  font-size: 1.1rem;
 }
 
 .status-message.success {
   background-color: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #c8e6c9;
+  color: #1b5e20;
+  border: 2.5px solid #2e7d32;
 }
 
 .status-message.error {
   background-color: #ffebee;
   color: #c62828;
-  border: 1px solid #ffcdd2;
+  border: 2.5px solid #d32f2f;
 }
 
-.location-display {
-  padding: 16px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  margin-top: 20px;
+::ng-deep {
+  .mat-mdc-tab-group {
+    --mdc-tab-indicator-active-indicator-color: #{$primary-pink};
+    --mat-tab-header-active-label-text-color: #{$primary-pink};
+    --mat-tab-header-active-ripple-color: #{$light-pink};
+  }
 }
 
-.payment-processing {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 40px;
-}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
 
-.history-avatar {
-  background-color: #e0e0e0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.status-badge.Present {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-badge.Absent {
-  background-color: #ffebee;
-  color: #c62828;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

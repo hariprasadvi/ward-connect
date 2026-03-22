@@ -52,7 +52,6 @@ const FinancialTransaction = sequelize.define('FinancialTransaction', {
     timestamps: true,
 });
 
-FinancialTransaction.belongsTo(User, { foreignKey: 'userId' });
-FinancialTransaction.belongsTo(KudumbashreeGroup, { foreignKey: 'groupId' });
+// Associations handled in src/models/associations.js
 
 module.exports = FinancialTransaction;

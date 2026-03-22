@@ -47,8 +47,6 @@ const KudumbashreeProfile = sequelize.define('KudumbashreeProfile', {
     timestamps: true,
 });
 
-// Associations
-KudumbashreeProfile.belongsTo(User, { foreignKey: 'userId' });
-KudumbashreeProfile.belongsTo(KudumbashreeGroup, { foreignKey: 'groupId' });
+// Associations are handled in src/models/associations.js
 
 module.exports = KudumbashreeProfile;
