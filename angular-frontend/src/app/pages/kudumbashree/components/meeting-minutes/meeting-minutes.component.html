@@ -7,21 +7,33 @@
     </mat-card-header>
 
     <mat-card-content>
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ translations().SELECT_MEETING }}</mat-label>
-        <mat-icon matPrefix>meeting_room</mat-icon>
-        <mat-select [(value)]="selectedMeeting" (selectionChange)="onMeetingSelect()">
-          <mat-option value="">-- {{ translations().SELECT_MEETING }} --</mat-option>
-          @for (meeting of meetings; track meeting.id) {
-          <mat-option [value]="meeting.id">
-            {{ meeting.title }} - {{ meeting.date | date:'mediumDate' }}
-          </mat-option>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="meeting-select">
+          <mat-label>{{ translations().SELECT_MEETING }}</mat-label>
+          <mat-icon matPrefix>meeting_room</mat-icon>
+          <mat-select [(value)]="selectedMeeting" (selectionChange)="onMeetingSelect()">
+            <mat-option value="">-- {{ translations().SELECT_MEETING }} --</mat-option>
+            @for (meeting of meetings; track meeting.id) {
+            <mat-option [value]="meeting.id">
+              {{ meeting.title }} - {{ meeting.date | date:'mediumDate' }}
+            </mat-option>
+            }
+          </mat-select>
+          @if (!selectedMeeting) {
+          <mat-hint>{{ translations().SELECT_MEETING_HINT }}</mat-hint>
           }
-        </mat-select>
-        @if (!selectedMeeting) {
-        <mat-hint>{{ translations().SELECT_MEETING_HINT }}</mat-hint>
-        }
-      </mat-form-field>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="language-select">
+          <mat-label>🗣️ Language</mat-label>
+          <mat-icon matPrefix>translate</mat-icon>
+          <mat-select [(value)]="selectedLanguage" [disabled]="isRecording">
+            @for (lang of languages; track lang.code) {
+            <mat-option [value]="lang.code">{{ lang.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
 
       @if (selectedMeeting && selectedMeetingDetails) {
       <div class="meeting-details">
@@ -49,9 +61,16 @@
       </div>
       }
 
+      @if (!isSpeechSupported) {
+      <div class="browser-warning">
+        <mat-icon>warning</mat-icon>
+        <p>Your browser does not support Speech Recognition. Please use <strong>Google Chrome</strong> for real-time voice-to-text.</p>
+      </div>
+      }
+
       <div class="recording-controls">
         <button mat-raised-button color="warn" (click)="isRecording ? stopRecording() : startRecording()"
-          [disabled]="!selectedMeeting" [class.recording]="isRecording" class="record-btn">
+          [disabled]="!selectedMeeting || !isSpeechSupported" [class.recording]="isRecording" class="record-btn">
           <mat-icon>{{ isRecording ? 'stop' : 'fiber_manual_record' }}</mat-icon>
           {{ isRecording ? translations().STOP_RECORDING : translations().START_RECORDING }}
         </button>
@@ -70,23 +89,45 @@
 
       @if (isRecording) {
       <div class="recording-status">
-        <mat-progress-spinner diameter="30" mode="indeterminate"></mat-progress-spinner>
-        <span>{{ translations().RECORDING_IN_PROGRESS }} {{ recordingTime }}s</span>
+        <div class="recording-indicator">
+          <span class="live-dot"></span>
+          <span class="live-label">LIVE</span>
+        </div>
+        <div class="recording-info">
+          <mat-icon>mic</mat-icon>
+          <span>{{ translations().RECORDING_IN_PROGRESS }} — {{ formatTime(recordingTime) }}</span>
+        </div>
+        <div class="recording-hint">
+          🗣️ Speak now... your words will appear in real-time below
+        </div>
       </div>
       }
 
       @if (transcript || interimTranscript) {
       <div class="results-section">
         <div class="section-header">
-          <h3>{{ translations().MEETING_TRANSCRIPT }}</h3>
+          <h3>
+            <mat-icon>record_voice_over</mat-icon>
+            {{ translations().MEETING_TRANSCRIPT }}
+            @if (isRecording) {
+            <span class="live-badge">● LIVE</span>
+            }
+          </h3>
           <button mat-icon-button (click)="copyToClipboard(transcript)" [matTooltip]="translations().COPY_TRANSCRIPT">
             <mat-icon>content_copy</mat-icon>
           </button>
         </div>
-        <div class="transcript-box">
-          {{ transcript }} <span style="color: grey; font-style: italic;">{{ interimTranscript }}</span>
+        <div class="transcript-box" [class.is-recording]="isRecording">
+          <span class="final-text">{{ transcript }}</span>
+          @if (interimTranscript) {
+          <span class="interim-text">{{ interimTranscript }}</span>
+          }
+          @if (isRecording && !interimTranscript && !transcript) {
+          <span class="listening-text">Listening...</span>
+          }
         </div>
 
+        @if (summary) {
         <div class="section-header">
           <h3>{{ translations().MEETING_SUMMARY }}</h3>
           <button mat-icon-button (click)="copyToClipboard(summary)" [matTooltip]="translations().COPY_SUMMARY">
@@ -94,13 +135,14 @@
           </button>
         </div>
         <div class="summary-box">{{ summary }}</div>
+        }
 
         <div class="action-buttons">
-          <button mat-stroked-button color="primary" (click)="downloadTranscript()">
+          <button mat-stroked-button color="primary" (click)="downloadTranscript()" [disabled]="!transcript">
             <mat-icon>download</mat-icon>
             {{ translations().DOWNLOAD_TRANSCRIPT }}
           </button>
-          <button mat-stroked-button color="primary" (click)="downloadSummary()">
+          <button mat-stroked-button color="primary" (click)="downloadSummary()" [disabled]="!summary">
             <mat-icon>download</mat-icon>
             {{ translations().DOWNLOAD_SUMMARY }}
           </button>
