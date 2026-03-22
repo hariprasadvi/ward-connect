@@ -1,4 +1,4 @@
-// const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -11,9 +11,8 @@ if (!process.env.GEMINI_API_KEY) {
 }
 
 const getGenAI = () => {
-    return null; // Library disabled to prevent crash
-    // if (!process.env.GEMINI_API_KEY) return null;
-    // return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    if (!process.env.GEMINI_API_KEY) return null;
+    return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 };
 
 // Use standard stable model (verified working)
