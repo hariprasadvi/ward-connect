@@ -1,3 +1,5 @@
 node_modules
 .env
 /.env
+google-cloud-key.json
+*.key.json
