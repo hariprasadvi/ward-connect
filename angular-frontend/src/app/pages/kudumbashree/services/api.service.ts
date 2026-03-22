@@ -13,10 +13,13 @@ export class ApiService {
   private baseUrl = 'http://localhost:5000/api';
 
   // Meeting minutes endpoints
-  recordMeetingAudio(meetingId: string, audioBlob: Blob): Observable<any> {
+  recordMeetingAudio(meetingId: string, audioBlob: Blob, transcript: string): Observable<any> {
     const formData = new FormData();
     formData.append('audio', audioBlob);
     formData.append('meetingId', meetingId);
+    if (transcript) {
+        formData.append('transcript', transcript);
+    }
     return this.http.post(`${this.baseUrl}/kudumbashree/meeting/record`, formData);
   }
 

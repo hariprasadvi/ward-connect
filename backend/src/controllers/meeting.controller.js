@@ -1,41 +1,6 @@
 const Meeting = require('../models/Meeting');
 const KudumbashreeGroup = require('../models/KudumbashreeGroup');
 const Attendance = require('../models/Attendance');
-const geminiService = require('../services/geminiService');
-
-// Helper: Process in background (No Redis)
-const processMeetingBackground = async (meetingId) => {
-    console.log(`[Background] Starting processing for Meeting ${meetingId}...`);
-    try {
-        // 1. Fetch Meeting with Audio Data
-        const meeting = await Meeting.findByPk(meetingId);
-        if (!meeting || !meeting.audioData) {
-            console.error(`[Background] Meeting or Audio Data not found for ${meetingId}`);
-            return;
-        }
-
-        // 2. Update Status: PROCESSING
-        await Meeting.update({ processingStatus: 'PROCESSING' }, { where: { id: meetingId } });
-
-        // 3. Process with Gemini
-        console.log('[Background] Sending audio to Gemini...');
-        const result = await geminiService.processMeetingAudio(meeting.audioData, 'audio/webm');
-        console.log('[Background] Gemini processing complete.');
-
-        // 4. Update DB
-        await Meeting.update({
-            processingStatus: 'COMPLETED',
-            transcript: result.transcript,
-            summary: result.summary,
-        }, { where: { id: meetingId } });
-
-        console.log(`[Background] Job completed for Meeting ${meetingId}`);
-
-    } catch (error) {
-        console.error(`[Background] Job failed for Meeting ${meetingId}:`, error);
-        await Meeting.update({ processingStatus: 'FAILED' }, { where: { id: meetingId } });
-    }
-};
 
 exports.scheduleMeeting = async (req, res) => {
     try {
@@ -112,21 +77,54 @@ exports.getMeetings = async (req, res) => {
 
 exports.recordMeetingAudio = async (req, res) => {
     try {
-        const { meetingId } = req.body;
+        const { meetingId, transcript } = req.body;
 
-        if (!req.file) {
-            return res.status(400).json({ message: 'No audio file uploaded.' });
+        let hasAudio = false;
+        if (req.file) {
+            hasAudio = true;
+            // Save audio buffer to Database (BLOB)
+            await Meeting.update({
+                audioData: req.file.buffer, // Buffer from memory storage
+            }, { where: { id: meetingId } });
         }
 
-        // Save audio buffer to Database (BLOB)
         await Meeting.update({
-            audioData: req.file.buffer, // Buffer from memory storage
             processingStatus: 'UPLOADING', // Technically uploaded to DB now
             status: 'Completed'
         }, { where: { id: meetingId } });
 
-        // Start Background Processing (Fire & Forget)
-        processMeetingBackground(meetingId);
+        // Process directly in background instead of Bull Queue to avoid Redis dependency locally
+        const geminiService = require('../services/geminiService');
+        (async () => {
+            try {
+                await Meeting.update({ processingStatus: 'PROCESSING' }, { where: { id: meetingId } });
+                console.log(`Processing meeting ${meetingId}...`);
+
+                let result;
+                if (transcript && transcript.trim().length > 0) {
+                     console.log('Using live transcript provided by Google Cloud, extracting summary only.');
+                     result = await geminiService.summarizeMeetingTranscript(transcript);
+                } else if (hasAudio) {
+                     console.log('Sending audio to Gemini directly...');
+                     result = await geminiService.processMeetingAudio(req.file.buffer, req.file.mimetype || 'audio/webm');
+                } else {
+                     throw new Error('No audio and no transcript provided.');
+                }
+
+                console.log('Processing complete.');
+
+                await Meeting.update({
+                    processingStatus: 'COMPLETED',
+                    transcript: result.transcript,
+                    summary: result.summary,
+                }, { where: { id: meetingId } });
+
+                console.log(`Job completed for Meeting ${meetingId}`);
+            } catch (err) {
+                console.error(`Job failed for Meeting ${meetingId}:`, err);
+                await Meeting.update({ processingStatus: 'FAILED' }, { where: { id: meetingId } });
+            }
+        })();
 
         res.status(200).json({
             message: 'Audio uploaded successfully. AI processing started.',

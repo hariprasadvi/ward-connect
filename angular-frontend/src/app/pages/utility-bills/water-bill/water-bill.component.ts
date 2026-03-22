@@ -62,6 +62,23 @@ export class WaterBillComponent implements OnInit {
     }
   }
 
+  onConsumerNumberChange(val: string) {
+    if (val === '1234567890123') {
+      const user = this.authService.getCurrentUser();
+      if (user && user.mobile_number) {
+        this.mobileNumber = user.mobile_number;
+      } else {
+        this.userService.getProfile().subscribe({
+          next: (profile) => {
+            if (profile && profile.mobile_number) {
+              this.mobileNumber = profile.mobile_number;
+            }
+          }
+        });
+      }
+    }
+  }
+
   fetchBill() {
     this.errorMessage = '';
     this.fetchedBill = null;
@@ -92,7 +109,7 @@ export class WaterBillComponent implements OnInit {
         this.isLoading = false;
         console.error('Fetch Error:', err);
         if (err.status === 404) {
-          this.errorMessage = "No pending bills found for this Consumer Number.";
+          this.errorMessage = err.error?.message || "No pending bills found for this Consumer Number.";
         } else {
           this.errorMessage = "Failed to fetch bill details. Please check connection.";
         }

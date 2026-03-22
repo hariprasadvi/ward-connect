@@ -70,6 +70,55 @@ exports.processMeetingAudio = async (audioBuffer, mimeType) => {
     }
 };
 
+exports.summarizeMeetingTranscript = async (transcript) => {
+    try {
+        const genAI = getGenAI();
+        if (!genAI) {
+            console.warn("Gemini API Key missing. Returning mock data.");
+            return { transcript: transcript, summary: "Mock Summary: Gemini API Key Missing" };
+        }
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = `
+        You are an intelligent assistant for Kudumbashree (neighborhood groups in Kerala).
+        Given the following Malayalam meeting transcript, generate a structured "Meeting Minutes" summary in **Malayalam**, including Key Decisions and Action Items.
+        
+        Format your response as a JSON object strictly like this:
+        {
+            "summary": "Structured Malayalam summary here..."
+        }
+
+        Transcript:
+        ${transcript}
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        // Clean up markdown code blocks if present
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        try {
+            const parsed = JSON.parse(text);
+            return {
+                transcript: transcript,
+                summary: parsed.summary
+            };
+        } catch (e) {
+            console.error("Failed to parse JSON from Gemini:", text);
+            return {
+                transcript: transcript,
+                summary: "Could not parse structured summary. Generated text: " + text
+            };
+        }
+
+    } catch (error) {
+        console.error("Gemini AI API Error in summarization:", error);
+        throw error;
+    }
+};
+
 exports.generateReport = async (data, type) => {
     const genAI = getGenAI();
     if (!genAI) {
@@ -159,7 +208,7 @@ function generateFallbackReport(data, type) {
 
         report += `## ശുപാർശകൾ\n\n`;
         report += `- ${s.recoveryRate >= 80 ? 'മികച്ച വസൂൽ നിരക്ക്. നിലവിലെ തിരിച്ചടവ് നിരീക്ഷണ രീതികൾ തുടരുക.' : 'വസൂൽ നിരക്ക് മെച്ചപ്പെടുത്തേണ്ടതുണ്ട്. കൂടുതൽ കർശനമായ ഫോളോ-അപ്പ് ഷെഡ്യൂളുകൾ നടപ്പിലാക്കുക.'}\n`;
-        report += `- ${s.totalOverdue > 0 ? `₹${(s.totalOverdue).toLocaleString('en-IN')} കുടിശ്ശിക തുക അംഗങ്ങളുമായി ചർച്ച ചെയ്തും പേയ്‌മെന്റ് റിമൈൻഡറുകൾ അയച്ചും പരിഹരിക്കുക.` : 'കുടിശ്ശിക തുകകൾ ഇല്ല — മികച്ച സാമ്പത്തിക അച്ചടക്കം.'}\n`;
+        report += `- ${s.totalOverdue > 0 ? `₹${(s.totalOverdue).toLocaleString('en-IN')} കുടിശ്ശിക തുക അംഗങ്ങളുമായി ചർച്ച ചെയ്തും പേയ്‌മെന്റ് റിമൈൻഡറുകൾ അയച്ചും പരിഹരിക്കുക.` : 'കുടിശ്ശിക തുക ഇല്ല — മികച്ച സാമ്പത്തിക അച്ചടക്കം.'}\n`;
         report += `- ${s.pendingLoans > 0 ? `${s.pendingLoans} തീർപ്പുകൽപ്പിക്കാത്ത വായ്പ അപേക്ഷ(കൾ) ഉടനടി പരിശോധിക്കുക.` : 'എല്ലാ വായ്പ അപേക്ഷകളും പ്രോസസ്സ് ചെയ്തു.'}\n`;
         return report;
 
@@ -232,4 +281,3 @@ function generateFallbackReport(data, type) {
 
     return `# ${type} റിപ്പോർട്ട്\n\n**തീയതി:** ${now}\n\nഈ റിപ്പോർട്ട് തരത്തിന് ഡാറ്റ ലഭ്യമല്ല.`;
 }
-

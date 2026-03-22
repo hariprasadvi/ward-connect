@@ -6,7 +6,7 @@ dotenv.config();
 const sequelize = new Sequelize(
     process.env.DB_NAME || 'wardconnect',
     process.env.DB_USER || 'postgres',
-    process.env.DB_PASS || 'postgres',
+    process.env.DB_PASSWORD || process.env.DB_PASS || 'postgres',
     {
         host: process.env.DB_HOST || 'localhost',
         dialect: process.env.DB_DIALECT || 'postgres',

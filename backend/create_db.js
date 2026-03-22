@@ -8,7 +8,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const sequelize = new Sequelize(
     'postgres',
     process.env.DB_USER,
-    process.env.DB_PASS,
+    process.env.DB_PASSWORD || process.env.DB_PASS,
     {
         host: process.env.DB_HOST,
         dialect: process.env.DB_DIALECT || 'postgres',

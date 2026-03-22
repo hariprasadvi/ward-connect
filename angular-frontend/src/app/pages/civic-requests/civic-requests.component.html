@@ -1,140 +1,475 @@
-<div class="civic-container">
-    <!-- Sub Navbar / Menu -->
-    <nav class="sub-nav">
-        <div class="nav-brand" (click)="setTab('landing')">Civic Connect</div>
+<div class="gov-container">
+    <!-- Navbar -->
+    <nav class="gov-nav">
+        <div class="nav-brand" (click)="setTab('landing')">
+            <i class="fas fa-university"></i> Civic Services Portal
+        </div>
         <div class="nav-links">
-            <button [class.active]="activeTab === 'report'" (click)="setTab('report')">Issue Report</button>
-            <button [class.active]="activeTab === 'status'" (click)="setTab('status')">Status</button>
-            <button [class.active]="activeTab === 'help'" (click)="setTab('help')">Help & Support</button>
+            <button *ngIf="!isAdmin" [class.active]="activeTab === 'report'" (click)="setTab('report')">
+                <i class="fas fa-edit"></i> Report Issue
+            </button>
+            <button [class.active]="activeTab === 'status'" (click)="setTab('status')">
+                <i class="fas fa-table"></i> {{ isAdmin ? 'Admin Dashboard' : 'My Requests' }}
+            </button>
+            <button *ngIf="isAdmin" [class.active]="activeTab === 'analytics'" (click)="setTab('analytics')">
+                <i class="fas fa-chart-pie"></i> Analytics
+            </button>
+            <button [class.active]="activeTab === 'notifications'" (click)="setTab('notifications')" class="btn-notification">
+                <i class="fas fa-bell"></i> Notifications
+                <span *ngIf="unreadNotificationCount > 0" class="notif-badge">{{ unreadNotificationCount }}</span>
+            </button>
+            <button [class.active]="activeTab === 'help'" (click)="setTab('help')">
+                <i class="fas fa-question-circle"></i> Help & Support
+            </button>
         </div>
     </nav>
 
-    <!-- Landing Page -->
-    <div *ngIf="activeTab === 'landing'" class="landing-section animate-fade">
-        <div class="hero-content">
-            <h1>Spot a problem in your area?</h1>
-            <p>Report it in seconds and track the resolution in real-time.</p>
-            <button class="btn-report-now" (click)="setTab('report')">Report Now</button>
+    <div class="gov-content">
+        <!-- Landing Section -->
+        <div *ngIf="activeTab === 'landing'" class="landing-section fade-in">
+            <div class="landing-hero">
+                <h1>Official Civic Issue Reporting</h1>
+                <p>Register complaints directly with your local Ward authorities. Enhance community trust through transparent resolution tracking.</p>
+                <button class="btn-primary-large" (click)="setTab('report')">File a Complaint Now</button>
+            </div>
+            <div class="info-cards">
+                <div class="info-card">
+                    <i class="fas fa-shield-alt icon-deepblue"></i>
+                    <h3>Secure & Official</h3>
+                    <p>Your requests are securely processed and channeled directly to the Ward Member or Panchayat Administration.</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-chart-line icon-deepblue"></i>
+                    <h3>Track Live Progress</h3>
+                    <p>Observe status changes in real-time. Full transparency applied to every active municipal issue.</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-map-marked-alt icon-deepblue"></i>
+                    <h3>Location Tagging</h3>
+                    <p>Map specific coordinates to your complaint, giving authorities exact context of required action.</p>
+                </div>
+            </div>
         </div>
-        <div class="features-grid">
-            <div class="feature-card">
-                <i class="fas fa-bolt"></i>
-                <h3>Quick Reporting</h3>
-                <p>Easy 2-step process to report issues.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-map-marker-alt"></i>
-                <h3>Geo-Location</h3>
-                <p>Pinpoint exactly where the problem is.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-history"></i>
-                <h3>Live Updates</h3>
-                <p>Track your complaint status 24/7.</p>
-            </div>
-        </div>
-    </div>
 
-    <!-- Issue Report Section -->
-    <div *ngIf="activeTab === 'report'" class="report-section animate-slide">
-        <!-- Step 1: Form -->
-        <div *ngIf="step === 1" class="form-card">
-            <h2>Report an Issue</h2>
-            <div class="form-group">
-                <label>Issue Title</label>
-                <input type="text" [(ngModel)]="formData.title" placeholder="e.g., Street Light Not Working">
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea [(ngModel)]="formData.description" placeholder="Describe the problem in detail..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Select Location</label>
-                <select [(ngModel)]="formData.location">
-                    <option value="" disabled>-- Select Area --</option>
-                    <option value="Ward 1 - Central">Ward 1 - Central</option>
-                    <option value="Ward 2 - East">Ward 2 - East</option>
-                    <option value="Ward 3 - West">Ward 3 - West</option>
-                    <option value="Ward 4 - North">Ward 4 - North</option>
-                    <option value="Ward 5 - South">Ward 5 - South</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Upload Media (Optional)</label>
-                <div class="file-upload">
-                    <input type="file" (change)="onFileChange($event)" accept="image/*">
-                    <div *ngIf="formData.mediaUrl" class="preview-thumb">
-                        <img [src]="formData.mediaUrl" alt="Preview">
+        <!-- Report Issue Section -->
+        <div *ngIf="activeTab === 'report'" class="report-section fade-in">
+            <div class="gov-card form-card">
+                <div class="card-title-bar">
+                    <h2>{{ step === 1 ? 'Lodge a Complaint' : 'Review & Submit' }}</h2>
+                    <span class="step-indicator">Step {{ step }} of 2</span>
+                </div>
+                
+                <div class="card-body" *ngIf="step === 1">
+                    <div class="gov-form-group">
+                        <label>Complaint Title *</label>
+                        <input type="text" class="gov-input" [(ngModel)]="formData.title" placeholder="e.g. Broken Streetlight on Main Rd">
+                    </div>
+                    <div class="gov-form-group">
+                        <label>Detailed Description *</label>
+                        <textarea class="gov-input gov-textarea" [(ngModel)]="formData.description" placeholder="Provide accurate circumstances surrounding the issue..."></textarea>
+                    </div>
+                    <div class="gov-form-group">
+                        <label>Affected Ward / Location *</label>
+                        <select class="gov-input" [(ngModel)]="formData.location">
+                            <option value="" disabled>-- Select Authorized Area --</option>
+                            <option value="Ward 1 - Central">Ward 1 - Central</option>
+                            <option value="Ward 2 - East">Ward 2 - East</option>
+                            <option value="Ward 3 - West">Ward 3 - West</option>
+                            <option value="Ward 4 - North">Ward 4 - North</option>
+                            <option value="Ward 5 - South">Ward 5 - South</option>
+                        </select>
+                    </div>
+                    <div class="gov-form-group">
+                        <label>Supporting Visual Evidence</label>
+                        <div class="gov-file-upload">
+                            <input type="file" (change)="onFileChange($event)" accept="image/*" id="file-upload-input" class="file-input-hidden">
+                            <label for="file-upload-input" class="btn-secondary">
+                                <i class="fas fa-upload"></i> Choose Image
+                            </label>
+                            <span class="file-name" *ngIf="!formData.mediaUrl">No file selected</span>
+                            <div *ngIf="formData.mediaUrl" class="upload-preview-wrap">
+                                <img [src]="formData.mediaUrl" alt="Preview" class="upload-preview-img">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions right">
+                        <button class="btn-primary" (click)="nextStep()">Proceed to Verification <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="card-body" *ngIf="step === 2">
+                    <div class="verification-box">
+                        <div class="v-row">
+                            <span class="v-label">Title</span>
+                            <span class="v-val">{{ formData.title }}</span>
+                        </div>
+                        <div class="v-row">
+                            <span class="v-label">Location</span>
+                            <span class="v-val">{{ formData.location }}</span>
+                        </div>
+                        <div class="v-row">
+                            <span class="v-label">Description</span>
+                            <span class="v-val">{{ formData.description }}</span>
+                        </div>
+                        <div class="v-row" *ngIf="formData.mediaUrl">
+                            <span class="v-label">Evidence</span>
+                            <div class="v-val">
+                                <img [src]="formData.mediaUrl" class="v-img" alt="Attached evidence">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions split">
+                        <button class="btn-secondary" (click)="prevStep()"><i class="fas fa-arrow-left"></i> Edit Information</button>
+                        <button class="btn-primary" (click)="submitReport()" [disabled]="isLoading">
+                            <i class="fas fa-paper-plane" *ngIf="!isLoading"></i> {{ isLoading ? 'Transmitting...' : 'Submit Officially' }}
+                        </button>
                     </div>
                 </div>
             </div>
-            <button class="btn-next" (click)="nextStep()">Next</button>
         </div>
 
-        <!-- Step 2: Preview -->
-        <div *ngIf="step === 2" class="preview-card animate-fade">
-            <h2>Preview Your Report</h2>
-            <div class="preview-content">
-                <div class="preview-item">
-                    <strong>Title:</strong> {{ formData.title }}
+        <!-- Dashboard / Status Section -->
+        <div *ngIf="activeTab === 'status' && !selectedRequest" class="dashboard-section fade-in">
+            <div class="dashboard-header">
+                <h2 class="dash-title">{{ isAdmin ? 'Complaints Administration Console' : 'My Registered Complaints' }}</h2>
+            </div>
+            
+            <!-- Admin Summary Cards -->
+            <div *ngIf="isAdmin" class="summary-cards">
+                <div class="summary-card outline-blue">
+                    <div class="summary-icon bg-blue"><i class="fas fa-folder-open"></i></div>
+                    <div class="summary-data">
+                        <span class="s-count">{{ totalComplaints }}</span>
+                        <span class="s-label">Total Logs</span>
+                    </div>
                 </div>
-                <div class="preview-item">
-                    <strong>Location:</strong> {{ formData.location }}
+                <div class="summary-card outline-orange">
+                    <div class="summary-icon bg-orange"><i class="fas fa-exclamation-circle"></i></div>
+                    <div class="summary-data">
+                        <span class="s-count">{{ pendingComplaints }}</span>
+                        <span class="s-label">Pending Action</span>
+                    </div>
                 </div>
-                <div class="preview-item">
-                    <strong>Description:</strong>
-                    <p>{{ formData.description }}</p>
-                </div>
-                <div class="preview-item" *ngIf="formData.mediaUrl">
-                    <strong>Attachment:</strong>
-                    <img [src]="formData.mediaUrl" class="preview-image">
+                <div class="summary-card outline-green">
+                    <div class="summary-icon bg-green"><i class="fas fa-check-double"></i></div>
+                    <div class="summary-data">
+                        <span class="s-count">{{ resolvedComplaints }}</span>
+                        <span class="s-label">Resolved</span>
+                    </div>
                 </div>
             </div>
-            <div class="preview-actions">
-                <button class="btn-back" (click)="prevStep()">Back</button>
-                <button class="btn-submit" (click)="submitReport()" [disabled]="isLoading">
-                    {{ isLoading ? 'Submitting...' : 'Submit Report' }}
+
+            <!-- Toolbar -->
+            <div class="gov-toolbar">
+                <div class="search-unit">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="gov-input" [(ngModel)]="searchQuery" [placeholder]="isAdmin ? 'Search by title, citizen, or location...' : 'Search your complaints...'">
+                </div>
+                <div class="filter-unit">
+                    <i class="fas fa-filter filter-icon"></i>
+                    <select class="gov-input" [(ngModel)]="statusFilter">
+                        <option value="All">View All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="In-Progress">In-Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Complaint List Grid -->
+            <div *ngIf="filteredRequests.length === 0" class="empty-board">
+                <i class="fas fa-inbox empty-box-icon"></i>
+                <p>No records found matching current criteria.</p>
+            </div>
+
+            <div class="complaints-grid">
+                <div *ngFor="let req of filteredRequests" class="gov-card list-card">
+                    <div class="lc-header">
+                        <span class="gov-badge" [ngClass]="getStatusClass(req.status)">{{ req.status }}</span>
+                        <span class="lc-date"><i class="far fa-calendar-alt"></i> {{ req.createdAt | date:'MMM d, yyyy' }}</span>
+                    </div>
+                    
+                    <!-- Thumbnail Image Showcase -->
+                    <div class="card-image-wrapper" *ngIf="req.mediaUrl">
+                        <img [src]="req.mediaUrl" alt="Issue Evidence Thumbnail" class="card-thumbnail">
+                    </div>
+
+                    <div class="lc-body">
+                        <h3 class="lc-title">{{ req.title }}</h3>
+                        <p class="lc-location"><i class="fas fa-map-pin"></i> {{ req.location }}</p>
+                        <p class="lc-desc-snippet">{{ req.description | slice:0:80 }}{{ req.description.length > 80 ? '...' : '' }}</p>
+                    </div>
+                    <div class="lc-footer">
+                        <div class="lc-user" *ngIf="isAdmin && req.User">
+                            <i class="fas fa-user-circle"></i> {{ req.User.full_name }}
+                        </div>
+                        <div class="lc-user" *ngIf="!isAdmin || !req.User"></div>
+                        <button class="btn-text-blue" (click)="viewDetails(req)">View Record <i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed View Panel -->
+        <div *ngIf="selectedRequest" class="detail-view-section fade-in">
+            <button class="btn-back-link" (click)="closeDetails()"><i class="fas fa-arrow-left"></i> Return to List</button>
+            
+            <div class="detail-layout">
+                <!-- Left Column -->
+                <div class="detail-main gov-card">
+                    <div class="d-header">
+                        <span class="gov-badge large" [ngClass]="getStatusClass(selectedRequest.status)">{{ selectedRequest.status }}</span>
+                        <span class="d-date">Registered: {{ selectedRequest.createdAt | date:'medium' }}</span>
+                    </div>
+                    
+                    <h2 class="d-title">{{ selectedRequest.title }}</h2>
+                    <h4 class="d-location"><i class="fas fa-map-marker-alt"></i> {{ selectedRequest.location }}</h4>
+                    
+                    <div class="d-section">
+                        <h3>Detailed Report</h3>
+                        <p class="d-body-text">{{ selectedRequest.description }}</p>
+                    </div>
+
+                    <div class="d-section" *ngIf="selectedRequest.mediaUrl">
+                        <h3>Supporting Evidence</h3>
+                        <div class="image-showcase">
+                            <img [src]="selectedRequest.mediaUrl" alt="Citizen Uploaded Evidence" class="evidence-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Sidebar) -->
+                <div class="detail-sidebar">
+                    <div class="gov-card sidebar-card" *ngIf="isAdmin && selectedRequest.User">
+                        <h3>Reported By</h3>
+                        <div class="sb-info"><i class="fas fa-user text-gray"></i> {{ selectedRequest.User.full_name }}</div>
+                        <div class="sb-info"><i class="fas fa-phone text-gray"></i> {{ selectedRequest.User.mobile_number }}</div>
+                        <div class="sb-info"><i class="fas fa-home text-gray"></i> House {{ selectedRequest.User.house_number }}, Ward {{ selectedRequest.User.ward_number }}</div>
+                    </div>
+
+                    <!-- Admin Update Block -->
+                    <div class="gov-card sidebar-card active-action-card" *ngIf="isAdmin && isEditingDetails">
+                        <h3>Update Log</h3>
+                        <div class="gov-form-group">
+                            <label>Status</label>
+                            <select [(ngModel)]="editFormData.status" class="gov-input">
+                                <option value="Pending">Pending</option>
+                                <option value="Assigned">Assigned</option>
+                                <option value="In-Progress">In-Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="gov-form-group">
+                            <label>Official Remark / Response</label>
+                            <textarea [(ngModel)]="editFormData.adminResponse" class="gov-input gov-textarea compact" placeholder="Resolution details..."></textarea>
+                        </div>
+                        <div class="form-actions split">
+                            <button class="btn-cancel" (click)="cancelDetailedEdit()">Cancel</button>
+                            <button class="btn-primary" (click)="saveDetailedEdit(selectedRequest.id)">Save Record</button>
+                        </div>
+                    </div>
+
+                    <div class="gov-card sidebar-card" *ngIf="!isEditingDetails">
+                        <h3>Official Remarks</h3>
+                        <div *ngIf="selectedRequest.adminResponse; else noRemarks" class="remarks-box">
+                            {{ selectedRequest.adminResponse }}
+                        </div>
+                        <ng-template #noRemarks>
+                            <p class="text-muted-italic">No official remarks provided yet.</p>
+                        </ng-template>
+
+                        <button *ngIf="isAdmin" class="btn-primary full-width mt-10" (click)="startDetailedEdit(selectedRequest)">
+                            <i class="fas fa-edit"></i> Admin Update
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div *ngIf="activeTab === 'analytics' && isAdmin" class="analytics-section fade-in">
+            <div class="dashboard-header print-header">
+                <div>
+                    <h2 class="dash-title">Civic Issue Analytics</h2>
+                    <p class="print-only-text">Official Report Generated on: {{ currentDate | date:'medium' }}</p>
+                </div>
+                <button class="btn-primary no-print" (click)="printAnalytics()">
+                    <i class="fas fa-print"></i> Print Full Report
                 </button>
             </div>
-        </div>
-    </div>
-
-    <!-- Status Section -->
-    <div *ngIf="activeTab === 'status'" class="status-section animate-fade">
-        <h2>My Reported Issues</h2>
-        <div *ngIf="requests.length === 0" class="empty-state">
-            <p>You haven't reported any issues yet.</p>
-        </div>
-        <div class="request-list">
-            <div *ngFor="let req of requests" class="request-card">
-                <div class="request-header">
-                    <span class="status-badge" [style.background-color]="getStatusColor(req.status)">{{ req.status
-                        }}</span>
-                    <span class="date">{{ req.createdAt | date:'mediumDate' }}</span>
+            
+            <div class="analytics-grid-top no-print">
+                <!-- Global Resolution Pie Chart -->
+                <div class="gov-card flex-center-card">
+                    <h3>Overall Resolution Rate</h3>
+                    <div class="pie-chart-container">
+                        <div class="pie-chart" [ngStyle]="{'background': 'conic-gradient(var(--chart-resolved, #16A34A) ' + analyticsData.globalResolutionRate + '%, var(--chart-pending, #F59E0B) ' + analyticsData.globalResolutionRate + '%)' }">
+                            <div class="pie-inner">
+                                <span class="pie-percent print-text-dark">{{ analyticsData.globalResolutionRate }}%</span>
+                                <span class="pie-label print-text-dark">Resolved</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pie-legend">
+                        <span class="legend-item"><span class="legend-color bg-green print-bg-dark"></span> Resolved</span>
+                        <span class="legend-item"><span class="legend-color bg-orange print-bg-gray"></span> Pending / In-Progress</span>
+                    </div>
                 </div>
-                <h3>{{ req.title }}</h3>
-                <p class="location"><i class="fas fa-map-marker-alt"></i> {{ req.location }}</p>
-                <div class="request-body" *ngIf="req.adminResponse">
-                    <hr>
-                    <strong>Admin Response:</strong>
-                    <p>{{ req.adminResponse }}</p>
+
+                <!-- Last 7 Days Bar Chart -->
+                <div class="gov-card flex-col-card">
+                    <h3>New Complaints Trend (Last 7 Days)</h3>
+                    <div class="bar-chart">
+                        <div class="bar-col" *ngFor="let day of analyticsData.timelineStats">
+                            <div class="bar-track">
+                                <div class="bar-fill" [style.height.%]="(day.count / analyticsData.maxTimelineValue) * 100" [title]="day.count + ' complaints'">
+                                    <span class="bar-value" *ngIf="day.count > 0">{{ day.count }}</span>
+                                </div>
+                            </div>
+                            <span class="bar-label">{{ day.date }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ward Statistics Detailed Breakdown (Screen Only) -->
+            <div class="gov-card mt-24 no-print">
+                <h3>Ward-Level Breakdown</h3>
+                <div class="ward-list">
+                    <div class="ward-item" *ngFor="let ward of analyticsData.wardStats">
+                        <div class="w-header">
+                            <span class="w-name"><i class="fas fa-map-marker-alt text-gray"></i> {{ ward.name || 'Unmapped' }} <span class="w-total">({{ ward.total }} total)</span></span>
+                            <span class="w-rate">{{ ward.resolutionRate }}% Resolved</span>
+                        </div>
+                        <div class="w-progress-track">
+                            <div class="w-progress-fill bg-green" [style.width.%]="ward.resolutionRate"></div>
+                        </div>
+                        <div class="w-details">
+                            <span class="text-green"><i class="fas fa-check-circle"></i> {{ ward.resolved }} Resolved</span>
+                            <span class="text-orange"><i class="fas fa-exclamation-circle"></i> {{ ward.pending }} Pending Updates</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Print-Exclusive Static Data Summaries (Replaces invisible CSS graphs during print) -->
+            <div class="print-only-layout mt-24">
+                <div class="print-grid">
+                    <div class="print-stat-box">
+                        <h3 class="print-section-title mt-0">Global Resolution Status</h3>
+                        <p class="print-big-stat"><strong>{{ analyticsData.globalResolutionRate }}%</strong> Total Complaints Resolved</p>
+                        <p class="print-big-stat"><strong>{{ analyticsData.globalPendingPercent }}%</strong> Currently Pending</p>
+                        <p class="print-sub-stat">Total Register: {{ totalComplaints }} Complaints</p>
+                    </div>
+                    <div class="print-stat-box">
+                        <h3 class="print-section-title mt-0">Complaint Trend (Last 7 Days)</h3>
+                        <table class="gov-table text-center mt-10">
+                            <thead>
+                                <tr>
+                                    <th *ngFor="let day of analyticsData.timelineStats">{{ day.date }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td *ngFor="let day of analyticsData.timelineStats"><strong>{{ day.count }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Print Only Comprehensive Report Data -->
+            <div class="print-only-table mt-24">
+                <h3 class="print-section-title">Detailed Ward-by-Ward Complaints Log</h3>
+                
+                <div *ngFor="let ward of analyticsData.wardStats" class="print-ward-block">
+                    <h4 class="print-ward-heading">Location: {{ ward.name || 'Unmapped' }} <span class="print-ward-summary">({{ ward.resolved }} Resolved / {{ ward.total }} Total)</span></h4>
+                    <table class="gov-table">
+                        <thead>
+                            <tr>
+                                <th>Registration Date</th>
+                                <th>Issue Title</th>
+                                <th>Current Status</th>
+                                <th>Resolution / Pending Speed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <ng-container *ngFor="let req of requests">
+                                <tr *ngIf="(req.location || 'Unspecified') === ward.name">
+                                    <td>{{ req.createdAt | date:'MMM d, yyyy' }}</td>
+                                    <td>{{ req.title }}</td>
+                                    <td><strong>{{ req.status }}</strong></td>
+                                    <td>{{ calculatePendingDays(req) }}</td>
+                                </tr>
+                            </ng-container>
+                            <tr *ngIf="ward.total === 0">
+                                <td colspan="4" class="text-muted-italic">No complaints recorded for this ward.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Help & Support -->
-    <div *ngIf="activeTab === 'help'" class="help-section animate-fade">
-        <h2>Help & Support</h2>
-        <div class="help-grid">
-            <div class="help-item">
-                <h3>Contact Helpline</h3>
-                <p>Call us at 1800-WARD-HELP for immediate assistance.</p>
-            </div>
-            <div class="help-item">
-                <h3>FAQs</h3>
-                <p>Find answers to common questions about civic services.</p>
+        <!-- Notifications Section -->
+        <div *ngIf="activeTab === 'notifications'" class="notifications-section fade-in">
+            <div class="gov-card">
+                <h2><i class="fas fa-bell icon-deepblue"></i> System Notifications</h2>
+                
+                <div *ngIf="notifications.length === 0" class="empty-board">
+                    <i class="far fa-bell-slash empty-box-icon"></i>
+                    <p>You have no notifications yet.</p>
+                </div>
+
+                <div class="notification-list" *ngIf="notifications.length > 0">
+                    <div *ngFor="let notif of notifications" class="notification-item" [class.unread]="!notif.isRead">
+                        <div class="notif-icon">
+                            <i class="fas fa-info-circle" *ngIf="notif.type === 'info'"></i>
+                            <i class="fas fa-exclamation-triangle" *ngIf="notif.type === 'alert'"></i>
+                        </div>
+                        <div class="notif-content">
+                            <p class="notif-message">{{ notif.message }}</p>
+                            <span class="notif-time">{{ notif.createdAt | date:'medium' }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Help Section -->
+        <div *ngIf="activeTab === 'help'" class="help-section fade-in">
+            <div class="gov-card">
+                <h2>Help & Civic Guidelines</h2>
+                <div class="help-content">
+                    <h3>Contact Municipal Helpline</h3>
+                    <p>For urgent interventions or life-threatening situations, please dial the 24/7 hotline: <strong>1800-WARD-HELP</strong>.</p>
+                    
+                    <hr class="gov-hr">
+                    
+                    <h3>Frequently Asked Questions</h3>
+                    <ul class="faq-list">
+                        <li><strong>How long does resolution take?</strong> Standard resolution SLA is 7 working days depending on the priority category.</li>
+                        <li><strong>Can I remain anonymous?</strong> System records are mandatory for accountability, but public visibility is restricted to Ward Members.</li>
+                        <li><strong>What size images can I upload?</strong> Optimal images are JPEG/PNG formats below 10MB in file size.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Success Modal Overlay -->
+        <div class="modal-overlay fade-in" *ngIf="showSuccessModal">
+            <div class="modal-card">
+                <div class="modal-icon text-green"><i class="fas fa-check-circle"></i></div>
+                <h3 class="modal-title">Complaint Registered Successfully!</h3>
+                <p class="modal-msg">Your civic complaint has been definitively recorded and securely dispatched to the appropriate authorities for verification and action.</p>
+                <div class="form-actions mt-24">
+                    <button class="btn-primary full-width modal-btn" (click)="closeSuccessModal()">Go to Dashboard</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

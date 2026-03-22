@@ -21,12 +21,14 @@ export class PaymentHistoryComponent implements OnInit {
   ngOnInit() {
     this.billService.getBills().subscribe({
       next: (data) => {
-        // Sort by payment date (newest first) or due date if not paid
-        this.bills = data.sort((a, b) => {
-          const dateA = new Date(a.paymentDate || a.dueDate).getTime();
-          const dateB = new Date(b.paymentDate || b.dueDate).getTime();
-          return dateB - dateA;
-        });
+        // Filter to only display 'Paid' bills, and sort by payment date (newest first)
+        this.bills = data
+          .filter((b: any) => b.status === 'Paid')
+          .sort((a: any, b: any) => {
+            const dateA = new Date(a.paymentDate || a.dueDate).getTime();
+            const dateB = new Date(b.paymentDate || b.dueDate).getTime();
+            return dateB - dateA;
+          });
         this.isLoading = false;
       },
       error: (err) => {

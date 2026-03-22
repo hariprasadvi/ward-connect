@@ -1,12 +1,13 @@
+<div class="page-wrapper">
 <div class="container">
-    <h2>💧 Pay Water Bill (KWA)</h2>
+    <h2 class="page-title"><span class="material-icons title-icon">water_drop</span> Pay Water Bill (KWA)</h2>
 
     <!-- Fetch Form -->
     <div *ngIf="!fetchedBill">
         <div class="form-group">
             <label>Consumer Number</label>
-            <input type="text" [(ngModel)]="consumerNumber" placeholder="Enter Consumer Number" maxlength="15">
-            <small style="color: #666; font-size: 0.8em; margin-top: 4px; display: block;">Try demo:
+            <input type="text" [(ngModel)]="consumerNumber" (ngModelChange)="onConsumerNumberChange($event)" placeholder="Enter Consumer Number" maxlength="15">
+            <small style="color: #666; font-size: 0.8em; margin-top: 4px; display: block; cursor: pointer;" (click)="onConsumerNumberChange('1234567890123'); consumerNumber='1234567890123'">Try demo:
                 1234567890123</small>
         </div>
 
@@ -65,5 +66,6 @@
         <button class="btn-pay" (click)="payBill()">Pay Now</button>
         <button class="btn-refresh" style="margin-top: 10px; font-size: 0.9em; width: 100%; text-align: center;"
             (click)="fetchedBill = null">Cancel / Back</button>
-    </div>
+        </div>
+</div>
 </div>

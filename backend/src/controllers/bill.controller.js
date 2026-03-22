@@ -9,6 +9,14 @@ const getBills = async (req, res) => {
         const count = await Bill.count({ where: { userId } });
         if (count === 0) {
             await seedMethod(userId);
+        } else {
+            // Self-repair logic for demo user to map overdue bills to demo consumer number
+            const demoPaid = await Bill.findOne({ where: { userId, consumerNumber: '1234567890123', status: 'Paid' } });
+            if (demoPaid) {
+                await Bill.update({ status: 'Paid' }, { where: { userId, billType: 'Electricity', status: 'Overdue' } });
+            } else {
+                await Bill.update({ consumerNumber: '1234567890123' }, { where: { userId, billType: 'Electricity', status: 'Overdue' } });
+            }
         }
 
         const bills = await Bill.findAll({
@@ -72,7 +80,7 @@ const seedMethod = async (userId) => {
     fakeBills.push({
         userId,
         billType: 'Electricity',
-        consumerNumber: Math.random().toString().slice(2, 12),
+        consumerNumber: '1234567890123',
         amount: (Math.random() * 500 + 100).toFixed(2),
         dueDate: new Date(new Date().setDate(new Date().getDate() - 5)), // 5 days ago
         status: 'Overdue'
@@ -84,21 +92,20 @@ const seedMethod = async (userId) => {
 const fetchByConsumer = async (req, res) => {
     try {
         const { consumerNumber, billType } = req.body;
+        const userId = req.user ? req.user.id : null;
 
         if (!consumerNumber) {
             return res.status(400).json({ message: 'Consumer number is required' });
         }
 
-        // Demo Mode: If the consumer number is '1234567890123' (demo), return a fake bill if none exists
-        if (consumerNumber === '1234567890123') {
-            return res.json({
-                id: 99999,
-                billType: billType || 'Electricity',
-                consumerNumber: '1234567890123',
-                amount: 750.50,
-                dueDate: new Date(),
-                status: 'Pending'
-            });
+        // Check if a paid bill already exists for this consumer number (and optionally type)
+        const paidClause = { consumerNumber, status: 'Paid' };
+        if (billType) paidClause.billType = billType;
+        if (userId) paidClause.userId = userId;
+
+        const existingPaidBill = await Bill.findOne({ where: paidClause });
+        if (existingPaidBill) {
+            return res.status(404).json({ message: 'This bill has already been paid.' });
         }
 
         const whereClause = {

@@ -28,10 +28,14 @@ const authorize = (roles = []) => {
             return res.status(401).json({ message: 'User not authenticated.' });
         }
 
+        console.log(`[AUTH] Verifying role. User's role: '${req.user.role}', Expected roles: ${JSON.stringify(roles)}`);
+
         if (roles.length && !roles.includes(req.user.role)) {
-            return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+            console.log(`[AUTH] Access Denied for role ${req.user.role}`);
+            return res.status(403).json({ message: `Access denied. Insufficient permissions. Found role: ${req.user.role}` });
         }
 
+        console.log(`[AUTH] Access Granted for role ${req.user.role}`);
         next();
     };
 };

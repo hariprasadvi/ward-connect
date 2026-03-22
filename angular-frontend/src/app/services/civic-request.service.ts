@@ -17,4 +17,16 @@ export class CivicRequestService {
     getRequests(): Observable<any[]> {
         return this.http.get<any[]>(this.apiUrl);
     }
+
+    updateRequestStatus(id: number, data: { status: string, adminResponse: string }): Observable<any> {
+        return this.http.put(`${this.apiUrl}/${id}/status`, data);
+    }
+
+    getNotifications(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/notifications`);
+    }
+
+    markNotificationsAsRead(): Observable<any> {
+        return this.http.put(`${this.apiUrl}/notifications/read`, {});
+    }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, NgZone } from '@angular/core';
+import { Component, OnInit, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -14,7 +14,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../services/api.service';
 import { TranslationService } from '../../services/translation.service';
 import { KudumbashreeMeeting } from '../../models/meeting';
-import { io } from 'socket.io-client';
 
 @Component({
   selector: 'app-meeting-minutes',
@@ -46,55 +45,15 @@ export class MeetingMinutesComponent implements OnInit {
   selectedMeetingDetails: KudumbashreeMeeting | null = null;
   meetings: KudumbashreeMeeting[] = [];
   transcript = '';
-  interimTranscript = '';
   summary = '';
   recordingTime = 0;
   private recordingInterval: any;
-  private socket: any;
 
-  constructor(private ngZone: NgZone) {} // Inject NgZone
+  // Sample meetings for demo - Removed to avoid type issues and unused code
+  // private sampleMeetings: KudumbashreeMeeting[] = [];
 
   ngOnInit() {
     this.loadMeetings();
-    this.initSocket();
-  }
-
-  ngOnDestroy() {
-    if (this.socket) {
-      this.socket.disconnect();
-    }
-    this.stopRecording();
-  }
-
-  initSocket() {
-    this.socket = io('http://localhost:5000');
-
-    this.socket.on('interimTranscript', (data: any) => {
-      this.ngZone.run(() => {
-        // We receive the chunk translation, append to final transcript
-        this.transcript += (this.transcript ? ' ' : '') + data.transcript;
-        this.interimTranscript = ''; // clear interim once a chunk is finalized
-      });
-    });
-
-    this.socket.on('processingStatus', (data: any) => {
-      this.ngZone.run(() => {
-        this.summary = data.message;
-      });
-    });
-
-    this.socket.on('finalTranscription', (data: any) => {
-      this.ngZone.run(() => {
-        this.transcript = data.transcript;
-        this.summary = data.summary;
-      });
-    });
-
-    this.socket.on('transcriptionError', (data: any) => {
-      this.ngZone.run(() => {
-        this.summary = data.message;
-      });
-    });
   }
 
   loadMeetings() {
@@ -117,71 +76,91 @@ export class MeetingMinutesComponent implements OnInit {
   }
 
   mediaRecorder: MediaRecorder | null = null;
-  recognition: any = null;
   audioChunks: any[] = [];
+
+  interimTranscript = '';
+  ws: WebSocket | null = null;
+
+  constructor(private ngZone: NgZone) { } // Inject NgZone
 
   async startRecording() {
     if (!this.selectedMeeting) return;
 
     try {
+      // 1. Start Voice Recording (for backend upload)
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.mediaRecorder = new MediaRecorder(stream);
       this.audioChunks = [];
 
-      this.mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          this.audioChunks.push(event.data);
-          // Send chunk to backend via WebSocket
-          this.socket.emit('audioChunk', {
-            audio: event.data,
-            mimeType: this.mediaRecorder?.mimeType || 'audio/webm'
-          });
-        }
-      };
-
       this.mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        this.uploadAudio(audioBlob, this.transcript);
         stream.getTracks().forEach(track => track.stop());
       };
 
-      // Emit start to backend
-      this.socket.emit('startRecording', { meetingId: this.selectedMeeting });
+      // 2. Start Live Speech Recognition via WebSocket
+      // Assuming backend is playing on localhost:5000/api/kudumbashree/meeting/livestream
+      // We read the port from an environment or hardcoded for now
+      this.ws = new WebSocket('ws://localhost:5000/api/kudumbashree/meeting/livestream');
 
-      // Start browser realtime speech recognition for immediate interim feedback "while speaking"
-      if ('webkitSpeechRecognition' in window) {
-        this.recognition = new (window as any).webkitSpeechRecognition();
-        this.recognition.continuous = true;
-        this.recognition.interimResults = true;
-        this.recognition.lang = 'ml-IN';
+      this.ws.onopen = () => {
+        console.log('WebSocket connection opened');
+        // Tell backend to start Google Speech recognition
+        this.ws?.send(JSON.stringify({
+          action: 'start',
+          sampleRate: this.mediaRecorder?.stream.getAudioTracks()[0].getSettings().sampleRate || 48000,
+          encoding: 'WEBM_OPUS' // Ensure your nodejs API uses WEBM_OPUS (which fits browser's webm)
+        }));
+      };
 
-        this.recognition.onresult = (event: any) => {
-          this.ngZone.run(() => {
-            let interim = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-              if (!event.results[i].isFinal) {
-                interim += event.results[i][0].transcript;
-              }
-            }
-            this.interimTranscript = interim;
-          });
-        };
-        this.recognition.start();
-      }
+      this.ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.error) {
+          console.error("Speech API Error:", data.error);
+          this.interimTranscript = "Error: " + data.error;
+          return;
+        }
 
-      // Start recording, emit chunks every 15 seconds (15000ms) to respect free-tier max of 5 Req/Min
-      this.mediaRecorder.start(15000);
+        this.ngZone.run(() => {
+          if (data.isFinal) {
+            this.transcript += data.transcript + ' ';
+            this.interimTranscript = '';
+          } else {
+            this.interimTranscript = data.transcript;
+          }
+        });
+      };
+
+      this.ws.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+      };
+
+      this.ws.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0 && this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(event.data); // Send blob chunks to WebSocket
+        }
+        if (event.data.size > 0) {
+          this.audioChunks.push(event.data); // Keep appending for the final upload
+        }
+      };
+
+      // Request chunks every 250ms for real-time effect
+      this.mediaRecorder.start(250);
 
       this.isRecording = true;
       this.recordingTime = 0;
-      this.transcript = 'Listening...';
-      this.summary = '';
-      
+
       this.recordingInterval = setInterval(() => {
         this.recordingTime++;
       }, 1000);
 
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      alert('Could not access microphone. Please allow permissions.');
+    } catch (error: any) {
+      console.error('Error starting recording:', error);
+      alert('Error starting recording: ' + (error.message || 'Please check microphone permissions.'));
     }
   }
 
@@ -189,11 +168,12 @@ export class MeetingMinutesComponent implements OnInit {
     if (this.mediaRecorder && this.isRecording) {
       this.mediaRecorder.stop();
       this.isRecording = false;
-      this.socket.emit('stopRecording');
     }
 
-    if (this.recognition) {
-      this.recognition.stop();
+    if (this.ws) {
+      this.ws.send(JSON.stringify({ action: 'stop' }));
+      this.ws.close();
+      this.ws = null;
     }
 
     this.interimTranscript = ''; // Clear interim text
@@ -204,35 +184,27 @@ export class MeetingMinutesComponent implements OnInit {
     }
   }
 
-  uploadAudio(blob: Blob) {
+  uploadAudio(blob: Blob, currentTranscript: string = '') {
     if (!this.selectedMeeting) return;
 
-    this.transcript = 'Uploading...';
-    this.summary = 'Waiting for upload...';
+    this.transcript = currentTranscript; // Preserve the current transcript instead of overwriting it
+    this.summary = 'Processing summary with AI...';
 
-    this.apiService.recordMeetingAudio(this.selectedMeeting, blob).subscribe({
+    this.apiService.recordMeetingAudio(this.selectedMeeting, blob, currentTranscript).subscribe({
       next: (response) => {
-        console.log('Upload response', response);
-
-        if (response.warning) {
-          this.transcript = 'Audio saved. ' + response.message;
-          this.summary = 'AI Service Unavailable (Redis down).';
-          alert(response.message);
-        } else {
-          this.pollStatus(this.selectedMeeting);
-        }
+        console.log('Upload successful', response);
+        this.pollStatus(this.selectedMeeting);
       },
       error: (error) => {
         console.error('Upload failed:', error);
-        this.transcript = 'Upload failed. ' + (error.error?.message || error.message);
+        this.transcript = currentTranscript + '\n\nUpload failed. ' + (error.error?.message || error.message);
         this.summary = 'Upload failed.';
       }
     });
   }
 
   pollStatus(meetingId: string) {
-    this.transcript = 'Processing... (Please wait)';
-    this.summary = 'Processing...';
+    this.summary = 'Processing summary... (Please wait)';
 
     const pollInterval = setInterval(() => {
       this.apiService.getProcessingStatus(meetingId).subscribe({
@@ -275,13 +247,9 @@ export class MeetingMinutesComponent implements OnInit {
     this.selectedMeeting = '';
     this.selectedMeetingDetails = null;
     this.transcript = '';
-    this.interimTranscript = '';
     this.summary = '';
     if (this.isRecording) {
       this.stopRecording();
-    }
-    if (this.recognition) {
-      this.recognition.stop();
     }
   }
 

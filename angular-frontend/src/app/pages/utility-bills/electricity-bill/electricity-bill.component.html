@@ -1,11 +1,12 @@
+<div class="page-wrapper">
 <div class="container">
-    <h2>⚡ Pay Electricity Bill</h2>
+    <h2 class="page-title"><span class="material-icons title-icon">bolt</span> Pay Electricity Bill</h2>
 
     <div *ngIf="!fetchedBill">
         <div class="form-group">
             <label>Consumer Number (13 Digits)</label>
-            <input type="text" [(ngModel)]="consumerNumber" maxlength="13" placeholder="Enter 13-digit Consumer Number">
-            <small style="color: grey;">Try demo: 1234567890123</small>
+            <input type="text" [(ngModel)]="consumerNumber" (ngModelChange)="onConsumerNumberChange($event)" maxlength="13" placeholder="Enter 13-digit Consumer Number">
+            <small style="color: grey; cursor: pointer;" (click)="onConsumerNumberChange('1234567890123'); consumerNumber='1234567890123'">Try demo: 1234567890123</small>
         </div>
 
         <div class="form-group">
@@ -54,5 +55,6 @@
         <button class="pay-btn" (click)="payBill()">PAY NOW</button>
         <button style="margin-top: 10px; background: none; border: none; color: #7f8c8d; width: 100%; cursor: pointer;"
             (click)="fetchedBill = null">Cancel / Search Another</button>
-    </div>
+        </div>
+</div>
 </div>

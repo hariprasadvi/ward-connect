@@ -1,178 +1,351 @@
-.utility-container {
-    padding: 2rem;
-    max-width: 1200px;
+.gov-container {
+    padding: 0 0 4rem 0;
+    max-width: 100%;
     margin: 0 auto;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8fafc; /* Very light slate */
+    min-height: 100vh;
 }
 
-.header {
-    margin-bottom: 2rem;
-    text-align: center;
+/* Modern Government Top Strip - Deep Slate */
+.gov-header-strip {
+    background-color: #0f172a; 
+    color: #f8fafc;
+    padding: 1rem 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    margin-bottom: 2.5rem;
 }
 
-.header h1 {
-    font-size: 2.5rem;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
+.gov-flag-icon {
+    font-size: 1.3rem;
+    color: #38bdf8; /* Modern blue accent */
 }
 
-.header p {
-    color: #7f8c8d;
-    font-size: 1.1rem;
+/* Status Notifications - Modern Soft Cards */
+.status-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 2rem;
+    border-radius: 12px;
+    margin: 0 2.5rem 2rem 2.5rem;
+    animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Service Cards */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.alert-icon { font-size: 1.75rem; }
+
+.status-banner p {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.status-banner p strong {
+    font-weight: 600;
+    margin-right: 0.25rem;
+}
+
+.banner-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn-resolve {
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Overdue State - Modern Red */
+.overdue-banner {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+.overdue-banner p { color: #991b1b; }
+.overdue-banner .alert-icon { color: #dc2626; }
+.overdue-banner .btn-resolve { background: #ef4444; color: white; }
+.overdue-banner .btn-resolve:hover { background: #dc2626; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2); }
+.overdue-banner .btn-dismiss { color: #ef4444; }
+
+/* Upcoming State - Modern Blue */
+.upcoming-banner {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+.upcoming-banner p { color: #1e40af; }
+.upcoming-banner .alert-icon { color: #2563eb; }
+.upcoming-banner .btn-resolve { background: #3b82f6; color: white; }
+.upcoming-banner .btn-resolve:hover { background: #2563eb; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2); }
+.upcoming-banner .btn-dismiss { color: #3b82f6; }
+
+/* All-Set State - Modern Emerald */
+.all-set-banner {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+.all-set-banner p { color: #166534; }
+.all-set-banner .alert-icon { color: #10b981; }
+.all-set-banner .btn-resolve { background: #10b981; color: white; }
+.all-set-banner .btn-resolve:hover { background: #059669; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
+.all-set-banner .btn-dismiss { color: #10b981; }
+
+.btn-dismiss {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.25rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+}
+
+.btn-dismiss:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.05);
+}
+
+/* Modern Hero Section */
+.hero-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 3.5rem;
+    margin: 0 2.5rem 3.5rem 2.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+.hero-text {
+    flex: 1;
+    max-width: 600px;
+}
+
+.hero-text h1 {
+    font-size: 2.75rem;
+    color: #0f172a;
+    margin: 0 0 1.25rem 0;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+}
+
+.hero-text p {
+    color: #475569;
+    font-size: 1.15rem;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+}
+
+.hero-image-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.hero-image {
+    max-width: 360px;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.05));
+    border-radius: 12px;
+}
+
+.btn-primary {
+    background: #2563eb; /* Modern vibrant blue */
+    color: #ffffff;
+    border: none;
+    padding: 0.85rem 2rem;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: #0f172a;
+    margin: 0 2.5rem 1.5rem 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* Modern Trustful Cards */
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 3rem;
+    margin: 0 2.5rem;
 }
 
 .service-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-    text-align: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 1.75rem;
+    border-radius: 16px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .service-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-}
-
-.service-card.active {
-    border-color: #3498db;
-    background-color: #f0f9ff;
+    border-color: #94a3b8;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    transform: translateY(-4px);
 }
 
 .icon-box {
     width: 60px;
     height: 60px;
-    background: #e1f5fe;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: #0288d1;
-    margin-bottom: 0.5rem;
-}
-
-.service-card h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #34495e;
-}
-
-/* Bills List */
-.bills-section {
-    background: white;
-    padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.bills-section h2 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid #f1f1f1;
-    padding-bottom: 1rem;
-    color: #2c3e50;
-}
-
-.bill-item {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    padding: 1.25rem;
-    border-bottom: 1px solid #eee;
-    transition: background-color 0.2s;
 }
 
-.bill-item:last-child {
-    border-bottom: none;
+.icon-box .material-icons { font-size: 1.75rem; }
+
+/* Subtle tint backgrounds for icons */
+.icon-box.electricity { background: #fffbeb; color: #d97706; }
+.icon-box.water { background: #eff6ff; color: #2563eb; }
+.icon-box.gas { background: #fef2f2; color: #dc2626; }
+
+.card-details {
+    flex: 1;
 }
 
-.bill-item:hover {
-    background-color: #fafafa;
-}
-
-.bill-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.bill-id {
-    font-weight: bold;
-    color: #34495e;
-}
-
-.bill-date {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-}
-
-.bill-amount {
+.card-details h3 {
+    margin: 0 0 0.25rem 0;
     font-size: 1.2rem;
-    font-weight: bold;
-    color: #2c3e50;
+    color: #0f172a;
+    font-weight: 600;
 }
 
-.bill-actions {
+.card-details span {
+    font-size: 0.95rem;
+    color: #64748b;
+}
+
+.card-arrow {
+    color: #cbd5e1;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    transition: transform 0.2s, color 0.2s;
 }
 
-.status-badge {
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
+.service-card:hover .card-arrow {
+    color: #64748b;
+    transform: translateX(4px);
+}
+
+/* History Section */
+.history-section {
+    margin: 4rem 2.5rem 0 2.5rem;
+    padding-top: 3rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.history-section .section-title {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.history-desc {
+    color: #475569;
+    margin: -0.5rem 0 2rem 0;
+    font-size: 1.05rem;
+}
+
+.btn-view-history {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 0.85rem 1.8rem;
+    border-radius: 8px;
+    font-size: 1rem;
     font-weight: 500;
-}
-
-.status-paid {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.status-pending {
-    background-color: #fff3cd;
-    color: #856404;
-}
-
-.status-overdue {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-.btn-pay {
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    padding: 0.5rem 1.2rem;
-    border-radius: 6px;
     cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.btn-pay:hover {
-    background-color: #219150;
+.btn-view-history:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
 
-.empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #95a5a6;
+@media (max-width: 768px) {
+    .gov-header-strip {
+        padding: 1rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    .hero-section {
+        flex-direction: column;
+        padding: 2rem;
+        margin: 0 1rem 2rem 1rem;
+        text-align: center;
+    }
+    .hero-image-wrapper {
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    .hero-text h1 {
+        font-size: 2rem;
+    }
+    .services-grid, .status-banner, .history-section {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+    .status-banner {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: flex-start;
+    }
 }

@@ -1,11 +1,13 @@
 const express = require('express');
-const http = require('http');
+const http = require('http'); // ADDED
 const path = require('path');
 const cors = require('cors');
 const { Server } = require('socket.io');
 const dotenv = require('dotenv');
 dotenv.config();
+
 const { sequelize } = require('./src/config/database');
+const initializeWebSocket = require('./src/websocket'); // ADDED
 
 // Import Models for Association
 const Vehicle = require('./src/models/vehicle.model');
@@ -48,13 +50,11 @@ cron.schedule('0 0,12 * * *', () => {
 });
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
-
-// Attach socket logic
-require('./src/sockets/meetingSocket')(io);
-
+const server = http.createServer(app); // ADDED
 const PORT = process.env.PORT || 5000;
+
+// Initialize WebSocket // ADDED
+initializeWebSocket(server);
 
 // Middleware
 app.use(cors());
@@ -65,7 +65,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Public Routes
 app.use('/auth', authRoutes);
 app.use('/api/shop', require('./src/routes/shopRoutes')); // Shop Routes (Handling its own auth)
-app.use('/public/job', jobRoutes); // Expose job alerts for unauthenticated users
 
 // Protected Routes
 app.use('/api', authenticate); // Protect all OTHER API routes
@@ -73,6 +72,7 @@ app.use('/api', authenticate); // Protect all OTHER API routes
 // Core Routes
 app.use('/api/users', userRoutes);
 app.use('/api/vehicle', vehicleRoutes);
+app.use('/api/job', jobRoutes);
 app.use('/api/house-messages', houseMessageRoutes);
 app.use('/api/bills', require('./src/routes/bill.routes'));
 app.use('/api/civic-requests', require('./src/routes/civicRequest.routes'));

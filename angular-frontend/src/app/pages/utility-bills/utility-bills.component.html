@@ -1,34 +1,83 @@
-<div class="utility-container">
-    <div class="header">
-        <h1>Utility Bill Payments</h1>
-        <p>Manage and pay your electricity, water, and gas bills seamlessly.</p>
-        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-            <p>Total Due: <strong style="color: #e74c3c;">₹{{ totalDue | number:'1.2-2' }}</strong></p>
-            <button
-                style="padding: 8px 16px; background: #34495e; color: white; border: none; border-radius: 4px; cursor: pointer;"
-                routerLink="history">View History</button>
+<div class="gov-container">
+    <div class="gov-header-strip">
+        <span class="material-icons gov-flag-icon">account_balance</span>
+        <span class="gov-title">Official Municipal Utility Services Portal</span>
+    </div>
+
+    <!-- Status Notification Banner -->
+    <div [ngClass]="['status-banner', bannerType + '-banner']" *ngIf="showBanner && bannerType !== 'none'">
+        <div class="banner-content">
+            <span class="material-icons alert-icon">{{ bannerType === 'overdue' ? 'error_outline' : bannerType === 'upcoming' ? 'event' : 'check_circle_outline' }}</span>
+            <p><strong>{{ bannerType === 'overdue' ? 'ATTENTION REQUIRED:' : bannerType === 'upcoming' ? 'UPCOMING DUE:' : 'STATUS CLEAR:' }}</strong> {{ bannerMessage }}</p>
+        </div>
+        <div class="banner-actions">
+            <button class="btn-resolve" [routerLink]="bannerLink" *ngIf="bannerType !== 'all-set'">Proceed to Payment</button>
+            <button class="btn-resolve" [routerLink]="bannerLink" *ngIf="bannerType === 'all-set'">View History</button>
+            <button class="btn-dismiss" (click)="dismissBanner()"><span class="material-icons">close</span></button>
         </div>
     </div>
 
-    <!-- 3 Cards -->
+    <!-- Official Hero Section -->
+    <div class="hero-section">
+        <div class="hero-text">
+            <h1>Digital Utilities Payment Desk</h1>
+            <p>Integrated secure portal for remitting municipal utility expenditures. Ensure timely payments to avoid late fees or service interruptions.</p>
+            <div class="hero-actions">
+                <button class="btn-primary" (click)="scrollToServices()">
+                    <span class="material-icons">payment</span>
+                    Initiate Payment
+                </button>
+            </div>
+        </div>
+        <div class="hero-image-wrapper">
+            <img src="utility_hero.png" alt="Utility Services" class="hero-image">
+        </div>
+    </div>
+
+    <h3 class="section-title" id="services-section">Select Utility Service</h3>
+
+    <!-- 3 Official Cards -->
     <div class="services-grid">
-        <div class="service-card" [class.active]="selectedType === 'Electricity'" (click)="filterBills('Electricity')">
-            <div class="icon-box">⚡</div>
-            <h3>Electricity</h3>
-            <span style="font-size: 0.8em; color: gray;">KSEB</span>
+        <div class="service-card" routerLink="electricity">
+            <div class="icon-box electricity">
+                <span class="material-icons">bolt</span>
+            </div>
+            <div class="card-details">
+                <h3>Electricity Board</h3>
+                <span>Department of Power (KSEB)</span>
+            </div>
+            <div class="card-arrow"><span class="material-icons">chevron_right</span></div>
         </div>
-        <div class="service-card" [class.active]="selectedType === 'Water'" (click)="filterBills('Water')">
-            <div class="icon-box">💧</div>
-            <h3>Water</h3>
-            <span style="font-size: 0.8em; color: gray;">KWA</span>
+
+        <div class="service-card" routerLink="water">
+            <div class="icon-box water">
+                <span class="material-icons">water_drop</span>
+            </div>
+            <div class="card-details">
+                <h3>Water Authority</h3>
+                <span>Department of Water Supply (KWA)</span>
+            </div>
+            <div class="card-arrow"><span class="material-icons">chevron_right</span></div>
         </div>
-        <div class="service-card" [class.active]="selectedType === 'Gas'" (click)="filterBills('Gas')">
-            <div class="icon-box">🔥</div>
-            <h3>Gas</h3>
-            <span style="font-size: 0.8em; color: gray;">Pipeline</span>
+
+        <div class="service-card" routerLink="gas">
+            <div class="icon-box gas">
+                <span class="material-icons">local_fire_department</span>
+            </div>
+            <div class="card-details">
+                <h3>Pipeline Services</h3>
+                <span>Municipal Gas Distribution</span>
+            </div>
+            <div class="card-arrow"><span class="material-icons">chevron_right</span></div>
         </div>
     </div>
 
-    <!-- Selected Bills List -->
-    <!-- Selected Bills List Removed -->
+    <div class="history-section">
+        <h3 class="section-title">Transaction Records</h3>
+        <p class="history-desc">Access official payment receipts and verify historical municipal utility transactions.</p>
+        <button class="btn-view-history" routerLink="history">
+            <span class="material-icons">receipt_long</span>
+            Access Payment Records
+        </button>
+    </div>
 </div>
