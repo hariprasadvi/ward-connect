@@ -2,7 +2,6 @@ const express = require('express');
 const http = require('http'); // ADDED
 const path = require('path');
 const cors = require('cors');
-const { Server } = require('socket.io');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -13,6 +12,9 @@ const initializeWebSocket = require('./src/websocket'); // ADDED
 const Vehicle = require('./src/models/vehicle.model');
 const Booking = require('./src/models/booking.model');
 const User = require('./src/models/User');
+const PushSubscription = require('./src/models/PushSubscription');
+const MedicineReminder = require('./src/models/MedicineReminder');
+const webpush = require('web-push');
 
 // --- Shop Models & Associations ---
 const Product = require('./src/models/Product');
@@ -47,6 +49,72 @@ const { scrapeJobs } = require('./src/services/jobScraper.service');
 cron.schedule('0 0,12 * * *', () => {
     console.log('Running scheduled job scraping...');
     scrapeJobs();
+});
+
+// Medicine reminder cron job every minute
+cron.schedule('* * * * *', async () => {
+    try {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const currentTimeString = `${hours}:${minutes}`; // "HH:MM"
+        
+        const activeReminders = await MedicineReminder.findAll({
+            where: { isActive: true }
+        });
+        
+        console.log(`[CRON] Checking ${activeReminders.length} medicine reminders for time: ${currentTimeString}`);
+
+        for (const reminder of activeReminders) {
+            let times = reminder.scheduledTimes || [];
+            if (typeof times === 'string') {
+                try { times = JSON.parse(times); } catch(e) {}
+            }
+
+            if (times.includes(currentTimeString)) {
+                const subs = await PushSubscription.findAll({ where: { user_id: reminder.userId } });
+                if (subs.length > 0) {
+                    webpush.setVapidDetails(
+                        process.env.VAPID_SUBJECT,
+                        process.env.VAPID_PUBLIC_KEY,
+                        process.env.VAPID_PRIVATE_KEY
+                    );
+
+                    const payload = JSON.stringify({
+                        notification: {
+                            title: `Time for Medicine`,
+                            body: `It's time to take ${reminder.medicineName} (${reminder.dosage || 'prescribed dose'})`,
+                            icon: '/assets/icons/icon-192x192.png',
+                            data: {
+                                url: '/dashboard/health/medicine-reminder'
+                            }
+                        }
+                    });
+
+                    for (const sub of subs) {
+                        const pushConfig = {
+                            endpoint: sub.endpoint,
+                            keys: {
+                                auth: sub.keys_auth,
+                                p256dh: sub.keys_p256dh
+                            }
+                        };
+                        try {
+                            await webpush.sendNotification(pushConfig, payload);
+                        } catch (err) {
+                            if (err.statusCode === 410 || err.statusCode === 404) {
+                                await sub.destroy();
+                            } else {
+                                console.error('Error sending push notification:', err);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error in medicine reminder cron:', error);
+    }
 });
 
 const app = express();
@@ -92,6 +160,7 @@ app.use('/api/kudumbashree/report', reportRoutes);
 
 // Health Service Routes
 app.use('/api/health', require('./src/routes/healthRoutes'));
+app.use('/api/push', authenticate, require('./src/routes/pushRoutes'));
 
 // Test Route
 app.get('/', (req, res) => {

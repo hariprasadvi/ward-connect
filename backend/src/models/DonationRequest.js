@@ -35,6 +35,16 @@ const DonationRequest = sequelize.define('DonationRequest', {
         type: DataTypes.DATEONLY,
         allowNull: true
     },
+    requiredUnits: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    },
+    fulfilledUnits: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
     description: {
         type: DataTypes.TEXT,
         allowNull: true

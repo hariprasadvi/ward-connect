@@ -97,8 +97,8 @@ import { ToastService } from '../../../services/toast.service';
                         <tbody>
                             <tr *ngFor="let b of allBookings">
                                 <td>
-                                    <strong>{{b.User?.name}}</strong><br>
-                                    <small>{{b.User?.phone}}</small>
+                                    <strong>{{b.User?.full_name}}</strong><br>
+                                    <small>{{b.User?.mobile_number}}</small>
                                 </td>
                                 <td>{{b.hospital}}<br><span class="text-muted">{{b.department}}</span></td>
                                 <td>{{b.date | date}}<br><small>{{b.timeSlot}}</small></td>
@@ -129,7 +129,7 @@ import { ToastService } from '../../../services/toast.service';
         <div class="modal-overlay" *ngIf="showModal">
             <div class="modal shadow">
                 <h3>{{updatingAction}} Booking</h3>
-                <p>For {{selectedBooking?.User?.name}} at {{selectedBooking?.hospital}}</p>
+                <p>For {{selectedBooking?.User?.full_name}} at {{selectedBooking?.hospital}}</p>
                 
                 <div class="form-group" *ngIf="updatingAction === 'Approve'">
                     <label>Assign Token Number</label>

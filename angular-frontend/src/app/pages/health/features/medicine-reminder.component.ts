@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { HealthService } from '../../../services/health.service';
+import { PushNotificationService } from '../../../services/push-notification.service';
+import { MedicineAlarmService } from '../../../services/medicine-alarm.service';
 
 @Component({
   selector: 'app-medicine-reminder',
@@ -123,12 +125,16 @@ import { HealthService } from '../../../services/health.service';
 })
 export class MedicineReminderComponent implements OnInit {
   healthService = inject(HealthService);
+  pushService = inject(PushNotificationService);
+  alarmService = inject(MedicineAlarmService);
 
   medicines: any[] = [];
   showAddForm = false;
   newMedicine = { name: '', dose: '', time: '', instructions: '' };
 
   ngOnInit() {
+    this.alarmService.reload(); // Instantly sync alarms on load
+    this.pushService.requestSubscription();
     this.loadMedicines();
   }
 
@@ -179,6 +185,7 @@ export class MedicineReminderComponent implements OnInit {
           });
           this.newMedicine = { name: '', dose: '', time: '', instructions: '' };
           this.showAddForm = false;
+          this.alarmService.reload(); // Synchronize foreground alarm!
         },
         error: (err) => alert('Failed to add medicine')
       });
@@ -189,6 +196,7 @@ export class MedicineReminderComponent implements OnInit {
     this.healthService.deleteMedicineReminder(id).subscribe({
       next: () => {
         this.medicines = this.medicines.filter(m => m.id !== id);
+        this.alarmService.reload(); // Synchronize foreground alarm!
       },
       error: (err) => alert('Failed to delete')
     });

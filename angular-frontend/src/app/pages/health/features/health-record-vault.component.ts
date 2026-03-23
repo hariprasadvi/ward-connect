@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { HealthService } from '../../../services/health.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-health-record-vault',
@@ -18,58 +20,62 @@ import { MatIconModule } from '@angular/material/icon';
 
       <div class="bg-transparent border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center mb-8 hover:bg-gray-50 transition-colors cursor-pointer group"
            (click)="fileInput.click()">
-        <input #fileInput type="file" (change)="onFileSelected($event)" hidden>
+        <input #fileInput type="file" (change)="onFileSelected($event)" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" hidden>
         <p class="mb-4 text-gray-500 group-hover:text-gray-600">Drag and drop files here, or click to upload</p>
-        <button class="bg-gradient-to-r from-sky-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2 mx-auto"
+        <button class="bg-gradient-to-r from-sky-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2 mx-auto disabled:opacity-50 disabled:hover:translate-y-0"
+                [disabled]="isUploading"
                 (click)="$event.stopPropagation(); fileInput.click()">
-          <mat-icon>upload_file</mat-icon> Upload New Record
+          <mat-icon [class.animate-spin]="isUploading">{{ isUploading ? 'sync' : 'upload_file' }}</mat-icon> 
+          {{ isUploading ? 'Securing Document...' : 'Upload New Record' }}
         </button>
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 class="font-bold text-lg text-gray-800">Stored Records ({{records.length}})</h3>
-          <button (click)="locked = !locked"
-                  class="px-4 py-2 rounded-lg text-white font-medium text-sm flex items-center gap-2 transition-all"
-                  [style.background]="locked ? '#f43f5e' : 'var(--secondary)'">
-            <mat-icon class="text-sm w-4 h-4 text-[16px] leading-none flex items-center">{{locked ? 'lock' : 'visibility_off'}}</mat-icon>
-            {{locked ? 'Decrypt' : 'Hide'}}
-          </button>
         </div>
 
         <div class="divide-y divide-gray-100">
+          <div *ngIf="records.length === 0" class="p-8 text-center text-gray-400">
+             No medical records uploaded yet.
+          </div>
           <div *ngFor="let rec of records" class="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors group">
             <div class="flex items-center gap-4">
               <div class="p-3 bg-white rounded-lg border border-gray-200">
-                <mat-icon [class.text-indigo-500]="!locked" [class.text-gray-400]="locked">description</mat-icon>
+                <mat-icon class="text-indigo-500">description</mat-icon>
               </div>
               
               <div>
-                <div class="font-bold text-gray-800 font-mono text-base">
-                  {{locked ? '••••••••••••••••••••' : rec.name}}
+                <div class="font-bold text-gray-800 font-mono text-base truncate max-w-sm" [title]="rec.title">
+                  {{rec.title || 'Medical Document'}}
                 </div>
                 <div class="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                  <span>{{locked ? '••••-••-••' : rec.date}}</span>
+                  <span>{{rec.recordDate}}</span>
                   <span>•</span>
                   <span class="text-xs bg-gray-100 px-2 py-0.5 rounded uppercase font-semibold tracking-wide">
-                    {{locked ? '•••' : rec.type}}
+                    {{rec.category}}
                   </span>
                 </div>
               </div>
             </div>
 
-            <button [disabled]="locked" 
-                    class="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                    [class.text-indigo-500]="!locked"
-                    [class.text-gray-300]="locked"
-                    [class.cursor-not-allowed]="locked">
-              <mat-icon>download</mat-icon>
-            </button>
+            <div class="flex items-center gap-2">
+              <a *ngIf="rec.fileUrl" [href]="baseUrl + rec.fileUrl" target="_blank" 
+                 class="p-2 rounded-full hover:bg-indigo-50 text-indigo-500 transition-colors cursor-pointer flex items-center justify-center"
+                 title="Download File">
+                <mat-icon>download</mat-icon>
+              </a>
+              <button (click)="deleteRecord(rec.id)" [disabled]="isDeleting === rec.id"
+                      class="p-2 rounded-full hover:bg-red-50 text-red-500 transition-colors cursor-pointer flex items-center justify-center disabled:opacity-50"
+                      title="Delete Record">
+                <mat-icon>{{ isDeleting === rec.id ? 'sync' : 'delete' }}</mat-icon>
+              </button>
+            </div>
           </div>
         </div>
         
-        <div class="p-4 bg-rose-50 text-rose-500 text-sm flex items-center gap-2 border-t border-rose-100">
-           <mat-icon class="text-sm w-4 h-4 flex items-center">lock</mat-icon> Your records are encrypted with AES-256 bit encryption.
+        <div class="p-4 bg-emerald-50 text-emerald-600 text-sm flex items-center gap-2 border-t border-emerald-100 font-medium">
+           <mat-icon class="text-sm w-4 h-4 flex items-center text-emerald-500">verified_user</mat-icon> Your records are securely stored and rapidly accessible anytime.
         </div>
       </div>
     </div>
@@ -81,23 +87,60 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `]
 })
-export class HealthRecordVaultComponent {
-  locked = true;
-  records = [
-    { id: 1, name: 'Annual Physical Results', date: '2025-12-10', type: 'PDF' },
-    { id: 2, name: 'Vaccination History', date: '2024-05-20', type: 'PDF' },
-    { id: 3, name: 'Dental X-Ray', date: '2025-01-15', type: 'JPG' },
-  ];
+export class HealthRecordVaultComponent implements OnInit {
+  healthService = inject(HealthService);
+  toast = inject(ToastService);
+
+  records: any[] = [];
+  baseUrl = 'http://localhost:5000';
+  isUploading = false;
+  isDeleting: string | null = null;
+
+  ngOnInit() {
+    this.loadRecords();
+  }
+
+  loadRecords() {
+    this.healthService.getHealthRecords().subscribe({
+      next: (res) => { this.records = res; },
+      error: (err) => { this.toast.showError('Failed to load health records'); }
+    });
+  }
 
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      const extension = file.name.split('.').pop()?.toUpperCase() || 'FILE';
-      this.records.unshift({
-        id: Date.now(),
-        name: file.name,
-        date: new Date().toISOString().split('T')[0],
-        type: extension
+      this.isUploading = true;
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      this.healthService.addHealthRecord(formData).subscribe({
+        next: () => {
+          this.toast.showSuccess('File officially locked into Health Vault!');
+          this.loadRecords();
+          this.isUploading = false;
+        },
+        error: () => {
+          this.toast.showError('File upload failed.');
+          this.isUploading = false;
+        }
+      });
+    }
+  }
+
+  deleteRecord(id: string) {
+    if (confirm('Are you sure you want to permanently delete this medical record?')) {
+      this.isDeleting = id;
+      this.healthService.deleteHealthRecord(id).subscribe({
+        next: () => {
+          this.toast.showSuccess('Medical record securely deleted.');
+          this.loadRecords();
+          this.isDeleting = null;
+        },
+        error: () => {
+          this.toast.showError('Failed to delete the record.');
+          this.isDeleting = null;
+        }
       });
     }
   }
