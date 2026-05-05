@@ -1,8 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
+import { HealthService } from '../../../services/health.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-community-dashboard',
@@ -46,9 +48,15 @@ import { AuthService } from '../../../services/auth.service';
                 <label class="block text-sm font-medium text-indigo-700 mb-1">Immunity %</label>
                 <input type="number" [(ngModel)]="stats.immunity" class="w-full p-2 rounded-lg border-indigo-200">
             </div>
-             <div class="md:col-span-3">
-                <label class="block text-sm font-medium text-indigo-700 mb-1">Alert Message</label>
-                <input type="text" [(ngModel)]="stats.alertMessage" class="w-full p-2 rounded-lg border-indigo-200">
+             <div class="md:col-span-3 flex justify-between items-end">
+                <div class="w-full mr-4">
+                    <label class="block text-sm font-medium text-indigo-700 mb-1">Alert Message</label>
+                    <input type="text" [(ngModel)]="stats.alertMessage" class="w-full p-2 rounded-lg border-indigo-200">
+                </div>
+                <button (click)="saveStats()" [disabled]="isSaving" 
+                        class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow-sm hover:bg-green-700 transition disabled:opacity-50">
+                    {{ isSaving ? 'Saving...' : 'Save' }}
+                </button>
             </div>
         </div>
       </div>
@@ -123,11 +131,30 @@ import { AuthService } from '../../../services/auth.service';
                 </defs>
 
                 <!-- Path 1: Active Cases (Indigo) -->
-                <path [attr.d]="getPath(activeData)" fill="url(#grad2)" stroke="#6366f1" stroke-width="0.5" vector-effect="non-scaling-stroke" />
+                <path [attr.d]="getSmoothPath(activeData)" fill="url(#grad2)" stroke="#6366f1" stroke-width="0.5" vector-effect="non-scaling-stroke" />
 
                 <!-- Path 2: Total Cases (Sky) -->
-                <path [attr.d]="getPath(casesData)" fill="url(#grad1)" stroke="#0ea5e9" stroke-width="0.5" vector-effect="non-scaling-stroke" />
+                <path [attr.d]="getSmoothPath(casesData)" fill="url(#grad1)" stroke="#0ea5e9" stroke-width="0.5" vector-effect="non-scaling-stroke" />
                 
+                <!-- Interactive Points: Total Cases -->
+                <circle *ngFor="let d of data; let i = index"
+                        [attr.cx]="(i / (data.length - 1)) * 100"
+                        [attr.cy]="50 - (d.cases / 6000) * 50"
+                        r="1" fill="#fff" stroke="#0ea5e9" stroke-width="0.5"
+                        class="cursor-pointer hover:opacity-80 transition-all duration-300"
+                        style="transform-origin: center;">
+                    <title>{{d.name}}: {{d.cases}} Total Cases</title>
+                </circle>
+
+                <!-- Interactive Points: Active Cases -->
+                <circle *ngFor="let d of data; let i = index"
+                        [attr.cx]="(i / (data.length - 1)) * 100"
+                        [attr.cy]="50 - (d.active / 6000) * 50"
+                        r="1" fill="#fff" stroke="#6366f1" stroke-width="0.5"
+                        class="cursor-pointer hover:opacity-80 transition-all duration-300"
+                        style="transform-origin: center;">
+                    <title>{{d.name}}: {{d.active}} Active Cases</title>
+                </circle>
             </svg>
             
             <!-- X Axis Labels -->
@@ -139,30 +166,95 @@ import { AuthService } from '../../../services/auth.service';
     </div>
   `
 })
-export class CommunityDashboardComponent {
+export class CommunityDashboardComponent implements OnInit {
   authService = inject(AuthService);
+  healthService = inject(HealthService);
+  toast = inject(ToastService);
 
   showUpdateForm = false;
+  isSaving = false;
 
   stats = {
-    activeCases: 452,
-    alerts: 3,
-    immunity: 87,
-    alertMessage: 'Flu outbreak reported in Sector 4'
+    activeCases: 0,
+    alerts: 0,
+    immunity: 0,
+    alertMessage: 'No current alerts'
   };
 
-  data = [
-    { name: 'Mon', cases: 4000, active: 2400 },
-    { name: 'Tue', cases: 3000, active: 2200 },
-    { name: 'Wed', cases: 5000, active: 3800 },
-    { name: 'Thu', cases: 2780, active: 2000 },
-    { name: 'Fri', cases: 4890, active: 3100 },
-    { name: 'Sat', cases: 3390, active: 2500 },
-    { name: 'Sun', cases: 5490, active: 3800 },
-  ];
+  data: any[] = [];
+
+  ngOnInit() {
+      this.loadData();
+  }
+
+  loadData() {
+      this.healthService.getCommunityStats().subscribe({
+          next: (res) => {
+              if (res && res.length > 0) {
+                  // Map the backend data to the graph format
+                  this.data = res.map((r: any) => {
+                      const d = new Date(r.date);
+                      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                      return { name: dayName, cases: r.cases, active: r.active };
+                  });
+
+                  // Populate the top cards with the most recent day's data
+                  const latest = res[res.length - 1];
+                  this.stats = {
+                      activeCases: latest.active,
+                      alerts: latest.alerts,
+                      immunity: latest.immunity,
+                      alertMessage: latest.alertMessage || 'No current alerts'
+                  };
+
+                  // If we don't have enough days, pad the array for the visual graph
+                  while (this.data.length < 7) {
+                      this.data.unshift({ name: '-', cases: 0, active: 0 });
+                  }
+              } else {
+                  // Default state if nothing in DB yet
+                  const dayName = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+                  this.data = [
+                      { name: dayName, cases: 4000, active: 2400 }
+                  ];
+                  this.stats = {
+                    activeCases: 2400,
+                    alerts: 0,
+                    immunity: 80,
+                    alertMessage: 'Default data. Please update.'
+                  };
+              }
+          },
+          error: (err) => this.toast.showError('Failed to load community stats')
+      });
+  }
+
+  saveStats() {
+      this.isSaving = true;
+      const payload = {
+          date: new Date().toISOString().split('T')[0], // Today's date YYYY-MM-DD
+          cases: this.data[this.data.length - 1]?.cases || 4000, // keep the total cases the same or prompt for it
+          active: this.stats.activeCases,
+          alerts: this.stats.alerts,
+          immunity: this.stats.immunity,
+          alertMessage: this.stats.alertMessage
+      };
+
+      this.healthService.updateCommunityStats(payload).subscribe({
+          next: () => {
+              this.toast.showSuccess('Community stats saved successfully');
+              this.isSaving = false;
+              this.showUpdateForm = false;
+              this.loadData(); // refresh the graph
+          },
+          error: () => {
+              this.toast.showError('Error saving stats');
+              this.isSaving = false;
+          }
+      });
+  }
 
   get isHealthWorker(): boolean {
-    // Return true for testing if needed, but primarily use auth service
     return this.authService.hasRole('Health Worker');
   }
 
@@ -176,21 +268,28 @@ export class CommunityDashboardComponent {
     return this.data.map(d => d.active);
   }
 
-  getPath(values: number[]): string {
+  getSmoothPath(values: number[]): string {
     const maxY = 6000;
     const width = 100;
     const height = 50;
 
-    // Generate points
-    let path = `M 0,${height} `; // Start at bottom left
+    const points = values.map((val, i) => ({
+      x: (i / (values.length - 1)) * width,
+      y: height - (val / maxY) * height
+    }));
 
-    values.forEach((val, i) => {
-      const x = (i / (values.length - 1)) * width;
-      const y = height - (val / maxY) * height;
-      path += `L ${x},${y} `;
-    });
+    // Start from bottom right, go to bottom left, then to first point
+    let path = `M ${width},${height} L 0,${height} L ${points[0].x},${points[0].y} `;
 
-    path += `L ${width},${height} Z`; // Close path to bottom right and back to start
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i];
+        const p1 = points[i + 1];
+        // Cubic bezier to make a smoothly curving line
+        const cpX = (p0.x + p1.x) / 2;
+        path += `C ${cpX},${p0.y} ${cpX},${p1.y} ${p1.x},${p1.y} `;
+    }
+
+    path += `Z`; // Close path back into the bottom right corner
     return path;
   }
 }

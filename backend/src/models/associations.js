@@ -8,8 +8,10 @@ const Notification = require('./Notification');
 const Bill = require('./Bill');
 const CivicRequest = require('./CivicRequest');
 const DonationRequest = require('./DonationRequest');
+const DonationPledge = require('./DonationPledge');
 const MedicineReminder = require('./MedicineReminder');
 const HealthRecord = require('./HealthRecord');
+const PushSubscription = require('./PushSubscription');
 const JobAlert = require('./JobAlert');
 const Application = require('./Application');
 const KudumbashreeGroup = require('./KudumbashreeGroup');
@@ -20,6 +22,9 @@ const Attendance = require('./Attendance');
 const FinancialTransaction = require('./FinancialTransaction');
 const Booking = require('./booking.model');
 const Vehicle = require('./vehicle.model');
+const OpBooking = require('./OpBooking');
+const CommunityStat = require('./CommunityStat');
+const InsuranceScheme = require('./InsuranceScheme');
 
 console.log("Defining Sequelize associations...");
 
@@ -54,10 +59,22 @@ try {
     // --- Health ---
     User.hasMany(DonationRequest, { foreignKey: 'userId' });
     DonationRequest.belongsTo(User, { foreignKey: 'userId' });
+    
+    // Blood Donation Math Tracking
+    DonationRequest.hasMany(DonationPledge, { foreignKey: 'requestId', onDelete: 'CASCADE' });
+    DonationPledge.belongsTo(DonationRequest, { foreignKey: 'requestId' });
+    User.hasMany(DonationPledge, { foreignKey: 'donorId' });
+    DonationPledge.belongsTo(User, { foreignKey: 'donorId' });
+
     User.hasMany(MedicineReminder, { foreignKey: 'userId' });
     MedicineReminder.belongsTo(User, { foreignKey: 'userId' });
     User.hasMany(HealthRecord, { foreignKey: 'userId' });
     HealthRecord.belongsTo(User, { foreignKey: 'userId' });
+    User.hasMany(PushSubscription, { foreignKey: 'userId' });
+    User.hasMany(PushSubscription, { foreignKey: 'userId' });
+    PushSubscription.belongsTo(User, { foreignKey: 'userId' });
+    User.hasMany(OpBooking, { foreignKey: 'userId' });
+    OpBooking.belongsTo(User, { foreignKey: 'userId' });
 
     // --- Jobs ---
     JobAlert.hasMany(Application, { foreignKey: 'jobId' });

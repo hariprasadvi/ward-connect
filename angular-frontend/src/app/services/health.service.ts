@@ -18,8 +18,16 @@ export class HealthService {
         return this.http.post(`${this.apiUrl}/donations`, data);
     }
 
-    getMyDonationRequests(): Observable<any[]> {
+    getUserDonationRequests(): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/donations/my`);
+    }
+
+    pledgeBloodDonation(requestId: string, unitsDonated: number): Observable<any> {
+        return this.http.post(`${this.apiUrl}/donations/${requestId}/pledge`, { unitsDonated });
+    }
+
+    cancelDonationRequest(requestId: string): Observable<any> {
+        return this.http.patch(`${this.apiUrl}/donations/${requestId}/cancel`, {});
     }
 
     // --- Medicine Reminders ---
@@ -44,6 +52,10 @@ export class HealthService {
         return this.http.post(`${this.apiUrl}/records`, data);
     }
 
+    deleteHealthRecord(id: string): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/records/${id}`);
+    }
+
     // --- OP Bookings ---
     createOpBooking(data: any): Observable<any> {
         return this.http.post(`${this.apiUrl}/op-bookings`, data);
@@ -63,5 +75,23 @@ export class HealthService {
 
     updateOpBookingStatus(id: string | number, data: any): Observable<any> {
         return this.http.put(`${this.apiUrl}/op-bookings/${id}/status`, data);
+    }
+
+    // --- Community Stats ---
+    getCommunityStats(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/community-stats`);
+    }
+
+    updateCommunityStats(data: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/community-stats`, data);
+    }
+
+    // --- Insurance Schemes ---
+    getInsuranceSchemes(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/insurance-schemes`);
+    }
+
+    addInsuranceScheme(data: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/insurance-schemes`, data);
     }
 }
