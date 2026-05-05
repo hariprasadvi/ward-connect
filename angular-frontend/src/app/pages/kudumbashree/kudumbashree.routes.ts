@@ -80,6 +80,12 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
   {
+    path: 'admin/attendance',
+    loadComponent: () => import('./components/admin-attendance/admin-attendance.component').then(m => m.AdminAttendanceComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { role: 'admin' }
+  },
+  {
     path: 'meeting-minutes',
     loadComponent: () => import('./components/meeting-minutes/meeting-minutes.component').then(m => m.MeetingMinutesComponent),
     canActivate: [AuthGuard, RoleGuard],

@@ -2,6 +2,7 @@ const Attendance = require('../models/Attendance');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const User = require('../models/User');
 const Meeting = require('../models/Meeting');
+const { Op } = require('sequelize');
 
 exports.markAttendance = async (req, res) => {
     try {
@@ -211,6 +212,91 @@ exports.generatePaymentQR = async (req, res) => {
         res.status(200).json({ qrCode, transactionId });
     } catch (error) {
         res.status(500).json({ message: 'Error generating QR code', error: error.message });
+    }
+};
+
+// Admin submit attendance: validates admin count vs actual present count
+exports.adminSubmitAttendance = async (req, res) => {
+    try {
+        const { meetingId } = req.params;
+        const { adminCount } = req.body;
+
+        if (adminCount === undefined || adminCount === null || isNaN(Number(adminCount))) {
+            return res.status(400).json({ message: 'Admin count is required and must be a number.' });
+        }
+
+        const meeting = await Meeting.findByPk(meetingId);
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found.' });
+        }
+
+        if (meeting.attendance_submitted) {
+            return res.status(400).json({ message: 'Attendance has already been submitted for this meeting.' });
+        }
+
+        // Count actual Present records for this meeting
+        const actualCount = await Attendance.count({
+            where: { meetingId, status: 'Present' }
+        });
+
+        const enteredCount = Number(adminCount);
+
+        if (enteredCount !== actualCount) {
+            return res.status(400).json({
+                message: `Count mismatch: You entered ${enteredCount}, but ${actualCount} member(s) have marked attendance. Please verify and try again.`,
+                adminCount: enteredCount,
+                actualCount
+            });
+        }
+
+        // Counts match — finalize the meeting attendance
+        await Meeting.update(
+            { attendance_submitted: true, status: 'Completed' },
+            { where: { id: meetingId } }
+        );
+
+        return res.status(200).json({
+            message: `Attendance submitted successfully. ${actualCount} member(s) confirmed.`,
+            meetingId,
+            confirmedCount: actualCount
+        });
+    } catch (error) {
+        console.error('Error in adminSubmitAttendance:', error);
+        res.status(500).json({ message: 'Error submitting attendance', error: error.message });
+    }
+};
+
+// Get attendance summary for a meeting (for admin view)
+exports.getAttendanceSummary = async (req, res) => {
+    try {
+        const { meetingId } = req.params;
+
+        const meeting = await Meeting.findByPk(meetingId, {
+            attributes: ['id', 'title', 'date', 'location', 'status', 'attendance_submitted']
+        });
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found.' });
+        }
+
+        const presentCount = await Attendance.count({ where: { meetingId, status: 'Present' } });
+        const absentCount = await Attendance.count({ where: { meetingId, status: 'Absent' } });
+
+        const attendees = await Attendance.findAll({
+            where: { meetingId, status: 'Present' },
+            include: [{ model: User, attributes: ['id', ['full_name', 'name'], 'email'] }],
+            order: [['createdAt', 'ASC']]
+        });
+
+        res.status(200).json({
+            meeting,
+            presentCount,
+            absentCount,
+            attendance_submitted: meeting.attendance_submitted,
+            attendees
+        });
+    } catch (error) {
+        console.error('Error in getAttendanceSummary:', error);
+        res.status(500).json({ message: 'Error fetching summary', error: error.message });
     }
 };
 

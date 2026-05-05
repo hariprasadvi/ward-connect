@@ -33,7 +33,17 @@ exports.scheduleMeeting = async (req, res) => {
 
 exports.getMeetings = async (req, res) => {
     try {
-        const { groupId, type } = req.query; // type: 'active' or 'history'
+        const { type } = req.query; // type: 'active' or 'history'
+        let { groupId } = req.query;
+
+        // If groupId is not provided in query, try to get it from the authenticated user's profile
+        if (!groupId && req.user) {
+            const KudumbashreeProfile = require('../models/KudumbashreeProfile');
+            const profile = await KudumbashreeProfile.findOne({ where: { userId: req.user.id } });
+            if (profile) {
+                groupId = profile.groupId;
+            }
+        }
 
         let where = {};
         if (groupId) where.groupId = groupId;
@@ -44,12 +54,8 @@ exports.getMeetings = async (req, res) => {
         if (type === 'active') {
             where = {
                 ...where,
-                [Op.or]: [
-                    { status: 'Scheduled' },
-                    {
-                        date: { [Op.gte]: now }  // Future meetings
-                    }
-                ]
+                status: 'Scheduled',
+                date: { [Op.gte]: now } // Future meetings
             };
         } else if (type === 'history') {
             where = {
@@ -71,6 +77,7 @@ exports.getMeetings = async (req, res) => {
         });
         res.status(200).json(meetings);
     } catch (error) {
+        console.error('Error in getMeetings:', error);
         res.status(500).json({ message: 'Error fetching meetings', error: error.message });
     }
 };
@@ -100,13 +107,31 @@ exports.recordMeetingAudio = async (req, res) => {
                 await Meeting.update({ processingStatus: 'PROCESSING' }, { where: { id: meetingId } });
                 console.log(`Processing meeting ${meetingId}...`);
 
-                let result;
+                let result = { transcript: '', summary: '' };
+                const transcriptionService = require('../services/transcriptionService');
+                
                 if (transcript && transcript.trim().length > 0) {
-                     console.log('Using live transcript provided by Google Cloud, extracting summary only.');
+                     console.log('Using live transcript provided by frontend, extracting summary only.');
                      result = await geminiService.summarizeMeetingTranscript(transcript);
                 } else if (hasAudio) {
-                     console.log('Sending audio to Gemini directly...');
-                     result = await geminiService.processMeetingAudio(req.file.buffer, req.file.mimetype || 'audio/webm');
+                     console.log('Attempting Google Cloud Speech-to-Text transcription...');
+                     try {
+                         // 1. Try Google Cloud Speech API
+                         const audioText = await transcriptionService.transcribeAudioBuffer(req.file.buffer, req.file.mimetype || 'audio/webm');
+                         
+                         if (audioText && audioText.trim().length > 0) {
+                             console.log('Google Cloud STT success. Now summarizing transcript with AI...');
+                             result = await geminiService.summarizeMeetingTranscript(audioText);
+                         } else {
+                             throw new Error('Google Cloud STT returned empty transcript. Falling back to Gemini.');
+                         }
+                     } catch (sttError) {
+                         console.warn('Google Cloud STT failed or skipped:', sttError.message);
+                         console.log('Falling back to Gemini direct audio processing...');
+                         
+                         // 2. Fallback to Gemini 2.0 Audio Processing (Handles long audio beautifully)
+                         result = await geminiService.processMeetingAudio(req.file.buffer, req.file.mimetype || 'audio/webm');
+                     }
                 } else {
                      throw new Error('No audio and no transcript provided.');
                 }
@@ -115,14 +140,28 @@ exports.recordMeetingAudio = async (req, res) => {
 
                 await Meeting.update({
                     processingStatus: 'COMPLETED',
-                    transcript: result.transcript,
-                    summary: result.summary,
+                    transcript: result.transcript || 'No transcript generated.',
+                    summary: result.summary || 'No summary generated.',
                 }, { where: { id: meetingId } });
 
                 console.log(`Job completed for Meeting ${meetingId}`);
             } catch (err) {
                 console.error(`Job failed for Meeting ${meetingId}:`, err);
-                await Meeting.update({ processingStatus: 'FAILED' }, { where: { id: meetingId } });
+
+                // Store a meaningful error message
+                let errorMessage = 'AI processing failed.';
+                if (err.isQuotaError || (err.message && err.message.includes('quota'))) {
+                    errorMessage = 'Gemini API quota exceeded. Please wait a few minutes and try again. If this persists, check your API billing plan.';
+                } else if (err.status === 429) {
+                    errorMessage = 'Too many requests. Please wait a minute and try again.';
+                } else if (err.message) {
+                    errorMessage = 'AI Error: ' + err.message;
+                }
+
+                await Meeting.update({
+                    processingStatus: 'FAILED',
+                    summary: errorMessage
+                }, { where: { id: meetingId } });
             }
         })();
 

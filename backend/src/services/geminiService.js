@@ -1,133 +1,353 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleAIFileManager } = require("@google/generative-ai/server");
+const { VertexAI } = require('@google-cloud/vertexai');
+const axios = require('axios');
 const dotenv = require('dotenv');
 
 dotenv.config();
-
-// Ensure GEMINI_API_KEY is set in .env
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const getGenAI = () => {
     if (!process.env.GEMINI_API_KEY) return null;
     return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 }
 
-exports.processMeetingAudio = async (audioBuffer, mimeType) => {
+const getVertexAI = () => {
+    // Only attempt to initialize if they provided Google Cloud Credentials
+    if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) return null;
     try {
-        const genAI = getGenAI();
-        if (!genAI) {
-            console.warn("Gemini API Key missing. Returning mock data.");
-            return { transcript: "Mock Transcript: API Key Missing", summary: "Mock Summary: API Key Missing" };
+        return new VertexAI({
+            project: 'gen-lang-client-0064140177', // Extracting from the JSON file you provided
+            location: 'us-central1' // Vertex AI default generative location
+        });
+    } catch (e) {
+        console.error("Vertex AI Initialization Failed:", e);
+        return null;
+    }
+}
+
+/**
+ * Helper to call AI with a chain of fallback models (Claude -> Gemini -> OpenAI) and retry logic
+ */
+async function callAI(payload, isReport = false) {
+    const isTextOnly = typeof payload === 'string' || (Array.isArray(payload) && typeof payload[0] === 'string' && payload.length === 1);
+    
+    // 1. PRIMARY: Claude API (Anthropic) - The requested provider for generating minutes
+    if (process.env.CLAUDE_API_KEY && isTextOnly) {
+        console.log("Using Claude API (Anthropic) for text generation...");
+        try {
+            const prompt = Array.isArray(payload) ? payload[0] : payload;
+            const response = await axios.post('https://api.anthropic.com/v1/messages', {
+                model: "claude-3-5-sonnet-20241022",
+                max_tokens: 2048,
+                messages: [{ role: "user", content: prompt }]
+            }, {
+                headers: {
+                    'x-api-key': process.env.CLAUDE_API_KEY,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json'
+                }
+            });
+
+            const text = response.data.content[0].text;
+            if (isReport) return text;
+
+            let cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            try {
+                console.log("Success with Claude API!");
+                return JSON.parse(cleanedText);
+            } catch (e) {
+                return { rawText: text };
+            }
+        } catch (claudeError) {
+            console.error("Claude API failed:", claudeError.response?.data || claudeError.message);
+            console.log("Falling back to Gemini...");
         }
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    }
 
-        // Convert buffer to base64
-        const audioBase64 = audioBuffer.toString('base64');
+    // 2. PRIMARY 2 / FALLBACK 1: Google Cloud Vertex AI (Using provided JSON Key)
+    const vertexAI = getVertexAI();
+    let vertexSucceeded = false;
+    
+    // For Vertex, we append -001 to model names or use the latest supported flash models
+    const vertexModels = ["gemini-1.5-flash-001", "gemini-1.5-pro-001"];
+    const MAX_RETRIES = 2;
+    const BASE_DELAY_MS = 10000;
 
-        const prompt = `
-        You are an intelligent assistant for Kudumbashree (neighborhood groups in Kerala).
-        Please listen to this Malayalam meeting audio and perform the following TWO tasks:
-        
-        1. **Transcribe**: Provide a full Malayalam transcription of the audio.
-        2. **Summarize**: Provide a structured "Meeting Minutes" summary in **Malayalam**, including Key Decisions and Action Items.
-        
-        Format your response as a JSON object strictly like this:
-        {
-            "transcript": "Full Malayalam transcript here...",
-            "summary": "Structured Malayalam summary here..."
-        }
-        `;
+    if (vertexAI) {
+        for (const modelName of vertexModels) {
+            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+                try {
+                    console.log(`Trying Vertex AI (Cloud AI) model: ${modelName} (attempt ${attempt}/${MAX_RETRIES})...`);
+                    const model = vertexAI.getGenerativeModel({ model: modelName });
+                    
+                    // Vertex generativeContent handles payloads identically to Gemini Studio!
+                    const result = await model.generateContent(payload);
+                    const response = await result.response;
+                    const text = response.text();
 
-        const result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    mimeType: mimeType || 'audio/webm', // dependent on what frontend sends
-                    data: audioBase64
+                    if (isReport) return text;
+
+                    let cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    try {
+                        console.log(`Success with Vertex AI model: ${modelName}`);
+                        return JSON.parse(cleanedText);
+                    } catch (e) {
+                        return { rawText: text };
+                    }
+                } catch (error) {
+                    const status = error.status || (error.response && error.response.status);
+                    const isRateLimited = status === 429 || (error.message && error.message.includes('429'));
+                    const isQuotaExhausted = error.message && (error.message.includes('quota') || error.message.includes('Quota'));
+                    
+                    if (isRateLimited && attempt < MAX_RETRIES) {
+                        const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else if (isRateLimited || isQuotaExhausted || status === 404 || (error.message && error.message.includes('not found'))) {
+                        console.warn(`Vertex model ${modelName} exhausted, missing, or unavailable. Trying next...`);
+                        break; 
+                    } else {
+                        console.error(`Vertex Error (${modelName}):`, error.message);
+                        break; 
+                    }
                 }
             }
-        ]);
+        }
+    }
 
-        const response = await result.response;
-        let text = response.text();
+    // 3. FALLBACK 2: Standard Gemini API (AI Studio)
+    const genAI = getGenAI();
+    // Added newest 2.5 models at the top to bypass exhausted 2.0/1.5 tier quotas
+    // Standard stable models
+    const geminiModels = ["gemini-1.5-flash", "gemini-1.5-pro"];
 
-        // Clean up markdown code blocks if present
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    if (genAI) {
+        for (const modelName of geminiModels) {
+            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+                try {
+                    console.log(`Trying Gemini model: ${modelName} (attempt ${attempt}/${MAX_RETRIES})...`);
+                    const model = genAI.getGenerativeModel({ model: modelName });
+                    const result = await model.generateContent(payload);
+                    const response = await result.response;
+                    const text = response.text();
 
+                    if (isReport) return text;
+
+                    let cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    try {
+                        console.log(`Success with Gemini model: ${modelName}`);
+                        return JSON.parse(cleanedText);
+                    } catch (e) {
+                        return { rawText: text };
+                    }
+                } catch (error) {
+                    const status = error.status || (error.response && error.response.status);
+                    const isRateLimited = status === 429 || (error.message && error.message.includes('429'));
+                    const isQuotaExhausted = error.message && (error.message.includes('quota') || error.message.includes('Quota'));
+                    
+                    if (isRateLimited && attempt < MAX_RETRIES) {
+                        const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else if (isRateLimited || isQuotaExhausted || status === 404) {
+                        console.warn(`Gemini model ${modelName} failed (${status || 'Quota/404'}). Trying next...`);
+                        break; 
+                    } else {
+                        console.error(`Gemini Error (${modelName}):`, error.message);
+                        break; 
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. FINAL FALLBACK: OpenAI
+    if (process.env.OPENAI_API_KEY && isTextOnly) {
+        console.log("Gemini failed. Falling back to OpenAI (GPT-4o-mini)...");
         try {
-            return JSON.parse(text);
-        } catch (e) {
-            console.error("Failed to parse JSON from Gemini:", text);
-            // Fallback: return raw text as transcript
-            return {
-                transcript: text,
-                summary: "Could not parse structured summary. See transcript."
+            const prompt = Array.isArray(payload) ? payload[0] : payload;
+            const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0.7
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const text = response.data.choices[0].message.content;
+            if (isReport) return text;
+
+            let cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            try {
+                console.log("Success with OpenAI fallback!");
+                return JSON.parse(cleanedText);
+            } catch (e) {
+                return { rawText: text };
+            }
+        } catch (openaiError) {
+            console.error("OpenAI Fallback also failed:", openaiError.response?.data || openaiError.message);
+        }
+    }
+
+    const finalError = new Error('AI Services (Claude, Gemini & OpenAI) are currently unavailable or quotas are exhausted.');
+    finalError.isQuotaError = true;
+    throw finalError;
+}
+
+exports.processMeetingAudio = async (audioBuffer, mimeType) => {
+    try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const fileManager = new GoogleAIFileManager(apiKey);
+        
+        // Decide whether to use inlineData (small files < 20MB) or File API (larger files)
+        const fileSizeMB = audioBuffer.length / (1024 * 1024);
+        console.log(`Processing audio file of size: ${fileSizeMB.toFixed(2)} MB`);
+
+        let audioSource;
+        let tempFilePath;
+
+        if (fileSizeMB < 15) { // Use inline for small files
+            console.log("Using inlineData for small audio file...");
+            audioSource = {
+                inlineData: {
+                    mimeType: mimeType || 'audio/webm',
+                    data: audioBuffer.toString('base64')
+                }
+            };
+        } else {
+            // Use File API for larger files
+            console.log("Using Gemini File API for large audio file...");
+            const fs = require('fs');
+            const path = require('path');
+            const os = require('os');
+            
+            tempFilePath = path.join(os.tmpdir(), `meeting-audio-${Date.now()}.webm`);
+            fs.writeFileSync(tempFilePath, audioBuffer);
+            
+            const uploadResult = await fileManager.uploadFile(tempFilePath, {
+                mimeType: mimeType || 'audio/webm',
+                displayName: "Meeting Audio",
+            });
+            
+            console.log(`Uploaded file success: ${uploadResult.file.uri}`);
+            
+            // Wait for file to be processed if necessary (for very large files)
+            // For audio usually fast, but let's just use it
+            audioSource = {
+                fileData: {
+                    mimeType: uploadResult.file.mimeType,
+                    fileUri: uploadResult.file.uri
+                }
             };
         }
 
+        const prompt = `
+        You are an expert assistant for Kudumbashree (neighborhood groups in Kerala). 
+        You will be provided with an audio recording of a meeting.
+        
+        TASKS:
+        1. **Transcribe**: Listen carefully and provide a complete, accurate transcription of the conversation in **Malayalam (മലയാളം)**.
+        2. **Summarize**: Create a professional "Meeting Minutes" summary in **Malayalam (മലയാളം)**.
+        
+        The summary must include:
+        - യോഗത്തിന്റെ തലക്കെട്ട് (Meeting Title)
+        - പ്രധാന ചർച്ചാ വിഷയങ്ങൾ (Key Discussion Points)
+        - എടുത്ത തീരുമാനങ്ങൾ (Decisions Taken)
+        - തുടർനടപടികൾ (Action Items)
+        
+        RESPONSE FORMAT:
+        You MUST return the output ONLY as a valid JSON object with exactly these two keys:
+        {
+            "transcript": "...",
+            "summary": "..."
+        }
+        
+        IMPORTANT: Ensure the transcription and summary are entirely in Malayalam. Use proper Malayalam grammar and vocabulary.
+        `;
+
+        // Try models with fallback logic
+        const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro"];
+        let text = "";
+        let success = false;
+
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`Attempting generation with model: ${modelName}...`);
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const result = await model.generateContent([prompt, audioSource]);
+                const response = await result.response;
+                text = response.text();
+                success = true;
+                break;
+            } catch (err) {
+                console.warn(`Model ${modelName} failed:`, err.message);
+                continue;
+            }
+        }
+
+        if (!success) throw new Error("All Gemini models failed to process audio.");
+
+        // Cleanup temp file if created
+        if (tempFilePath) {
+            try { require('fs').unlinkSync(tempFilePath); } catch (e) {}
+        }
+
+        let cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        try {
+            return JSON.parse(cleanedText);
+        } catch (e) {
+            console.warn("Gemini returned non-JSON response, attempting to extract fields...");
+            // Basic extraction if JSON fails
+            return {
+                transcript: text,
+                summary: "Could not parse structured summary. Please check the full transcript above."
+            };
+        }
     } catch (error) {
-        console.error("Gemini AI API Error:", error);
+        console.error("Gemini processMeetingAudio error:", error);
         throw error;
     }
 };
 
 exports.summarizeMeetingTranscript = async (transcript) => {
+    const prompt = `
+    You are an expert assistant for Kudumbashree (neighborhood groups in Kerala).
+    Given the following Malayalam meeting transcript, generate a professional and structured "Meeting Minutes" summary in **Malayalam (മലയാളം)**.
+    
+    The summary should include:
+    - ചർച്ചാ വിഷയങ്ങൾ (Discussion Topics)
+    - പ്രധാന തീരുമാനങ്ങൾ (Key Decisions)
+    - തുടർനടപടികൾ (Action Items)
+    
+    Format your response as a JSON object strictly like this:
+    {
+        "summary": "Structured Malayalam summary here..."
+    }
+
+    Transcript:
+    ${transcript}
+    `;
+
     try {
-        const genAI = getGenAI();
-        if (!genAI) {
-            console.warn("Gemini API Key missing. Returning mock data.");
-            return { transcript: transcript, summary: "Mock Summary: Gemini API Key Missing" };
+        const result = await callAI(prompt);
+        if (result.rawText) {
+            return { transcript, summary: result.rawText };
         }
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-        const prompt = `
-        You are an intelligent assistant for Kudumbashree (neighborhood groups in Kerala).
-        Given the following Malayalam meeting transcript, generate a structured "Meeting Minutes" summary in **Malayalam**, including Key Decisions and Action Items.
-        
-        Format your response as a JSON object strictly like this:
-        {
-            "summary": "Structured Malayalam summary here..."
-        }
-
-        Transcript:
-        ${transcript}
-        `;
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text();
-
-        // Clean up markdown code blocks if present
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        try {
-            const parsed = JSON.parse(text);
-            return {
-                transcript: transcript,
-                summary: parsed.summary
-            };
-        } catch (e) {
-            console.error("Failed to parse JSON from Gemini:", text);
-            return {
-                transcript: transcript,
-                summary: "Could not parse structured summary. Generated text: " + text
-            };
-        }
-
+        return {
+            transcript: transcript,
+            summary: result.summary
+        };
     } catch (error) {
-        console.error("Gemini AI API Error in summarization:", error);
+        console.error("Gemini summarizeMeetingTranscript error:", error);
         throw error;
     }
 };
 
 exports.generateReport = async (data, type) => {
-    const genAI = getGenAI();
-    if (!genAI) {
-        console.warn("Gemini API Key missing. Returning fallback report.");
-        return generateFallbackReport(data, type);
-    }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
     const prompt = `
 You are an expert financial and administrative analyst for Kudumbashree (കുടുംബശ്രീ — neighborhood groups in Kerala).
 Please generate a professional, detailed ${type} report **entirely in Malayalam (മലയാളം)** based on the following JSON data.
@@ -143,29 +363,11 @@ ${JSON.stringify(data, null, 2)}
 IMPORTANT: The ENTIRE report must be written in Malayalam. Use Markdown format for structure (headers, tables, bold, lists). Keep numbers and currency (₹) as-is. Be concise, precise, and professional.
 `;
 
-    // Retry logic for rate limiting (429)
-    const MAX_RETRIES = 3;
-    const BASE_DELAY_MS = 10000; // 10 seconds
-
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text();
-        } catch (error) {
-            const isRateLimited = error.status === 429 || (error.message && error.message.includes('429'));
-            if (isRateLimited && attempt < MAX_RETRIES) {
-                const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1); // 10s, 20s, 40s
-                console.warn(`Gemini rate limited (attempt ${attempt}/${MAX_RETRIES}). Retrying in ${delay / 1000}s...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            } else if (isRateLimited) {
-                console.warn("Gemini quota exhausted after retries. Using fallback report.");
-                return generateFallbackReport(data, type);
-            } else {
-                console.error("Gemini AI Report Error:", error);
-                throw error;
-            }
-        }
+    try {
+        return await callAI(prompt, true);
+    } catch (error) {
+        console.warn("Gemini generateReport failed, using fallback:", error.message);
+        return generateFallbackReport(data, type);
     }
 };
 

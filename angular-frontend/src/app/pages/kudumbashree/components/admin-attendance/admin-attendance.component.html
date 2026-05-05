@@ -1,0 +1,191 @@
+<div class="admin-attendance-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h1>
+        <mat-icon>how_to_reg</mat-icon>
+        Attendance Manager
+      </h1>
+      <p>Select a meeting, view live attendance count, enter your count and submit to finalize.</p>
+    </div>
+  </div>
+
+  <!-- Step 1: Select Meeting -->
+  <mat-card class="step-card">
+    <mat-card-header>
+      <div class="step-badge">1</div>
+      <mat-card-title>Select Meeting</mat-card-title>
+      <mat-card-subtitle>Choose the meeting to manage attendance for</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="meeting-selector-row">
+        <mat-form-field appearance="outline" class="meeting-select">
+          <mat-label>Select a Meeting</mat-label>
+          <mat-icon matPrefix>event</mat-icon>
+          <mat-select
+            id="meeting-select"
+            [(ngModel)]="selectedMeetingId"
+            (ngModelChange)="onMeetingChange()"
+            [disabled]="isLoadingMeetings">
+            <mat-option *ngFor="let m of meetings" [value]="m.id">
+              <span class="meeting-option">
+                <strong>{{ m.title }}</strong>
+                <span class="meeting-date">{{ m.date | date:'mediumDate' }}</span>
+              </span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-spinner *ngIf="isLoadingMeetings" diameter="28"></mat-spinner>
+        <span *ngIf="!isLoadingMeetings && meetings.length === 0" class="no-meetings-hint">
+          No active meetings found.
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Step 2: Attendance Summary -->
+  <ng-container *ngIf="selectedMeetingId">
+    <mat-card class="step-card summary-card">
+      <mat-card-header>
+        <div class="step-badge">2</div>
+        <mat-card-title>Live Attendance Count</mat-card-title>
+        <mat-card-subtitle>Real-time count of members who marked attendance</mat-card-subtitle>
+        <button mat-icon-button
+          id="refresh-btn"
+          class="refresh-btn"
+          (click)="refreshSummary()"
+          [disabled]="isLoadingSummary"
+          matTooltip="Refresh">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div *ngIf="isLoadingSummary" class="loading-state">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading attendance data...</p>
+        </div>
+
+        <ng-container *ngIf="!isLoadingSummary && summary">
+
+          <!-- Already submitted banner -->
+          <div *ngIf="summary.attendance_submitted" class="submitted-banner">
+            <mat-icon>verified</mat-icon>
+            Attendance for this meeting has already been finalized.
+          </div>
+
+          <!-- Count Cards -->
+          <div class="count-grid">
+            <div class="count-card present">
+              <mat-icon>check_circle</mat-icon>
+              <div class="count-value">{{ summary.presentCount }}</div>
+              <div class="count-label">Members Present</div>
+            </div>
+            <div class="count-card absent">
+              <mat-icon>cancel</mat-icon>
+              <div class="count-value">{{ summary.absentCount }}</div>
+              <div class="count-label">Absent</div>
+            </div>
+            <div class="count-card total">
+              <mat-icon>people</mat-icon>
+              <div class="count-value">{{ (summary.presentCount || 0) + (summary.absentCount || 0) }}</div>
+              <div class="count-label">Total Records</div>
+            </div>
+          </div>
+
+          <!-- Attendee List -->
+          <div class="attendee-section" *ngIf="summary.attendees?.length > 0">
+            <h3 class="attendee-title">
+              <mat-icon>list</mat-icon>
+              Members Who Marked Attendance
+            </h3>
+            <table mat-table [dataSource]="summary.attendees" class="attendee-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let row">
+                  <div class="member-row">
+                    <mat-icon class="person-icon">person</mat-icon>
+                    {{ row.User?.name || '—' }}
+                  </div>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let row">{{ row.User?.email || '—' }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+          <div *ngIf="summary.attendees?.length === 0" class="empty-attendees">
+            <mat-icon>info</mat-icon>
+            No members have marked attendance yet.
+          </div>
+
+        </ng-container>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Step 3: Admin Count Entry & Submit -->
+    <mat-card class="step-card submit-card" *ngIf="summary && !summary.attendance_submitted">
+      <mat-card-header>
+        <div class="step-badge">3</div>
+        <mat-card-title>Enter Your Count &amp; Submit</mat-card-title>
+        <mat-card-subtitle>
+          Enter the number of people you counted physically. It must match the system count above.
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="submit-row">
+          <mat-form-field appearance="outline" class="count-input">
+            <mat-label>Your Attendance Count</mat-label>
+            <mat-icon matPrefix>tag</mat-icon>
+            <input
+              id="admin-count-input"
+              matInput
+              type="number"
+              min="0"
+              [(ngModel)]="adminCount"
+              placeholder="e.g. 12">
+            <mat-hint>System shows <strong>{{ summary?.presentCount ?? 0 }}</strong> present</mat-hint>
+          </mat-form-field>
+
+          <!-- Live match indicator -->
+          <div class="match-indicator" *ngIf="adminCount !== null">
+            <ng-container *ngIf="countMatchesActual">
+              <mat-icon class="match-icon match">check_circle</mat-icon>
+              <span class="match-text match">Counts match! Ready to submit.</span>
+            </ng-container>
+            <ng-container *ngIf="!countMatchesActual">
+              <mat-icon class="match-icon mismatch">error</mat-icon>
+              <span class="match-text mismatch">
+                Mismatch: you entered {{ adminCount }}, system has {{ summary?.presentCount ?? 0 }}.
+              </span>
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- Status Message -->
+        <div *ngIf="statusMessage" class="status-message" [ngClass]="statusType">
+          <mat-icon>{{ statusType === 'success' ? 'check_circle' : statusType === 'error' ? 'error' : 'info' }}</mat-icon>
+          {{ statusMessage }}
+        </div>
+
+        <button
+          id="submit-attendance-btn"
+          mat-raised-button
+          class="submit-btn"
+          [disabled]="!canSubmit || !countMatchesActual"
+          (click)="submitAttendance()">
+          <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+          <mat-icon *ngIf="!isSubmitting">verified</mat-icon>
+          {{ isSubmitting ? 'Submitting...' : 'Finalize Attendance' }}
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+
+</div>

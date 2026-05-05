@@ -1,12 +1,19 @@
 import { TestBed } from '@angular/core/testing';
-
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ApiService } from './api.service';
 
 describe('ApiService', () => {
   let service: ApiService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        ApiService,
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ]
+    });
     service = TestBed.inject(ApiService);
   });
 
@@ -14,11 +21,3 @@ describe('ApiService', () => {
     expect(service).toBeTruthy();
   });
 });
-
-function expect(service: ApiService) {
-  throw new Error('Function not implemented.');
-}
-function beforeEach(arg0: () => void) {
-  throw new Error('Function not implemented.');
-}
-

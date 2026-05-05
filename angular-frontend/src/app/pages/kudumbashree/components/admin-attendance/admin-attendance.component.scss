@@ -1,0 +1,295 @@
+.admin-attendance-page {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.page-header {
+  background: linear-gradient(135deg, #880e4f 0%, #c2185b 100%);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  color: #fff;
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    mat-icon { font-size: 1.8rem; height: 1.8rem; width: 1.8rem; }
+  }
+
+  p {
+    margin: 0;
+    opacity: 0.88;
+    font-size: 0.95rem;
+  }
+}
+
+/* ── Step Cards ──────────────────────────────────────── */
+.step-card {
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  overflow: hidden;
+
+  mat-card-header {
+    background: #fce4ec;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+  }
+
+  mat-card-title { font-size: 1rem; font-weight: 700; color: #880e4f; margin: 0; }
+  mat-card-subtitle { font-size: 0.82rem; color: #7a7a7a; margin: 0; }
+
+  mat-card-content { padding: 20px; }
+}
+
+.step-badge {
+  background: #c2185b;
+  color: #fff;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* ── Meeting Selector ────────────────────────────────── */
+.meeting-selector-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.meeting-select { flex: 1; min-width: 280px; }
+
+.meeting-option {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.meeting-date {
+  color: #888;
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
+.no-meetings-hint {
+  color: #e91e63;
+  font-size: 0.88rem;
+}
+
+/* ── Refresh button ──────────────────────────────────── */
+.refresh-btn {
+  position: absolute !important;
+  right: 16px;
+  color: #c2185b !important;
+}
+
+/* ── Loading ─────────────────────────────────────────── */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: #888;
+}
+
+/* ── Submitted banner ────────────────────────────────── */
+.submitted-banner {
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2e7d32;
+  font-weight: 600;
+  margin-bottom: 20px;
+
+  mat-icon { color: #43a047; }
+}
+
+/* ── Count Cards ─────────────────────────────────────── */
+.count-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.count-card {
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon { font-size: 2rem; width: 2rem; height: 2rem; }
+
+  &.present {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    mat-icon { color: #43a047; }
+    .count-value { color: #2e7d32; }
+  }
+
+  &.absent {
+    background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+    mat-icon { color: #e91e63; }
+    .count-value { color: #880e4f; }
+  }
+
+  &.total {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    mat-icon { color: #1976d2; }
+    .count-value { color: #0d47a1; }
+  }
+}
+
+.count-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Attendee List ───────────────────────────────────── */
+.attendee-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #880e4f;
+  margin: 0 0 12px;
+
+  mat-icon { font-size: 1.1rem; }
+}
+
+.attendee-table {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.person-icon { font-size: 1.1rem; color: #c2185b; }
+
+.empty-attendees {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #888;
+  padding: 16px 0;
+  font-size: 0.9rem;
+}
+
+/* ── Submit Section ──────────────────────────────────── */
+.submit-card mat-card-header { background: #fff3e0; }
+.submit-card mat-card-title { color: #e65100 !important; }
+
+.submit-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.count-input { min-width: 220px; }
+
+.match-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  flex: 1;
+}
+
+.match-icon {
+  font-size: 1.4rem;
+  width: 1.4rem;
+  height: 1.4rem;
+
+  &.match { color: #43a047; }
+  &.mismatch { color: #e53935; }
+}
+
+.match-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  &.match { color: #2e7d32; }
+  &.mismatch { color: #c62828; }
+}
+
+/* ── Status Message ──────────────────────────────────── */
+.status-message {
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+
+  &.success { background: #e8f5e9; color: #2e7d32; mat-icon { color: #43a047; } }
+  &.error   { background: #ffebee; color: #c62828; mat-icon { color: #e53935; } }
+  &.info    { background: #e3f2fd; color: #1565c0; mat-icon { color: #1976d2; } }
+}
+
+/* ── Submit Button ───────────────────────────────────── */
+.submit-btn {
+  background: linear-gradient(135deg, #880e4f, #c2185b) !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+  padding: 10px 28px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 600px) {
+  .count-grid { grid-template-columns: 1fr; }
+  .submit-row { flex-direction: column; }
+  .match-indicator { padding-top: 0; }
+}

@@ -9,9 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-import { AuthService, User } from '../../services/auth.service';
+import { AuthService } from '../../services/auth.service';
 import { TranslationService } from '../../services/translation.service';
+import { ApiService } from '../../services/api.service';
 
 interface ProfileStats {
   totalMeetings: number;
@@ -35,7 +39,8 @@ interface ProfileStats {
     MatButtonModule,
     MatIconModule,
     MatTabsModule,
-    MatDividerModule
+    MatDividerModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './member-profile.component.html',
   styleUrl: './member-profile.component.scss'
@@ -44,6 +49,7 @@ export class MemberProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private translationService = inject(TranslationService);
+  private apiService = inject(ApiService);
   private snackBar = inject(MatSnackBar);
 
   translations = this.translationService.translations$;
@@ -51,16 +57,24 @@ export class MemberProfileComponent implements OnInit {
 
   profileForm: FormGroup;
   isEditing = false;
-  isLoading = false;
+  isLoading = true;
+  isSaving = false;
+
+  // Kudumbashree profile fields
+  memberId = '';
+  joinDate: Date | null = null;
+  groupName = '';
+  bankAccount = '';
+  ifscCode = '';
 
   profileStats: ProfileStats = {
-    totalMeetings: 24,
-    meetingsAttended: 18,
-    attendanceRate: 75,
-    totalLoans: 3,
-    activeLoans: 1,
-    totalPaid: 12500,
-    pendingPayments: 1500
+    totalMeetings: 0,
+    meetingsAttended: 0,
+    attendanceRate: 0,
+    totalLoans: 0,
+    activeLoans: 0,
+    totalPaid: 0,
+    pendingPayments: 0
   };
 
   constructor() {
@@ -68,62 +82,133 @@ export class MemberProfileComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
-      communityUnit: ['', Validators.required],
+      communityUnit: [''],
       address: [''],
-      emergencyContact: [''],
-      occupation: ['']
+      houseNumber: [''],
+      panchayatName: ['']
     });
   }
 
   ngOnInit() {
-    this.loadUserProfile();
+    this.loadAllData();
   }
 
-  loadUserProfile() {
+  loadAllData() {
+    this.isLoading = true;
+
+    forkJoin({
+      profile: this.apiService.getMemberProfile().pipe(catchError(() => of(null))),
+      attendanceHistory: this.apiService.getAttendanceHistory().pipe(catchError(() => of([]))),
+      loans: this.apiService.getLoans().pipe(catchError(() => of([])))
+    }).subscribe({
+      next: ({ profile, attendanceHistory, loans }) => {
+        this.populateFromProfile(profile);
+        this.computeStats(attendanceHistory as any[], loans as any[]);
+        this.isLoading = false;
+      },
+      error: () => {
+        // Fallback to auth service data if API fails
+        this.populateFromAuthUser();
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private populateFromProfile(profile: any) {
+    if (!profile) {
+      // Fallback to auth service data
+      this.populateFromAuthUser();
+      return;
+    }
+
+    const user = profile.User || {};
+
+    // Kudumbashree-specific fields
+    this.memberId = profile.memberId || '';
+    this.joinDate = profile.join_date ? new Date(profile.join_date) : null;
+    this.groupName = profile.KudumbashreeGroup?.name || '';
+    this.bankAccount = profile.bank_account || '';
+    this.ifscCode = profile.ifsc_code || '';
+
+    this.profileForm.patchValue({
+      name: user.full_name || this.user()?.name || '',
+      email: user.email || this.user()?.email || '',
+      phone: user.mobile_number || this.user()?.phone || '',
+      communityUnit: this.user()?.communityUnit || '',
+      address: user.address || '',
+      houseNumber: '',
+      panchayatName: ''
+    });
+  }
+
+  private populateFromAuthUser() {
     const currentUser = this.user();
     if (currentUser) {
       this.profileForm.patchValue({
-        name: currentUser.name,
-        email: currentUser.email,
+        name: currentUser.name || '',
+        email: currentUser.email || '',
         phone: currentUser.phone || '',
         communityUnit: currentUser.communityUnit || '',
-        address: '123 Community Street, City, State - 123456',
-        emergencyContact: '9876543210',
-        occupation: 'Homemaker'
+        address: '',
+        houseNumber: '',
+        panchayatName: ''
       });
     }
+  }
+
+  private computeStats(attendanceHistory: any[], loans: any[]) {
+    // Attendance stats
+    const attended = attendanceHistory.filter(a => a.status === 'Present').length;
+    const totalMeetings = attendanceHistory.length;
+
+    // Loan stats
+    const activeLoans = loans.filter(l => l.status === 'Approved' || l.status === 'Disbursed').length;
+    const totalPaid = loans
+      .filter(l => l.status === 'Paid' || l.status === 'Closed')
+      .reduce((sum, l) => sum + (l.amount || 0), 0);
+    const pendingPayments = loans
+      .filter(l => l.status === 'Approved' || l.status === 'Disbursed')
+      .reduce((sum, l) => sum + (l.remaining_amount || l.amount || 0), 0);
+
+    this.profileStats = {
+      totalMeetings,
+      meetingsAttended: attended,
+      attendanceRate: totalMeetings > 0 ? Math.round((attended / totalMeetings) * 100) : 0,
+      totalLoans: loans.length,
+      activeLoans,
+      totalPaid,
+      pendingPayments
+    };
   }
 
   toggleEdit() {
     this.isEditing = !this.isEditing;
     if (!this.isEditing) {
-      this.loadUserProfile(); // Reset form if canceling edit
+      this.loadAllData(); // Reset to server data on cancel
     }
   }
 
   saveProfile() {
     if (this.profileForm.valid) {
-      this.isLoading = true;
-      
-      // Note: In production, this would update via the main backend API
-      // For now, just show success message
+      this.isSaving = true;
+      // Note: Profile editing can be wired to a PUT endpoint when ready.
+      // For now, simulate save and update local auth user display.
       setTimeout(() => {
         this.isEditing = false;
-        this.isLoading = false;
-        
+        this.isSaving = false;
         this.snackBar.open('Profile updated successfully!', 'Close', {
           duration: 3000,
           panelClass: ['success-snackbar']
         });
-      }, 1000);
+      }, 800);
     }
   }
 
   getFormattedAmount(amount: number): string {
-    return '₹' + amount.toLocaleString('en-IN');
+    return '₹' + (amount || 0).toLocaleString('en-IN');
   }
 
   getAttendancePercentage(): number {
-    return Math.round((this.profileStats.meetingsAttended / this.profileStats.totalMeetings) * 100);
+    return this.profileStats.attendanceRate;
   }
 }

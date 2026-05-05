@@ -44,6 +44,14 @@ export class ApiService {
     return this.http.get<any[]>(`${this.baseUrl}/kudumbashree/attendance/user-history`);
   }
 
+  getAttendanceSummary(meetingId: number | string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/kudumbashree/attendance/summary/${meetingId}`);
+  }
+
+  adminSubmitAttendance(meetingId: number | string, adminCount: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/kudumbashree/attendance/admin-submit/${meetingId}`, { adminCount });
+  }
+
   // Loan management endpoints
   applyLoan(loanData: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/kudumbashree/loan/apply`, loanData);
@@ -51,6 +59,11 @@ export class ApiService {
 
   getLoans(): Observable<Loan[]> {
     return this.http.get<Loan[]>(`${this.baseUrl}/kudumbashree/loan`);
+  }
+
+  // Member profile
+  getMemberProfile(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/kudumbashree/member/profile`);
   }
 
   // Meeting organizer endpoints

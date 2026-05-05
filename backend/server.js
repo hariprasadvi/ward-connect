@@ -1,5 +1,5 @@
 const express = require('express');
-const http = require('http'); // ADDED
+const http = require('http'); 
 const path = require('path');
 const cors = require('cors');
 const { Server } = require('socket.io');
@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { sequelize } = require('./src/config/database');
-const initializeWebSocket = require('./src/websocket'); // ADDED
+const initializeWebSocket = require('./src/websocket');
 
 // Import Models for Association
 const Vehicle = require('./src/models/vehicle.model');
@@ -20,7 +20,7 @@ const CartItem = require('./src/models/CartItem');
 const WishlistItem = require('./src/models/WishlistItem');
 const Order = require('./src/models/Order');
 const OrderItem = require('./src/models/OrderItem');
-require('./src/models/associations'); // Extra shop associations
+require('./src/models/associations'); 
 
 // --- Associations handled centrally in src/models/associations.js ---
 
@@ -104,17 +104,19 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('Database connected successfully.');
 
-    // Sync models
     // Using { alter: true } matches schemas
     await sequelize.sync({ alter: true });
-    // await sequelize.sync();
 
-    server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT} `);
-    });
+    if (require.main === module) {
+      server.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    }
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }
 };
 
 startServer();
+
+module.exports = app;
