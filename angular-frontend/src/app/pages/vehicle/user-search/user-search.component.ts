@@ -406,6 +406,13 @@ export class UserSearchComponent implements OnInit, AfterViewInit {
             clearInterval(interval);
             this.toastService.show('Booking was declined by the owner.', 'error');
             this.loadVehicles();
+          } else if (booking.status === 'Timeout') {
+            clearInterval(interval);
+            if (confirm('The driver did not accept the request in time. Would you like to try requesting again?')) {
+              this.confirmBooking();
+            } else {
+              this.loadVehicles();
+            }
           }
           // If Pending, continue polling
         },

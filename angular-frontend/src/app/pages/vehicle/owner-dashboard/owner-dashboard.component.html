@@ -118,10 +118,15 @@
                                     <span class="bg-gray-100 p-1 rounded-md text-xs">📞</span> {{ request.User?.mobile_number || 'No contact provided' }}
                                 </p>
                                 
-                                <div class="mt-4 inline-flex items-center text-sm font-bold text-gray-700 bg-gray-50 border border-gray-100 p-2.5 rounded-xl shadow-sm w-full md:w-auto overflow-hidden">
-                                    <span class="truncate max-w-[150px]" title="{{ request.source }}">📍 {{ request.source }}</span>
-                                    <span class="mx-3 text-indigo-300">➜</span>
-                                    <span class="truncate max-w-[150px]" title="{{ request.destination }}">🏁 {{ request.destination }}</span>
+                                <div class="mt-4 flex flex-col gap-2 bg-gray-50 border border-gray-100 p-3 rounded-2xl shadow-sm w-full">
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-indigo-500 font-bold shrink-0 w-8">From:</span>
+                                        <span class="text-sm font-semibold text-gray-800 break-words">{{ request.source }}</span>
+                                    </div>
+                                    <div class="flex items-start gap-3 border-t border-gray-200/50 pt-2">
+                                        <span class="text-rose-500 font-bold shrink-0 w-8">To:</span>
+                                        <span class="text-sm font-semibold text-gray-800 break-words">{{ request.destination }}</span>
+                                    </div>
                                 </div>
                             </div>
 

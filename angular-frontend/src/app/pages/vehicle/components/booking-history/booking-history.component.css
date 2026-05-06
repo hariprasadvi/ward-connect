@@ -1,1 +1,53 @@
-/* CSS is minimal due to Tailwind usage in HTML */
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scale-up {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes star-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2) rotate(15deg); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-scale-up {
+    animation: scale-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-star-pop {
+    animation: star-pop 0.3s ease-out;
+}
+
+.animate-shimmer {
+    animation: shimmer 1.5s infinite;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}

@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op } = require('sequelize');
 const http = require('http'); // ADDED
 const path = require('path');
 const cors = require('cors');
@@ -114,6 +115,40 @@ cron.schedule('* * * * *', async () => {
         }
     } catch (error) {
         console.error('Error in medicine reminder cron:', error);
+    }
+});
+
+// Vehicle Booking Timeout Cron (Runs every minute)
+cron.schedule('* * * * *', async () => {
+    try {
+        const timeoutLimit = new Date(Date.now() - 2 * 60 * 1000); // 2 minutes ago
+
+        const expiredBookings = await Booking.findAll({
+            where: {
+                status: 'Pending',
+                createdAt: {
+                    [Op.lt]: timeoutLimit
+                }
+            }
+        });
+
+        if (expiredBookings.length > 0) {
+            console.log(`[CRON] Found ${expiredBookings.length} expired booking requests. Timing them out...`);
+            
+            for (const booking of expiredBookings) {
+                booking.status = 'Timeout';
+                await booking.save();
+
+                // Make the vehicle available again
+                const vehicle = await Vehicle.findByPk(booking.vehicleId);
+                if (vehicle) {
+                    vehicle.isAvailable = true;
+                    await vehicle.save();
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error in vehicle booking timeout cron:', error);
     }
 });
 

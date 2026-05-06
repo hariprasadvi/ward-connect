@@ -2,6 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VehicleService } from '../../../../services/vehicle.service';
 import { AuthService } from '../../../../services/auth.service';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
     selector: 'app-booking-history',
@@ -17,9 +18,16 @@ export class BookingHistoryComponent implements OnInit {
     totalRides = 0;
     totalAmount = 0;
 
+    // Rating Modal State
+    showRatingModal = false;
+    selectedRating = 0;
+    hoverRating = 0;
+    selectedBooking: any = null;
+
     constructor(
         private vehicleService: VehicleService,
-        private authService: AuthService
+        private authService: AuthService,
+        private toastService: ToastService
     ) { }
 
     ngOnInit(): void {
@@ -87,17 +95,33 @@ export class BookingHistoryComponent implements OnInit {
     }
 
     rateDriver(booking: any) {
-        const rating = prompt('Rate your ride (1-5 stars):');
-        if (rating) {
-            const score = parseInt(rating);
-            if (score >= 1 && score <= 5) {
-                this.vehicleService.rateVehicle(booking.id, score).subscribe({
-                    next: (res) => alert('Thank you for rating!'),
-                    error: (err) => alert('Error submitting rating')
-                });
-            } else {
-                alert('Please enter a number between 1 and 5');
-            }
+        this.selectedBooking = booking;
+        this.selectedRating = 0;
+        this.hoverRating = 0;
+        this.showRatingModal = true;
+    }
+
+    closeRatingModal() {
+        this.showRatingModal = false;
+        this.selectedBooking = null;
+    }
+
+    submitRating() {
+        if (!this.selectedBooking || this.selectedRating === 0) {
+            this.toastService.show('Please select a rating', 'warning');
+            return;
         }
+
+        this.vehicleService.rateVehicle(this.selectedBooking.id, this.selectedRating).subscribe({
+            next: (res) => {
+                this.toastService.show('Thank you for your feedback!', 'success');
+                this.closeRatingModal();
+                // Optionally update the local booking object to prevent re-rating
+                this.selectedBooking.isRated = true; 
+            },
+            error: (err) => {
+                this.toastService.show('Error submitting rating', 'error');
+            }
+        });
     }
 }

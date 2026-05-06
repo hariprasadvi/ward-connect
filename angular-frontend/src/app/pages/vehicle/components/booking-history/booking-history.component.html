@@ -62,9 +62,16 @@
                                 {{ booking.createdAt | date:'medium' }}
                             </span>
                         </div>
-                        <h4 class="text-base font-semibold text-gray-800">
-                            {{ booking.source }} <span class="text-gray-400 mx-1">→</span> {{ booking.destination }}
-                        </h4>
+                        <div class="flex flex-col gap-1 my-2">
+                            <p class="text-sm font-medium text-gray-700 flex items-start gap-2">
+                                <span class="text-indigo-500 font-bold shrink-0">From:</span>
+                                <span class="break-words">{{ booking.source }}</span>
+                            </p>
+                            <p class="text-sm font-medium text-gray-700 flex items-start gap-2">
+                                <span class="text-rose-500 font-bold shrink-0">To:</span>
+                                <span class="break-words">{{ booking.destination }}</span>
+                            </p>
+                        </div>
                         <p class="text-sm text-gray-500 mt-1" *ngIf="mode === 'user'">
                             Vehicle: <span class="font-medium text-gray-700">{{ booking.Vehicle?.type }} ({{
                                 booking.Vehicle?.registrationNumber }})</span>
@@ -86,6 +93,60 @@
                             ⭐ Rate Driver
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div *ngIf="showRatingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm animate-fade-in" (click)="closeRatingModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md p-8 relative z-10 animate-scale-up border border-gray-100 overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-yellow-400/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl"></div>
+
+            <button (click)="closeRatingModal()" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="text-center">
+                <div class="bg-yellow-50 w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-4 ring-yellow-50/50">
+                    ⭐
+                </div>
+                <h3 class="text-2xl font-black text-gray-900 mb-2">Rate Your Journey</h3>
+                <p class="text-gray-500 font-medium px-4 mb-8">How was your ride with {{ selectedBooking?.Vehicle?.driverName || 'the driver' }}?</p>
+
+                <!-- Stars Container -->
+                <div class="flex justify-center gap-2 mb-10">
+                    <button *ngFor="let star of [1,2,3,4,5]" 
+                            (mouseenter)="hoverRating = star"
+                            (mouseleave)="hoverRating = 0"
+                            (click)="selectedRating = star"
+                            class="transition-all duration-200 transform active:scale-90 focus:outline-none">
+                        <svg class="w-12 h-12" 
+                             [ngClass]="(hoverRating >= star || (selectedRating >= star && hoverRating === 0)) ? 'text-yellow-400' : 'text-gray-200 hover:text-yellow-200'"
+                             fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button (click)="submitRating()" 
+                        class="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-lg hover:bg-black transition-all shadow-xl shadow-gray-200 group relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                        Submit Rating
+                    </button>
+                    <button (click)="closeRatingModal()" 
+                        class="w-full py-3 text-gray-400 font-bold hover:text-gray-600 transition-colors">
+                        Maybe Later
+                    </button>
                 </div>
             </div>
         </div>
