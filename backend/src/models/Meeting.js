@@ -71,6 +71,11 @@ const Meeting = sequelize.define('Meeting', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    attendance_submitted: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
 }, {
     timestamps: true,
 });

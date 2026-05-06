@@ -243,3 +243,137 @@ $text-light: #8e24aa;
     transform: translateY(0);
   }
 }
+
+/* ── Loading Overlay ─────────────────────────────────── */
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 16px;
+  color: $primary-pink;
+
+  p {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $text-light;
+  }
+}
+
+/* ── Kudumbashree Info Section ───────────────────────── */
+.kudumbashree-info {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.section-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $dark-pink;
+  margin: 0 0 14px;
+
+  mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: $primary-pink;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-item {
+  background: $soft-pink;
+  border: 1px solid $light-pink;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $text-light;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $dark-pink;
+}
+
+/* ── Attendance Progress Bar ─────────────────────────── */
+.attendance-bar-section {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $text-light;
+  margin-bottom: 6px;
+}
+
+.progress-track {
+  height: 10px;
+  background: $light-pink;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $baby-pink, $primary-pink);
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+/* ── No Data Hint ────────────────────────────────────── */
+.no-data-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 1.5rem 1.5rem;
+  color: #aaa;
+  font-size: 0.88rem;
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* ── Financial pending color ─────────────────────────── */
+.pending {
+  color: #c62828 !important;
+}
+
+.loans-count {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: $primary-pink;
+}
+
+.financial-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}

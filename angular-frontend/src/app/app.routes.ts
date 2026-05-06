@@ -54,6 +54,11 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'civic-requests',
+    loadComponent: () => import('./pages/civic-requests/civic-requests.component').then(m => m.CivicRequestsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'utilities',
     loadComponent: () => import('./pages/utility-bills/utility-bills.component').then(m => m.UtilityBillsComponent),
     canActivate: [authGuard]
@@ -78,10 +83,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/utility-bills/payment-history/payment-history.component').then(m => m.PaymentHistoryComponent),
     canActivate: [authGuard]
   },
-  {
-    path: 'civic-requests',
-    loadComponent: () => import('./pages/civic-requests/civic-requests.component').then(m => m.CivicRequestsComponent),
-    canActivate: [authGuard]
-  },
+  
   { path: '**', redirectTo: '' }
 ];

@@ -1,15 +1,18 @@
 <div class="meeting-minutes-container">
   <h2>{{ translations().MEETING_MINUTES_GENERATOR }}</h2>
 
-  <mat-card>
+  <!-- Meeting Selection -->
+  <mat-card class="selection-card">
     <mat-card-header>
-      <mat-card-title>{{ translations().RECORD_MEETING }}</mat-card-title>
+      <mat-card-title>
+        <mat-icon>meeting_room</mat-icon>
+        {{ translations().SELECT_MEETING }}
+      </mat-card-title>
     </mat-card-header>
-
     <mat-card-content>
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ translations().SELECT_MEETING }}</mat-label>
-        <mat-icon matPrefix>meeting_room</mat-icon>
+        <mat-icon matPrefix>event</mat-icon>
         <mat-select [(value)]="selectedMeeting" (selectionChange)="onMeetingSelect()">
           <mat-option value="">-- {{ translations().SELECT_MEETING }} --</mat-option>
           @for (meeting of meetings; track meeting.id) {
@@ -18,107 +21,291 @@
           </mat-option>
           }
         </mat-select>
-        @if (!selectedMeeting) {
-        <mat-hint>{{ translations().SELECT_MEETING_HINT }}</mat-hint>
-        }
       </mat-form-field>
 
       @if (selectedMeeting && selectedMeetingDetails) {
       <div class="meeting-details">
-        <h3><mat-icon>info</mat-icon> {{ translations().MEETING_DETAILS }}</h3>
         <div class="details-grid">
           <div class="detail-item">
             <mat-icon>title</mat-icon>
-            <strong>{{ translations().TITLE }}:</strong> {{ selectedMeetingDetails.title }}
+            <strong>{{ translations().TITLE }}:</strong>
+            <span>{{ selectedMeetingDetails.title }}</span>
           </div>
           <div class="detail-item">
             <mat-icon>event</mat-icon>
-            <strong>{{ translations().DATE }}:</strong> {{ selectedMeetingDetails.date | date:'fullDate' }}
+            <strong>{{ translations().DATE }}:</strong>
+            <span>{{ selectedMeetingDetails.date | date:'fullDate' }}</span>
           </div>
           <div class="detail-item">
             <mat-icon>place</mat-icon>
-            <strong>{{ translations().LOCATION }}:</strong> {{ selectedMeetingDetails.location }}
+            <strong>{{ translations().LOCATION }}:</strong>
+            <span>{{ selectedMeetingDetails.location }}</span>
           </div>
-          @if (selectedMeetingDetails.description) {
-          <div class="detail-item full-width">
-            <mat-icon>description</mat-icon>
-            <strong>{{ translations().DESCRIPTION }}:</strong> {{ selectedMeetingDetails.description }}
-          </div>
-          }
         </div>
-      </div>
-      }
-
-      <div class="recording-controls">
-        <button mat-raised-button color="warn" (click)="isRecording ? stopRecording() : startRecording()"
-          [disabled]="!selectedMeeting" [class.recording]="isRecording" class="record-btn">
-          <mat-icon>{{ isRecording ? 'stop' : 'fiber_manual_record' }}</mat-icon>
-          {{ isRecording ? translations().STOP_RECORDING : translations().START_RECORDING }}
-        </button>
-
-        <button mat-raised-button color="primary" (click)="generateSummary()" [disabled]="!selectedMeeting"
-          class="generate-btn">
-          <mat-icon>summarize</mat-icon>
-          {{ translations().GENERATE_MINUTES }}
-        </button>
-
-        <button mat-stroked-button color="basic" (click)="clearSelection()" class="clear-btn">
-          <mat-icon>clear</mat-icon>
-          {{ translations().CLEAR }}
-        </button>
-      </div>
-
-      @if (isRecording) {
-      <div class="recording-status">
-        <mat-progress-spinner diameter="30" mode="indeterminate"></mat-progress-spinner>
-        <span>{{ translations().RECORDING_IN_PROGRESS }} {{ recordingTime }}s</span>
-      </div>
-      }
-
-      @if (transcript || interimTranscript) {
-      <div class="results-section">
-        <div class="section-header">
-          <h3>{{ translations().MEETING_TRANSCRIPT }}</h3>
-          <button mat-icon-button (click)="copyToClipboard(transcript)" [matTooltip]="translations().COPY_TRANSCRIPT">
-            <mat-icon>content_copy</mat-icon>
-          </button>
-        </div>
-        <div class="transcript-box">
-          {{ transcript }} <span style="color: grey; font-style: italic;">{{ interimTranscript }}</span>
-        </div>
-
-        <div class="section-header">
-          <h3>{{ translations().MEETING_SUMMARY }}</h3>
-          <button mat-icon-button (click)="copyToClipboard(summary)" [matTooltip]="translations().COPY_SUMMARY">
-            <mat-icon>content_copy</mat-icon>
-          </button>
-        </div>
-        <div class="summary-box">{{ summary }}</div>
-
-        <div class="action-buttons">
-          <button mat-stroked-button color="primary" (click)="downloadTranscript()">
-            <mat-icon>download</mat-icon>
-            {{ translations().DOWNLOAD_TRANSCRIPT }}
-          </button>
-          <button mat-stroked-button color="primary" (click)="downloadSummary()">
-            <mat-icon>download</mat-icon>
-            {{ translations().DOWNLOAD_SUMMARY }}
-          </button>
-        </div>
-      </div>
-      }
-
-      @if (meetings.length === 0) {
-      <div class="no-meetings">
-        <mat-icon>event_busy</mat-icon>
-        <h3>{{ translations().NO_MEETINGS_AVAILABLE }}</h3>
-        <p>{{ translations().SCHEDULE_MEETING_FIRST }}</p>
-        <button mat-raised-button color="primary" routerLink="/kudumbashree/meetings">
-          <mat-icon>add</mat-icon>
-          {{ translations().SCHEDULE_MEETING }}
-        </button>
       </div>
       }
     </mat-card-content>
   </mat-card>
+
+  <!-- Audio Input Section -->
+  @if (selectedMeeting) {
+  <mat-card class="audio-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>mic</mat-icon>
+        Audio Input
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-tab-group animationDuration="300ms" class="audio-tabs">
+
+        <!-- Tab 1: Upload Audio File -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>upload_file</mat-icon>
+            <span class="tab-label">Upload Audio</span>
+          </ng-template>
+
+          <div class="tab-content">
+            <p class="tab-description">
+              <mat-icon>info_outline</mat-icon>
+              Upload a Malayalam audio recording (.mp3, .wav, .m4a, .webm, .ogg) of your meeting.
+              AI will transcribe it and generate meeting minutes automatically.
+            </p>
+
+            <!-- Drag & Drop Zone -->
+            <div class="upload-zone" [class.drag-over]="isDragOver" [class.has-file]="selectedFile"
+              (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+
+              @if (!selectedFile) {
+              <div class="upload-placeholder">
+                <div class="upload-icon-wrapper">
+                  <mat-icon>cloud_upload</mat-icon>
+                </div>
+                <h3>Drag & Drop Audio File Here</h3>
+                <p>or</p>
+                <label class="browse-btn" for="audioFileInput">
+                  <mat-icon>folder_open</mat-icon>
+                  Browse Files
+                </label>
+                <input type="file" id="audioFileInput" accept="audio/*,video/mp4,video/webm"
+                  (change)="onFileSelected($event)" hidden>
+                <p class="file-hint">Supports: MP3, WAV, M4A, WebM, OGG, AAC, FLAC (Max 50MB)</p>
+              </div>
+              } @else {
+              <div class="file-preview">
+                <div class="file-info">
+                  <div class="file-icon">
+                    <mat-icon>audio_file</mat-icon>
+                  </div>
+                  <div class="file-details">
+                    <span class="file-name">{{ selectedFile.name }}</span>
+                    <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+                  </div>
+                  <button mat-icon-button class="remove-btn" (click)="removeFile()" matTooltip="Remove file">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+
+                <!-- File selected indicator -->
+                <div class="file-ready">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>File ready for processing</span>
+                </div>
+              </div>
+              }
+            </div>
+
+            <!-- Upload Button -->
+            @if (selectedFile && !isUploading && !isProcessing) {
+            <div class="upload-actions">
+              <button mat-raised-button class="process-btn" (click)="uploadAndProcess()">
+                <mat-icon>auto_awesome</mat-icon>
+                Generate Meeting Minutes with AI
+              </button>
+            </div>
+            }
+          </div>
+        </mat-tab>
+
+        <!-- Tab 2: Live Recording -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>record_voice_over</mat-icon>
+            <span class="tab-label">Live Record</span>
+          </ng-template>
+
+          <div class="tab-content">
+            <p class="tab-description">
+              <mat-icon>info_outline</mat-icon>
+              Record the meeting live. Speech will be transcribed in real-time.
+              After stopping, the audio will be sent to AI for summary generation.
+            </p>
+
+            <div class="language-selector">
+              <mat-form-field appearance="outline">
+                <mat-label>🗣️ Language</mat-label>
+                <mat-icon matPrefix>translate</mat-icon>
+                <mat-select [(value)]="selectedLanguage" [disabled]="isRecording">
+                  @for (lang of languages; track lang.code) {
+                  <mat-option [value]="lang.code">{{ lang.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="recording-controls">
+              <button mat-fab extended (click)="isRecording ? stopRecording() : startRecording()"
+                [class.recording]="isRecording" class="record-fab">
+                <mat-icon>{{ isRecording ? 'stop' : 'fiber_manual_record' }}</mat-icon>
+                {{ isRecording ? 'Stop Recording' : 'Start Recording' }}
+              </button>
+            </div>
+
+            @if (isRecording) {
+            <div class="live-status">
+              <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span class="live-label">LIVE</span>
+                <span class="recording-time">{{ formatTime(recordingTime) }}</span>
+              </div>
+              <div class="live-hint">🗣️ Speak now... words appear in real-time below</div>
+            </div>
+            }
+
+            <!-- Live transcript preview -->
+            @if (isRecording && (transcript || interimTranscript)) {
+            <div class="live-transcript-box">
+              <div class="live-transcript-header">
+                <mat-icon>subtitles</mat-icon>
+                <span>Live Transcript</span>
+                <span class="live-badge">● LIVE</span>
+              </div>
+              <div class="live-transcript-content">
+                <span class="final-text">{{ transcript }}</span>
+                @if (interimTranscript) {
+                <span class="interim-text">{{ interimTranscript }}</span>
+                }
+              </div>
+            </div>
+            }
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+  }
+
+  <!-- Processing Status -->
+  @if (isUploading || isProcessing) {
+  <mat-card class="processing-card">
+    <mat-card-content>
+      <div class="processing-status">
+        @if (isUploading) {
+        <div class="status-step active">
+          <mat-icon>cloud_upload</mat-icon>
+          <span>Uploading</span>
+        </div>
+        <div class="status-step">
+          <mat-icon>psychology</mat-icon>
+          <span>AI Processing</span>
+        </div>
+        <div class="status-step">
+          <mat-icon>check_circle</mat-icon>
+          <span>Done</span>
+        </div>
+        } @else if (isProcessing) {
+        <div class="status-step done">
+          <mat-icon>check_circle</mat-icon>
+          <span>Uploaded</span>
+        </div>
+        <div class="status-step active">
+          <mat-icon>psychology</mat-icon>
+          <span>AI Processing</span>
+        </div>
+        <div class="status-step">
+          <mat-icon>check_circle</mat-icon>
+          <span>Done</span>
+        </div>
+        }
+      </div>
+
+      <mat-progress-bar [mode]="isUploading ? 'determinate' : 'indeterminate'" [value]="uploadProgress"
+        class="progress-bar">
+      </mat-progress-bar>
+
+      <p class="processing-message">
+        <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+        {{ processingStatus }}
+      </p>
+    </mat-card-content>
+  </mat-card>
+  }
+
+  <!-- Results Section -->
+  @if (transcript || summary) {
+  <mat-card class="results-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>description</mat-icon>
+        Meeting Minutes
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (transcript) {
+      <div class="result-section">
+        <div class="result-header">
+          <h3>
+            <mat-icon>record_voice_over</mat-icon>
+            {{ translations().MEETING_TRANSCRIPT }}
+          </h3>
+          <button mat-icon-button (click)="copyToClipboard(transcript)" matTooltip="Copy Transcript">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+        <div class="transcript-box">{{ transcript }}</div>
+      </div>
+      }
+
+      @if (summary) {
+      <div class="result-section">
+        <div class="result-header">
+          <h3>
+            <mat-icon>summarize</mat-icon>
+            {{ translations().MEETING_SUMMARY }}
+          </h3>
+          <button mat-icon-button (click)="copyToClipboard(summary)" matTooltip="Copy Summary">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+        <div class="summary-box">{{ summary }}</div>
+      </div>
+      }
+
+      <div class="action-buttons">
+        <button mat-stroked-button (click)="downloadTranscript()" [disabled]="!transcript" class="download-btn">
+          <mat-icon>download</mat-icon>
+          {{ translations().DOWNLOAD_TRANSCRIPT }}
+        </button>
+        <button mat-stroked-button (click)="downloadSummary()" [disabled]="!summary" class="download-btn">
+          <mat-icon>download</mat-icon>
+          {{ translations().DOWNLOAD_SUMMARY }}
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  }
+
+  <!-- No Meetings -->
+  @if (meetings.length === 0) {
+  <div class="no-meetings">
+    <mat-icon>event_busy</mat-icon>
+    <h3>{{ translations().NO_MEETINGS_AVAILABLE }}</h3>
+    <p>{{ translations().SCHEDULE_MEETING_FIRST }}</p>
+    <button mat-raised-button color="primary" routerLink="/kudumbashree/meetings">
+      <mat-icon>add</mat-icon>
+      {{ translations().SCHEDULE_MEETING }}
+    </button>
+  </div>
+  }
 </div>

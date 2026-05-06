@@ -232,7 +232,7 @@ export class AdminDashboardComponent implements OnInit {
         title: 'Attendance Manager',
         description: 'Manage member attendance and history',
         icon: 'how_to_reg',
-        route: '/kudumbashree/admin/settings',
+        route: '/kudumbashree/admin/attendance',
         color: '#700c3b'
       }
     ];

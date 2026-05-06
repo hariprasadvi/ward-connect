@@ -4,7 +4,13 @@
     <p>Manage your personal information and view your community statistics</p>
   </div>
 
-  <div class="profile-content">
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-spinner diameter="52"></mat-spinner>
+    <p>Loading your profile...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="profile-content">
     <!-- Left Column - Profile Information -->
     <div class="profile-left">
       <mat-card class="profile-card">
@@ -13,23 +19,25 @@
             <mat-icon>person</mat-icon>
             Personal Information
           </mat-card-title>
-          <button mat-raised-button color="primary" (click)="isEditing ? saveProfile() : toggleEdit()"
-            [disabled]="isEditing && !profileForm.valid" [class]="isEditing ? 'save-btn' : 'edit-btn'">
-            <mat-icon>{{ isEditing ? 'save' : 'edit' }}</mat-icon>
-            {{ isEditing ? 'Save Changes' : 'Edit Profile' }}
+          <button mat-raised-button color="primary"
+            (click)="isEditing ? saveProfile() : toggleEdit()"
+            [disabled]="(isEditing && !profileForm.valid) || isSaving"
+            [class]="isEditing ? 'save-btn' : 'edit-btn'">
+            <mat-spinner *ngIf="isSaving" diameter="18"></mat-spinner>
+            <mat-icon *ngIf="!isSaving">{{ isEditing ? 'save' : 'edit' }}</mat-icon>
+            {{ isSaving ? 'Saving...' : (isEditing ? 'Save Changes' : 'Edit Profile') }}
           </button>
         </mat-card-header>
 
         <mat-card-content>
           <form [formGroup]="profileForm" class="profile-form">
+
             <div class="form-row">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Full Name</mat-label>
                 <input matInput formControlName="name" [readonly]="!isEditing">
                 <mat-icon matSuffix>person</mat-icon>
-                <mat-error *ngIf="profileForm.get('name')?.hasError('required')">
-                  Name is required
-                </mat-error>
+                <mat-error *ngIf="profileForm.get('name')?.hasError('required')">Name is required</mat-error>
               </mat-form-field>
             </div>
 
@@ -38,12 +46,7 @@
                 <mat-label>Email</mat-label>
                 <input matInput formControlName="email" type="email" [readonly]="!isEditing">
                 <mat-icon matSuffix>email</mat-icon>
-                <mat-error *ngIf="profileForm.get('email')?.hasError('required')">
-                  Email is required
-                </mat-error>
-                <mat-error *ngIf="profileForm.get('email')?.hasError('email')">
-                  Please enter a valid email
-                </mat-error>
+                <mat-error *ngIf="profileForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
               </mat-form-field>
             </div>
 
@@ -52,9 +55,6 @@
                 <mat-label>Phone Number</mat-label>
                 <input matInput formControlName="phone" [readonly]="!isEditing">
                 <mat-icon matSuffix>phone</mat-icon>
-                <mat-error *ngIf="profileForm.get('phone')?.hasError('required')">
-                  Phone number is required
-                </mat-error>
                 <mat-error *ngIf="profileForm.get('phone')?.hasError('pattern')">
                   Please enter a valid 10-digit phone number
                 </mat-error>
@@ -63,12 +63,9 @@
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Community Unit</mat-label>
-                <input matInput formControlName="communityUnit" [readonly]="!isEditing">
+                <mat-label>Ward / Community Unit</mat-label>
+                <input matInput formControlName="communityUnit" [readonly]="true">
                 <mat-icon matSuffix>location_city</mat-icon>
-                <mat-error *ngIf="profileForm.get('communityUnit')?.hasError('required')">
-                  Community unit is required
-                </mat-error>
               </mat-form-field>
             </div>
 
@@ -80,22 +77,6 @@
               </mat-form-field>
             </div>
 
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Emergency Contact</mat-label>
-                <input matInput formControlName="emergencyContact" [readonly]="!isEditing">
-                <mat-icon matSuffix>contact_emergency</mat-icon>
-              </mat-form-field>
-            </div>
-
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Occupation</mat-label>
-                <input matInput formControlName="occupation" [readonly]="!isEditing">
-                <mat-icon matSuffix>work</mat-icon>
-              </mat-form-field>
-            </div>
-
             <div *ngIf="isEditing" class="form-actions">
               <button mat-stroked-button type="button" (click)="toggleEdit()">
                 <mat-icon>cancel</mat-icon>
@@ -103,6 +84,33 @@
               </button>
             </div>
           </form>
+
+          <!-- Kudumbashree Profile Info (read-only) -->
+          <mat-divider style="margin: 16px 0"></mat-divider>
+          <div class="kudumbashree-info">
+            <h3 class="section-subtitle">
+              <mat-icon>badge</mat-icon>
+              Kudumbashree Details
+            </h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Member ID</span>
+                <span class="info-value">{{ memberId || '—' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Group</span>
+                <span class="info-value">{{ groupName || '—' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Join Date</span>
+                <span class="info-value">{{ joinDate ? (joinDate | date:'mediumDate') : '—' }}</span>
+              </div>
+              <div class="info-item" *ngIf="bankAccount">
+                <span class="info-label">Bank Account</span>
+                <span class="info-value">**** **** {{ bankAccount | slice:-4 }}</span>
+              </div>
+            </div>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>
@@ -148,6 +156,20 @@
               </div>
             </div>
           </div>
+
+          <!-- Attendance progress bar -->
+          <div class="attendance-bar-section" *ngIf="profileStats.totalMeetings > 0">
+            <div class="bar-label">
+              <span>Attendance</span>
+              <span>{{ getAttendancePercentage() }}%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="getAttendancePercentage()"></div>
+            </div>
+          </div>
+          <div *ngIf="profileStats.totalMeetings === 0" class="no-data-hint">
+            <mat-icon>info</mat-icon> No meeting history yet.
+          </div>
         </mat-card-content>
       </mat-card>
 
@@ -188,6 +210,9 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div *ngIf="profileStats.totalLoans === 0" class="no-data-hint">
+            <mat-icon>info</mat-icon> No loan history yet.
           </div>
         </mat-card-content>
       </mat-card>

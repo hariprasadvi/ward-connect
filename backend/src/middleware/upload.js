@@ -35,7 +35,10 @@ const uploadDisk = multer({
 
 // --- Memory Storage (For Audio/Meeting Minutes) ---
 const memoryStorage = multer.memoryStorage();
-const uploadMemory = multer({ storage: memoryStorage });
+const uploadMemory = multer({ 
+    storage: memoryStorage,
+    limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit for audio
+});
 
 module.exports = {
     uploadDisk,
